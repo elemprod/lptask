@@ -15,6 +15,8 @@
       arm_linker_variant="SEGGER"
       arm_target_device_name="STM32L053C8"
       arm_target_interface_type="SWD"
+      c_preprocessor_definitions="STM32L053xx;USE_FULL_LL_DRIVER"
+      c_user_include_directories=".;./Source;$(SDKDir)Drivers/CMSIS/Device/ST/STM32L0xx/Include;$(SDKDir)Drivers/STM32L0xx_HAL_Driver/Inc;$(SDKDir)Drivers/CMSIS/Include;../../../src/scheduler"
       debug_stack_pointer_start="__stack_end__"
       debug_target_connection="J-Link"
       gcc_entry_point="Reset_Handler"
@@ -22,10 +24,13 @@
       link_linker_script_file="Setup/SEGGER_Flash.icf"
       linker_output_format="hex"
       linker_section_placements_segments="FLASH1 RX 0x08000000 0x00010000;FLASH2 RX 0x08080000 0x00000800;RAM1 RWX 0x20000000 0x00002000;"
+      macros="SDKDir=../SDK/"
       project_directory=""
       project_type="Executable" />
     <folder Name="Source">
       <file file_name="Source/main.c" />
+      <file file_name="../../../src/scheduler/scheduler.h" />
+      <file file_name="../../../src/scheduler/scheduler.c" />
     </folder>
     <configuration Name="Release" link_dedupe_code="Yes" />
     <folder Name="Setup">
@@ -35,6 +40,7 @@
       <file file_name="System/Cortex_M_Startup.s" />
       <file file_name="System/SEGGER_THUMB_Startup.s" />
     </folder>
+    <file file_name="scheduler_config.h" />
   </project>
   <configuration
     Name="Debug"
