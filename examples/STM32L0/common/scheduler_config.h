@@ -1,13 +1,9 @@
 /* 
- * Platform Specific Scheduler Support
+ * STM32L0 Platform Specific Scheduler Configuration & Support Functions
  *
  */
 
- #include "stm32l053xx.h"
-
- //#include "cmsis_gcc.h"
- //#include "core_cm0plus.h"
-
+#include "stm32l0xx_hal.h"
 
  /**
   * @brief Macro for disabling global interrupts when entering a critical region of code
@@ -31,8 +27,8 @@
  * is currently active.
  *
  * Most implementations can simply return true here.  Platforms which 
- * implement a timer which can be stopped, during a low power mode
- * for example, should return false when the mS timer is not currently 
+ * implement a timer that can be stopped, during a low power mode
+ * for example, should return false if the mS timer is not currently 
  * running.
  *
  * @return    True if the scheduler's timer is currently active.
@@ -43,7 +39,7 @@ static inline bool scheduler_tick_active() {
 
  /**
  * @brief Function for getting the current value of the mS timer 
- * utilized by the scheduler.
+ * which is utilized by the scheduler.
  *
  * @return    The current timer value (mS).
  */

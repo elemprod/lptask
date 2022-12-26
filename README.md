@@ -4,7 +4,7 @@ EMSched is a light weight embedded C language scheduler module. The module provi
 
 The scheduler module has minimal RAM and ROM requirements make it well suited for typical embedded processors.
 
-    - The scheduler module requires 8 bytes of RAM and aproximately 400 bytes of ROM.
+    - The scheduler module requires 8 bytes of RAM and ~350 bytes of ROM.
     - Each scheduler event requires 20 bytes of RAM on platforms which utilize 32-bit pointers.
 
 The event que is implemented as a single linked list.  Each event contains a reference to the next event in the que.  Each event is statically declared utilizing a convience macro inside of the containing module.  This results in the scheduler having a fixed memory footprint.  
