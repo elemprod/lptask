@@ -1,12 +1,7 @@
 # Example Projects
 
 
-Generic Test Example
-./PC/test/
-
-Designed to be compiled and ran on a PC which has the GCC toolchain installed.
-The example is mainly used for testing the scheduler library since the small memory footprint benefits offered by the scheduler library are rarely required on a PC.
-Requires printf (console) and time.h support.
+Three different STM32L0XX examples projects are provided.  Each project implements a progressively more sosphisicated power reduction technique.
 
 
 STM32L0 Simple Example
