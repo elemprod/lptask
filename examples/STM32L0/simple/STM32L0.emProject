@@ -28,7 +28,7 @@
       arm_target_device_name="STM32L053C8"
       arm_target_interface_type="SWD"
       c_preprocessor_definitions="STM32L053xx;USE_FULL_LL_DRIVER"
-      c_user_include_directories=".;./Source;$(SDKDir)/Drivers/CMSIS/Device/ST/STM32L0xx/Include;$(SDKDir)/Drivers/STM32L0xx_HAL_Driver/Inc;$(SDKDir)/Drivers/CMSIS/Include;$(SchedulerLibraryDir);$(PlatformCommonDir);../common"
+      c_user_include_directories=".;./Source;$(SDKDir)/Drivers/CMSIS/Device/ST/STM32L0xx/Include;$(SDKDir)/Drivers/STM32L0xx_HAL_Driver/Inc;$(SDKDir)/Drivers/CMSIS/Include;$(SchedulerLibraryDir);../common"
       debug_stack_pointer_start="__stack_end__"
       debug_target_connection="J-Link"
       gcc_entry_point="Reset_Handler"
