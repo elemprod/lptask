@@ -1,36 +1,23 @@
-TARGET_EXEC ?= sched_test.out
+TARGET_EXEC ?= sched_test
 
 BUILD_DIR ?= ./build
-SRC_DIRS ?= ./src ../../../src/scheduler
+SRC_DIR ?= ./src
+SCHED_DIR ?= ../../../src/scheduler
 
-SRCS := $(shell find $(SRC_DIRS) -name *.cpp -or -name *.c -or -name *.s)
-OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
-DEPS := $(OBJS:.o=.d)
-
-INC_DIRS := $(shell find $(SRC_DIRS) -type d)
+INC_DIRS := $(shell find $(SRC_DIR) -type d) $(shell find $(SCHED_DIR) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
+CFLAGS ?= $(INC_FLAGS) -MMD -MP
 
-CPPFLAGS ?= $(INC_FLAGS) -MMD -MP
-
-$(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
-	$(CC) $(OBJS) -o $@ $(LDFLAGS)
-
-# assembly
-$(BUILD_DIR)/%.s.o: %.s
-	$(MKDIR_P) $(dir $@)
-	$(AS) $(ASFLAGS) -c $< -o $@
-
-# c source
-$(BUILD_DIR)/%.c.o: %.c
-	$(MKDIR_P) $(dir $@)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
-
-# c++ source
-$(BUILD_DIR)/%.cpp.o: %.cpp
-	$(MKDIR_P) $(dir $@)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
-
-
+all:
+	mkdir -p $(BUILD_DIR)
+	# Build the Scheduler Library
+	$(CC) $(CFLAGS) -c $(SCHED_DIR)/scheduler.c -o $(BUILD_DIR)/scheduler.o
+	# Build the Application
+	$(CC) $(CFLAGS) -c $(SRC_DIR)/main.c -o $(BUILD_DIR)/main.o
+	# Build Executable
+	$(CC) $(BUILD_DIR)/scheduler.o $(BUILD_DIR)/main.o -o $(BUILD_DIR)/$(TARGET_EXEC) $(LDFLAGS)
+	
+	
 .PHONY: clean
 
 clean:

@@ -59,7 +59,7 @@ int main(void) {
   // Initialize the LED GPIO
   gpio_init();
 
-  // Conigure the LED0 task to be called at 10 Hz which create a 5 Hz slow LED blink.
+  // Configure the LED0 task to be called at 10 Hz which create a 5 Hz slow LED blink.
   sched_evt_config(&led0_task, led0_task_handler, NULL, 100, true);
   sched_evt_start(&led0_task);
 
