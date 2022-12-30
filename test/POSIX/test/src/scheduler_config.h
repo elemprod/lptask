@@ -1,5 +1,5 @@
 /* 
- * PC Platform Scheduler Configuration & Support Functions
+ * POSIX Platform Scheduler Configuration & Support Functions
  *
  */
 

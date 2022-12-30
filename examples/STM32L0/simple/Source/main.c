@@ -43,7 +43,7 @@ void gpio_init() {
 }
 
 // LED0 Toggle Scheduler Task
-SCHED_EVT_DEF(led0_task);
+SCHED_TASK_DEF(led0_task);
 
 // LED0 Toggle Scheduler Handler
 static void led0_task_handler(void * p_context) {
@@ -60,8 +60,8 @@ int main(void) {
   gpio_init();
 
   // Configure the LED0 task to be called at 10 Hz which create a 5 Hz slow LED blink.
-  sched_evt_config(&led0_task, led0_task_handler, NULL, 100, true);
-  sched_evt_start(&led0_task);
+  sched_task_config(&led0_task, led0_task_handler, NULL, 100, true);
+  sched_task_start(&led0_task);
 
   /* 
   * Repeatably excecute the scheduler event que ignoring the returned result.

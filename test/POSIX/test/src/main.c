@@ -13,15 +13,15 @@
 #include "scheduler.h"
 
 // Test Task 0
-SCHED_EVT_DEF(test0_task);
+SCHED_TASK_DEF(task0);
 
 // Test0 Task Scheduler Handler
-static void test0_task_handler(void * p_context) {
+static void task0_handler(void * p_context) {
   static long call_count = 0;
   call_count ++;
   if (call_count >= 8) {
     printf("Task 0 Complete\n");
-    sched_evt_stop(&test0_task);
+    sched_task_stop(&task0);
   } else {
     printf("Test Task 0, Call Cnt: %ld\n", call_count);
   }
@@ -36,12 +36,12 @@ int main()
   sched_init();
 
   // Configure the test task to be called every 10 seconds.
-  sched_evt_config(&test0_task, test0_task_handler, NULL, 2000, true);
-  sched_evt_start(&test0_task);
+  sched_task_config(&task0, task0_handler, NULL, 2000, true);
+  sched_task_start(&task0);
 
   while(true) {
-    sched_evt_t * p_next_event = sched_execute();
-    if(p_next_event != NULL) {
+    sched_task_t * p_next_task = sched_execute();
+    if(p_next_task != NULL) {
       // TODO calculate the time to sleep rather than sleeping at a fixed 1 second
       sleep(1);
     } else {
