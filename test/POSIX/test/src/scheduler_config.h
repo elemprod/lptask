@@ -18,7 +18,7 @@ static pthread_mutex_t sched_mutex =  PTHREAD_MUTEX_INITIALIZER;
   * event que.  The macro is utillized by the scheduler when enterring a critical
   * region of code.
   */
-#define SCHEDULER_CRITICAL_REGION_ENTER()         \
+#define SCHED_CRITICAL_REGION_ENTER()         \
   pthread_mutex_lock(&sched_mutex);
 
 /**
@@ -26,7 +26,7 @@ static pthread_mutex_t sched_mutex =  PTHREAD_MUTEX_INITIALIZER;
  * event que .  The macro is utillized by the scheduler when exiting a critical
  * region of code.
   */
-#define SCHEDULER_CRITICAL_REGION_EXIT()          \
+#define SCHED_CRITICAL_REGION_EXIT()          \
   pthread_mutex_unlock(&sched_mutex);
 
  /**
@@ -35,7 +35,7 @@ static pthread_mutex_t sched_mutex =  PTHREAD_MUTEX_INITIALIZER;
  *
  * @return    True if the scheduler's timer is currently active.
  */
-static inline bool scheduler_tick_active() {
+static inline bool sched_tick_active() {
   return true;
 }
 
@@ -45,7 +45,7 @@ static inline bool scheduler_tick_active() {
  *
  * @return    The current timer value (mS).
  */
-static inline uint32_t scheduler_get_tick() {
+static inline uint32_t sched_get_ms() {
   struct timespec time;
   clock_gettime(CLOCK_REALTIME, &time);
   return (time.tv_sec*1000 + lround(time.tv_nsec/1e6)) & UINT32_MAX;
