@@ -1,29 +1,29 @@
-#include <assert.h>
 #include "scheduler.h"
 #include "scheduler_config.h"
+#include <assert.h>
 
 /* The scheduler's interal data structure.
-*/
+ */
 typedef struct
-{            
-  sched_task_t   * p_head;   // Pointer to the head task in the linked list
-  sched_task_t   * p_tail;   // Pointer to the tail task in the linked list
+{
+  sched_task_t * p_head; // Pointer to the head task in the linked list
+  sched_task_t * p_tail; // Pointer to the tail task in the linked list
 } scheduler_t;
 
 // The scheduler module's internal data.
-static scheduler_t scheduler;           
+static scheduler_t scheduler;
 
 void sched_init(void) {
   // The only required initialization is to set the head and tail tasks to NULL.
-  scheduler.p_head    = NULL;
-  scheduler.p_tail    = NULL;
+  scheduler.p_head = NULL;
+  scheduler.p_tail = NULL;
 }
 
-void sched_task_config(sched_task_t    * p_task, 
-                       sched_handler_t   handler, 
-                       void            * p_context,
-                       uint32_t          period_ms,
-                       bool              repeat) {
+void sched_task_config( sched_task_t * p_task,
+                        sched_handler_t handler,
+                        void * p_context,
+                        uint32_t interval_ms,
+                        bool repeat) {
 
   // A pointer to the task to be added the schedueler que must be supplied.
   assert(p_task != NULL);
@@ -32,26 +32,26 @@ void sched_task_config(sched_task_t    * p_task,
   assert(handler != NULL);
 
   // Mark the task as inactive.
-  p_task->active = false;      
-  // Set the task handler.          
-  p_task->handler = (sched_handler_t) handler;   
-  // Save the user context.                               
-  p_task->p_context = (void *) p_context;      
-  // Limit the period.                                  
-  p_task->period_ms = period_ms & SCHEDULER_MS_MAX;  
+  p_task->active = false;
+  // Set the task handler.
+  p_task->handler = (sched_handler_t)handler;
+  // Save the user context.
+  p_task->p_context = (void *)p_context;
+  // Store the period limiting it to the max interval.
+  p_task->interval_ms = (interval_ms & SCHEDULER_MS_MAX);
   // Store the repeating status.
-  p_task->repeat = (bool) repeat;  
+  p_task->repeat = (bool)repeat;
 
-  // Add the task to the scheduler's que if not previously added
-  if(!p_task->added) {
+  // Add the task to the scheduler's que if itt hasn't been previously added.
+  if (!p_task->added) {
 
     // The new task will be the last one in the list so it's next task will always be NULL.
     p_task->p_next = NULL;
 
-    // Take exclusive write access to scheduler's task linked list.
-    SCHEDULER_CRITICAL_REGION_ENTER();
+    // Take exclusive write access of scheduler's task linked list.
+    SCHED_CRITICAL_REGION_ENTER();
 
-    if(scheduler.p_head == NULL) {
+    if (scheduler.p_head == NULL) {
       // No other tasks exists in the list so the new task will be both the head & tail task.
       scheduler.p_head = p_task;
     } else {
@@ -63,10 +63,9 @@ void sched_task_config(sched_task_t    * p_task,
     scheduler.p_tail = p_task;
 
     p_task->added = true;
-    p_task->pending = false;
 
     // Release task que exclusive access.
-    SCHEDULER_CRITICAL_REGION_EXIT();
+    SCHED_CRITICAL_REGION_EXIT();
   }
 }
 
@@ -78,32 +77,23 @@ void sched_task_start(sched_task_t * p_task) {
   // The task must have been previously added to the que.
   assert(p_task->added);
 
-  if(scheduler_tick_active()) {
-    // Update the task's expire tick if scheduler's timer is running
-    p_task->expire_tick = p_task->period_ms + scheduler_get_tick();
-    p_task->pending = false;
-  } else {
-    // Mark the task as pending so the expire_tick is calculated once the 
-    // scheduler's timer is enabled.  This could happen if the task is added 
-    // from an Wake Up interrupt routine while the timer is Stopped.
-    p_task->pending = true;
-  }
-  
+  // Store the start time.
+  p_task->start_ms = sched_get_ms();
+
   // Mark the task as active
   p_task->active = true;
-
 }
 
-void sched_task_update(sched_task_t * p_task, uint32_t period_ms) {
+void sched_task_update(sched_task_t * p_task, uint32_t interval_ms) {
 
   // A pointer to the task to update must be supplied.
   assert(p_task != NULL);
 
   // Store the new period.
-  p_task->period_ms = period_ms;
-  
+  p_task->interval_ms = interval_ms;
+
   // start the task
-  sched_task_start(p_task);   
+  sched_task_start(p_task);
 }
 
 void sched_task_stop(sched_task_t * p_task) {
@@ -113,99 +103,144 @@ void sched_task_stop(sched_task_t * p_task) {
 
   // Set the task as inactive but don't remove it from the que.
   p_task->active = false;
-
 }
 
-// Function for checking if a task's timer has expired
-static bool sched_task_expired(sched_task_t * p_task) {
-  
-  // TODO
-  return (scheduler_get_tick() - p_task->expire_tick) < 0x80000000;
+bool sched_task_expired(sched_task_t * p_task) {
+  assert(p_task != NULL);
+
+  if (p_task->active) {
+    return (sched_get_ms() - p_task->start_ms) >= p_task->interval_ms;
+  } else {
+    return false;
+  }
 }
 
+uint32_t sched_task_remaining_ms(sched_task_t * p_task) {
+  assert(p_task != NULL && p_task->active);
 
-// Function for finding the next expiring scheduler task
-static sched_task_t * sched_next_evt(void) {
+  uint32_t elapsed_tick = sched_get_ms() - p_task->start_ms;
+  if (elapsed_tick < p_task->interval_ms) {
+    return p_task->interval_ms - elapsed_tick;
+  } else {
+    // Expired
+    return 0;
+  }
+}
+
+/*
+ * Function for calculating the time since a task's timer was started
+ * or restarted in the case of a repeating timer.
+ *
+ * Note that the task must be active to calculate the elapsed time.
+ *
+ * @return    The time in mS since the task was started.
+ */
+uint32_t sched_task_elapsed_ms(sched_task_t * p_task) {
+  assert(p_task != NULL && p_task->active);
+
+  return sched_get_ms() - p_task->start_ms;
+}
+
+/*
+ * Function for comparing the time until expiration of two tasks and returning
+ * the one which expires sooner.
+ *
+ * Note that the tasks must be be active for the comparison to be valid.
+ *
+ * @return    Returns a pointer to the task which expires the first or
+ *            NULL if both tasks are inactive.
+ */
+sched_task_t * sched_task_compare(sched_task_t * p_task_a, sched_task_t * p_task_b) {
+
+  if (p_task_a == NULL || !p_task_a->active) {
+    if (p_task_b == NULL || !p_task_b->active) {
+      // Both Tasks are Inactive
+      return NULL;
+    } else {
+      // Only Task B is active
+      return p_task_b;
+    }
+  } else if (p_task_b == NULL || !p_task_b->active) {
+    // Only Task A is active
+    return p_task_a;
+  } else {
+    // Both tasks are active, compare the remaining time.
+    if (sched_task_remaining_ms(p_task_a) <= sched_task_remaining_ms(p_task_b)) {
+      return p_task_a;
+    } else {
+      return p_task_b;
+    }
+  }
+}
+
+/*
+ * Function for finding the next expiring scheduler task.
+ *
+ * @return Pointer to the next expiring task or NULL if there are no active tasks.
+ */
+static sched_task_t * sched_next_task(void) {
 
   // Pointer to the next expiring task.
-  sched_task_t * p_next_expiring_evt = NULL;  
+  sched_task_t * p_expiring_task = NULL;
 
-  /* Loop through each task in the linked list starting at the head task
-   * and ending at the tail task.  task access is read only so it's not 
-   * necessary to aquire exclusive accesss here.
+  /* Walk through each task in the linked list starting at the head task
+   * and ending at the tail task.  Task access is read only so it's not
+   * necessary to aquire exclusive accesss.
    */
-  sched_task_t * p_current_evt  = scheduler.p_head;         
-  
-  while(p_current_evt != NULL) {
-    if(p_current_evt->active == true) {
-      if(p_next_expiring_evt == NULL) {
-        // No expiring task was previously stored so this task is the next expiring task
-        p_next_expiring_evt = p_current_evt;
-      } else if(p_current_evt->expire_tick < p_next_expiring_evt->expire_tick) {
-        //TODO does this correctly handle the SysTick roll over or do we need to compare each time subtracked from SysTick???
-        // The current task expires sooner than the previous task so set it as the next expiring task
-        p_next_expiring_evt = p_current_evt;
-      } 
+  sched_task_t * p_current_task = scheduler.p_head;
+
+  while (p_current_task != NULL) {
+    if (p_current_task->active == true) {
+      if (p_expiring_task == NULL) {
+        // No expiring task was previously set so this task is the next expiring task
+        p_expiring_task = p_current_task;
+      } else if (sched_task_remaining_ms(p_expiring_task) <= sched_task_remaining_ms(p_current_task)) {
+        p_expiring_task = p_current_task;
+      }
     }
 
     // Move to the next task in the list
-    p_current_evt = p_current_evt->p_next;
+    p_current_task = p_current_task->p_next;
   }
 
-  return p_next_expiring_evt;
+  return p_expiring_task;
 }
 
-sched_task_t * sched_execute(void)
-{
-  // The scheduler's timer must be active in order to correctly calculate the 
-  // task expiration times.
-  assert(scheduler_tick_active());
+sched_task_t * sched_execute(void) {
 
   // Loop through each task in the linked list starting with the head task
-  sched_task_t * p_current_evt  = scheduler.p_head;         
+  sched_task_t * p_current_task = scheduler.p_head;
 
-  while(p_current_evt != NULL) {
+  while (p_current_task != NULL) {
 
-    // Store pointer to next task since the current task may be removed
-    // if non-repeating and expired or removed in the task handler
-    sched_task_t * p_next_evt  = p_current_evt->p_next;
-    
-    // tasks should have alredy been marked as added to the list
-    assert(p_current_evt->added);   
+    // Store the pointer to next task since the current task could be removed
+    // inside the task handler callback.
+    sched_task_t * p_next_task = p_current_task->p_next;
 
-    // Filter on Active tasks
-    if(p_current_evt->active) {
+    // Tasks should have alredy been marked as added.
+    assert(p_current_task->added);
 
-      // Update the expire tick if it is marked as pending
-      if(p_current_evt->pending) {
-        p_current_evt->expire_tick = p_current_evt->period_ms + scheduler_get_tick();
-        p_current_evt->pending = false;
-      }
+    // Filter on Active tasks with expired timers.
+    if (p_current_task->active && sched_task_expired(p_current_task)) {
 
-      // Handle tasks with expired timers   
-      if(sched_task_expired(p_current_evt)) {
-        if(p_current_evt->repeat) {
-          // Calculate the next expiration ticks to reschedule the task before calling the
-          // handler so the handler execution time does not delay the expiration tick calculation.  
-          p_current_evt->expire_tick = p_current_evt->period_ms + scheduler_get_tick();
+      // Update the start time before calling the handler to prevent the
+      // the handler execution time from introducing error into the start time.
+      p_current_task->start_ms = sched_get_ms();
 
-        } else {
-          // Mark the non-repeating task as inactive before calling the handler since it may be restarted in the handler.
-          p_current_evt->active = false;
-        }
-        // Execute the task Handler with the user supplied context pointer.
-        p_current_evt->handler(p_current_evt->p_context);
-      }
+      // Update the active flag before calling the handler to avoid overwriting
+      // any active state changes made inside of the handler.
+      p_current_task->active = p_current_task->repeat;
+
+      // Execute the task Handler with the user supplied context pointer.
+      p_current_task->handler(p_current_task->p_context);
     }
 
     // Move to the next task in the list
-    p_current_evt = p_next_evt;
+    p_current_task = p_next_task;
   }
 
-  // The next expiring task needs to be determined after the scheduler has fully executed since an task's
-  // active status may be changed after its handler has executed.  An task's active status may have been modified 
-  // by another task's handler later in the que.
-  return sched_next_evt();    
+  // The next expiring task needs to be calculated after the scheduler has fully executed since a task's
+  // active status or its interval may have changed during event handler execution.
+
+  return sched_next_task();
 }
-
-
