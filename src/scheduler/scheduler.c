@@ -118,9 +118,9 @@ bool sched_task_expired(sched_task_t * p_task) {
 uint32_t sched_task_remaining_ms(sched_task_t * p_task) {
   assert(p_task != NULL && p_task->active);
 
-  uint32_t elapsed_tick = sched_get_ms() - p_task->start_ms;
-  if (elapsed_tick < p_task->interval_ms) {
-    return p_task->interval_ms - elapsed_tick;
+  uint32_t elapsed_ms = sched_get_ms() - p_task->start_ms;
+  if (elapsed_ms < p_task->interval_ms) {
+    return p_task->interval_ms - elapsed_ms;
   } else {
     // Expired
     return 0;
@@ -194,7 +194,7 @@ static sched_task_t * sched_next_task(void) {
       if (p_expiring_task == NULL) {
         // No expiring task was previously set so this task is the next expiring task
         p_expiring_task = p_current_task;
-      } else if (sched_task_remaining_ms(p_expiring_task) <= sched_task_remaining_ms(p_current_task)) {
+      } else if (sched_task_remaining_ms(p_expiring_task) > sched_task_remaining_ms(p_current_task)) {
         p_expiring_task = p_current_task;
       }
     }
