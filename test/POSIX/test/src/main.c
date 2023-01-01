@@ -1,6 +1,5 @@
 //
 //  main.c
-//  
 //
 //  Scheduler Module Test Program
 //
@@ -38,6 +37,7 @@ static void task0_handler(void * p_context) {
     sched_task_stop(&task0);
   } else {
     printf("Test Task 0, Call Cnt: %d\n", call_count);
+    fflush(stdout);
   }
 }
 
@@ -53,6 +53,7 @@ static void sec_task_handler(void * p_context) {
   // Print the seconds log every minute
   if(run_secs % (60) == 0) {
     printf("Run %llu Seconds, Time : %s\n", run_secs, time_str);
+    fflush(stdout);
   }
   run_secs ++;
 }
@@ -81,6 +82,7 @@ static void hour_task_handler(void * p_context) {
   time_str[strlen(time_str)-1] = '\0';
   
   printf("Run %d Hours, Time : %s\n", run_hours, time_str);
+  fflush(stdout);
   run_hours ++;
   
 }
@@ -95,6 +97,7 @@ static void day_task_handler(void * p_context) {
   time_str[strlen(time_str)-1] = '\0';
   
   printf("Run %d Days, Time : %s\n", run_days, time_str);
+  fflush(stdout);
   run_days ++;
   
   // Stop all tasks after 7 days
