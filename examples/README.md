@@ -1,5 +1,4 @@
-# Example Projects
-
+# STM32L0 Example Projects
 
 Three different STM32L0XX examples projects are provided.  Each project implements a progressively more sosphisicated power reduction technique.
 
@@ -28,3 +27,26 @@ STM32L0 Low Power Switch Debounce Example
     - Switch presses are debounced for a configurable time period.
     - Switch holds are also detected.
     - A switch event callback is made on switch status change detectionn.
+
+
+# POSIX Example Project
+
+./POSIX/test/
+
+The test project is designed to be compiled and ran on a POSIX system (Linux, OSX or Windows using Cygwin) whihc has the GCC toolchain available.
+The project is mainly meant to be used for testing of the scheduler library with long running tasks.  
+A POSIX system typically wouldn't the need the small memory footprint benefits offered by the scheduler library.
+
+Build:
+
+Run make from a console inside the project directory to build the project.
+
+Usage:
+
+./build/sched_test
+
+To save the results to logging file use:
+
+./build/sched_test | tee log.txt
+
+The test runs for 7 days before stopping.
