@@ -33,9 +33,8 @@ STM32L0 Low Power Switch Debounce Example
 
 ./POSIX/test/
 
-The test project is designed to be compiled and ran on a POSIX system (Linux, OSX or Windows using Cygwin) whihc has the GCC toolchain available.
-The project is mainly meant to be used for testing of the scheduler library with long running tasks.  
-A POSIX system typically wouldn't the need the small memory footprint benefits offered by the scheduler library.
+The test project is designed to be compiled and ran on a POSIX system (Linux, OSX or Windows using Cygwin) which has the GCC toolchain available.
+The project is mainly useful for testing of the scheduler library with long running tasks since a POSIX system wouldn't typically need the small memory footprint benefits offered by the scheduler library.
 
 Build:
 
@@ -45,7 +44,7 @@ Usage:
 
 ./build/sched_test
 
-To save the results to logging file use:
+To save the results to a logging file use:
 
 ./build/sched_test | tee log.txt
 
