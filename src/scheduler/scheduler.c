@@ -217,9 +217,6 @@ sched_task_t * sched_execute(void) {
     // inside the task handler callback.
     sched_task_t * p_next_task = p_current_task->p_next;
 
-    // Tasks should have alredy been marked as added.
-    assert(p_current_task->added);
-
     // Filter on Active tasks with expired timers.
     if (p_current_task->active && sched_task_expired(p_current_task)) {
 
