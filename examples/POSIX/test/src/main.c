@@ -45,15 +45,18 @@ task_time_t day_task_time;
 // Function for logging all of the task time stats.
 static void log_task_stats() {
   
+  printf("*** Task Interval Error's ***");
   // Log the Task Time Stats
-  printf("Second Task:  ");
+  printf("Seconds Task ");
   task_time_log(&sec_task_time);
-  printf("Minute Task:  ");
+  printf("Minutes Task ");
   task_time_log(&min_task_time);
-  printf("Hour Task:  ");
+  printf("Hours Task ");
   task_time_log(&hour_task_time);
-  printf("Day Task:  ");
-  task_time_log(&day_task_time);
+  if(day_task_time.interval_avg > HOUR_INTERVAL_MS) {
+    printf("Day Task ");
+    task_time_log(&day_task_time);
+  }
   fflush(stdout);
 }
 
@@ -89,6 +92,7 @@ static void min_task_handler(void * p_context) {
   
   // Number of Running Minutes
   static uint32_t run_mins = 0;
+  run_mins ++;
   
   time_t mytime = time(NULL);
   char * time_str = ctime(&mytime);
@@ -97,7 +101,7 @@ static void min_task_handler(void * p_context) {
   if((run_mins > 0) && (run_mins % 15 == 0)) {
     printf("Running for %d Minutes, Time : %s\n", run_mins, time_str);
   }
-  run_mins ++;
+
 }
 
 static void hour_task_handler(void * p_context) {
@@ -107,14 +111,14 @@ static void hour_task_handler(void * p_context) {
   
   // Number of Running Hours
   static uint32_t run_hours = 0;
+  run_hours ++;
   
   time_t mytime = time(NULL);
   char * time_str = ctime(&mytime);
   time_str[strlen(time_str)-1] = '\0';
   
   printf("Running for %d Hours, Time : %s\n", run_hours, time_str);
-  run_hours ++;
-  
+
   log_task_stats();
 }
 
@@ -125,6 +129,7 @@ static void day_task_handler(void * p_context) {
   
   // Number of Running Hours
   static uint32_t run_days = 0;
+  run_days ++;
   
   time_t mytime = time(NULL);
   char * time_str = ctime(&mytime);
@@ -132,7 +137,6 @@ static void day_task_handler(void * p_context) {
   
   printf("Run %d Days, Time : %s\n", run_days, time_str);
   fflush(stdout);
-  run_days ++;
   
   // Stop all tasks after 7 days
   if(run_days >= 7) {

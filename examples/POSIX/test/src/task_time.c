@@ -65,5 +65,5 @@ void task_time_log(task_time_t * p_task_time) {
   double min_error = (p_task_time->interval_min - p_task_time->interval) * 1000;
   double max_error = (p_task_time->interval_max - p_task_time->interval) * 1000;
 
-  printf("Interval Error Min: %.1lf Avg: %.1lf Max: %.1lf (mS)\n", min_error, avg_error, max_error);
+  printf("Error Min: %.1lf Avg: %.1lf Max: %.1lf (mS)\n", min_error, avg_error, max_error);
 }
