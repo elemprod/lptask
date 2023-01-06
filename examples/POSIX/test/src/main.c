@@ -109,6 +109,22 @@ static void day_task_handler(void * p_context) {
   }
 }
 
+// Sleep Function
+void sleep_ms(int milliseconds){
+
+#if _POSIX_C_SOURCE >= 199309L
+    struct timespec ts;
+    ts.tv_sec = milliseconds / 1000;
+    ts.tv_nsec = (milliseconds % 1000) * 1000000;
+    nanosleep(&ts, NULL);
+#else
+    if (milliseconds >= 1000)
+      sleep(milliseconds / 1000);
+    usleep((milliseconds % 1000) * 1000);
+#endif
+}
+
+
 int main()
 {
   printf("Scheduler Test Start\n");
@@ -145,11 +161,10 @@ int main()
   while(true) {
     // Execute the scheduler Que
     sched_task_t * p_next_task = sched_execute();
-    // Check if there are any taks left in the que.
+    // Check if there are any tasks left in the que.
     if(p_next_task != NULL) {
       // Sleep until the next task expires.
-      uint32_t sleep_time = sched_task_remaining_ms(p_next_task) / 1000;
-      sleep(sleep_time);
+      sleep_ms(sched_task_remaining_ms(p_next_task));
     } else {
       printf("No Events in Que - Scheduler Test Complete.\n");
       fflush(stdout);
