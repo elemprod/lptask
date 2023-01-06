@@ -59,14 +59,14 @@ int main(void) {
   // Initialize the LED GPIO
   gpio_init();
 
-  // Configure the LED0 task to be called at 10 Hz which create a 5 Hz slow LED blink.
+  // Configure and start the LED0 Task to be called every 100 mS.
   sched_task_config(&led0_task, led0_task_handler, NULL, 100, true);
   sched_task_start(&led0_task);
 
   /* 
-  * Repeatably excecute the scheduler event que ignoring the returned result.
-  * This is the simplest implementation but offers no power savings in that it 
-  * it does not sleep between scheduler tasks.
+  * Repeatably excecute the scheduler event que,.  This is the simplest
+  * but most power intensive implementation becausee it does not sleep
+   * between task execution.
   */
   while(true) {
     sched_execute();
