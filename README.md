@@ -9,7 +9,7 @@ The scheduler module has minimal RAM and ROM requirements make it well suited fo
 
 The task que is implemented as a single linked list.  Each task contains a reference to the next task in the que.  Tasks are statically declared utilizing a convience macro inside of the containing module.  This results in the scheduler having a fixed compile time memory footprint.  
 
-In addition to scheduling tasks to be executed in the future, the scheduler provides a simple mechanism for moving work out of ISR's and into the main context.  Scheduler usage encourages the practice of using lightweight interrupt handlers.
+In addition to scheduling tasks to be executed in the future, the scheduler provides a simple mechanism for moving work out of ISR's and into the main context.  The scheduler encourages the development practice of writing lightweight interrupt handlers.
                                                             
 The scheduler does not provide all of the sames features that a Real Time Operating System typically does, the major differences include:
 
@@ -17,16 +17,16 @@ The scheduler does not provide all of the sames features that a Real Time Operat
 
 * Tasks executes until completion once started in a cooperative multitasking manner.  Taks execution can only be pausesd by a hardware IRQ event or by the task's event handler returning.
                                                                             
-* It's not unusual to have several of milisconds of jitter in task execution for a system with multiple active repeating tasks qued at the same time.  This jitter is typically acceptable for most UI tasks suck as blinking an LED, debouncing a switch or timing the length of music note.  
+* It's not unusual to have several of milisconds of jitter in task execution for a system with multiple active repeating tasks qued at the same time.  This jitter is typically acceptable for most UI tasks such as blinking an LED, debouncing a switch or timing the length of music note.  
     
-* Repeativive tasks which require finer grain control can be implemented using a seperate hardware timer in addition to the scheduler.  For example, an application could peform a real-time motion control loop with a 100 Hz hardware timer and perform UI tasks with the scheduler.  The performance of such a system will often exceed that of an full RTOS implementation due to the minimal scheduler overhead. 
+* Repeativive tasks which require finer grain control can be implemented using a seperate hardware timer.  For example, an application could peform a real-time motion control loop with a 100 Hz hardware timer and perform UI tasks with the scheduler.  The performance of such a system will often exceed that of an full RTOS implementation due to the minimal scheduler overhead. 
                                                         
-Many embedded systems outside of motion and process control don't actually require hard real time operation and  can live within these constraints saving the overhead required by full RTOS.    
+Many embedded systems don't require hard real time operation and can live within these constraints saving the overhead and complexity required by full RTOS.    
 
 ## Get started
 
-1. Clone the repo into your project.
-2. Setup by the projects build system to include the scheduler directory and complile scheduler.c by editing the project if complier's GUI or updating the make.
+1. Add the repo. into your project.
+2. Setup the project's build system to include the scheduler directory and complile scheduler.c by editing the project's configuration in your complier's GUI or updating the make file.
 3. Customize the scheduler_config.h header file for the project's architecture.   The header provides the platform specific configuration.
 4. 
 
