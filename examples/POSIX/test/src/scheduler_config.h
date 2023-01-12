@@ -7,6 +7,7 @@
 #define _SCHEDULER_CONFIG_H__
 
 #include <time.h>
+#include <assert.h>
 #include <math.h>
 #include <pthread.h>
 
@@ -29,14 +30,23 @@ static pthread_mutex_t sched_mutex =  PTHREAD_MUTEX_INITIALIZER;
 
  /**
  * @brief Function for getting the current value of the mS timer 
- * which is utilized by the scheduler.
+ * utilized by the scheduler.
  *
  * @return    The current timer value (mS).
  */
 static inline uint32_t sched_get_ms() {
   struct timespec time;
-  clock_gettime(CLOCK_REALTIME, &time);
-  return (time.tv_sec*1000 + lround(time.tv_nsec/1e6)) & UINT32_MAX;
+  assert(clock_gettime(CLOCK_MONOTONIC, &time) == 0);
+  int64_t time_ms = (time.tv_sec * 1000) + lround(time.tv_nsec/1e6);
+  return (uint32_t) time_ms % UINT32_MAX;
 }
+
+
+static inline void sched_port_init() {
+  // Empty
+};
+static inline void sched_port_deinit() {
+  // Empty
+};
 
 #endif // _SCHEDULER_CONFIG_H__
