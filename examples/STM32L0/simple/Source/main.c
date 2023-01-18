@@ -54,7 +54,7 @@ static void led0_task_handler(void * p_context) {
 int main(void) {
 
   // Initialize the Scheduler
-  sched_init();
+  assert(sched_start());
 
   // Initialize the LED GPIO
   gpio_init();

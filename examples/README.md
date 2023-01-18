@@ -33,8 +33,14 @@ STM32L0 Low Power Switch Debounce Example
 
 ./POSIX/test/
 
-The test project is designed to be compiled and ran on a POSIX system (Linux, OSX or Windows using Cygwin) which has the GCC toolchain available.
-The project is mainly useful for testing of the scheduler library with long running tasks since a POSIX system wouldn't typically need the small memory footprint benefits offered by the scheduler library.
+The test example project is designed to be compiled and ran on a POSIX system (Linux, OSX or Windows using Cygwin).  The project requires the GCC toolchain and Make.  The host system must have console access to monitor the test results.
+
+The project is mainly useful for testing the scheduler library.  It offers the following features:
+
+  - Multiple repeating long running tasks are scheduled.
+  - The minimum, average and maximum interval time error is tracked for each task.  The interval time error is the difference between the programmed and actual time interval between task handler calls.  Roll over or other math errors in the scheduler would result in a large interval error.
+  - A non-repeating task is included to test errors which might be introduced as a result of restarting the task inside the  handler.  The interval is set to a new random interval during each the handler call and the task restarted.
+  - A task is included with an interval of set to the maximuim interval of 6.2 days required that the test by ran 7 days to complete.
 
 Build:
 
@@ -48,4 +54,4 @@ To save the results to a logging file use:
 
 ./build/sched_test | tee log.txt
 
-The test runs for 7 days before stopping.
+
