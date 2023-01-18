@@ -49,7 +49,7 @@ bool sched_init(void) {
     scheduler.p_head = NULL;
     scheduler.p_tail = NULL;
 
-    scheduler.state = SCHED_STATE_ACTIVE;
+    scheduler.state = SCHED_STATE_WAIT;
   }
 
   return true;
@@ -80,6 +80,7 @@ static void sched_clear_que() {
   scheduler.p_head = NULL;
   scheduler.p_tail = NULL;
 
+  // Release the que lock.
   scheduler_port_que_free();
 }
 
@@ -108,7 +109,7 @@ bool sched_stop(void) {
       return true;
 
     case SCHED_STATE_WAIT:
-      // The scheduler isn't executing a task, stop immediately.
+      // The scheduler isn't executing a task, it can stop immediately.
       scheduler.state = SCHED_STATE_STOPPING;
       sched_stop_finalize();
       return true;
@@ -297,10 +298,12 @@ static sched_task_t * sched_next_task(void) {
    */
   sched_task_t * p_current_task = scheduler.p_head;
 
+  // TODO we could improve this code by caching the time_remaining for the current expiring task.
+  // It's currently recalculated every time through the loop.
   while (p_current_task != NULL) {
     if (p_current_task->active == true) {
       if (p_expiring_task == NULL) {
-        // No expiring task was previously set so this task is the next expiring task
+        // No expiring task was previously set, the current task is the current next epiring task.
         p_expiring_task = p_current_task;
       } else if (sched_task_remaining_ms(p_expiring_task) > sched_task_remaining_ms(p_current_task)) {
         p_expiring_task = p_current_task;
@@ -335,12 +338,13 @@ sched_task_t * sched_execute(void) {
     // Filter on active tasks with expired timers.
     if (p_current_task->active && sched_task_expired(p_current_task)) {
 
-      // Update the start time before calling the handler to prevent the
-      // the handler execution time from introducing delay into the start time.
+      // Update the start time before calling the handler so the
+      // handler's execution time doesn't introducing error into the
+      // start time calculation.
       p_current_task->start_ms = scheduler_port_ms();
 
       // Update the active flag before calling the handler to avoid overwriting
-      // any active state changes made inside of the handler.  A task will only 
+      // any active flag changess made inside of the handler.  A task will only
       // be active at this point if its a repeating task.
       p_current_task->active = p_current_task->repeat;
 
@@ -364,7 +368,7 @@ sched_task_t * sched_execute(void) {
 
     // The next expiring task can only be calculated once the scheduler has fully executed 
     // all of the task handlers in the que since a task's active status and/or its interval
-    // may have been changed during event handler execution.
+    // may be changed by the event handler.
     return sched_next_task();
   }
 }

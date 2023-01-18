@@ -131,7 +131,6 @@ static void min_task_handler(void * p_context) {
   
   // Update the task statistics
   task_time_update(&min_task_time);
-  printf("min_task_handler()\n");
 
 #if 0
   // Number of Running Minutes
