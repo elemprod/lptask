@@ -19,7 +19,7 @@ all:
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/task_time.c -o $(BUILD_DIR)/task_time.o
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/main.c -o $(BUILD_DIR)/main.o
 	# Build Executable
-	$(CC) $(BUILD_DIR)/scheduler.o $(BUILD_DIR)/main.o $(BUILD_DIR)/task_time.o $(BUILD_DIR)/scheduler_port.o -o $(BUILD_DIR)/$(TARGET_EXEC) $(LDFLAGS)
+	$(CC) $(BUILD_DIR)/scheduler.o $(BUILD_DIR)/main.o $(BUILD_DIR)/task_time.o $(BUILD_DIR)/scheduler_port.o -o $(BUILD_DIR)/$(TARGET_EXEC) $(LDFLAGS) -lm
 	
 	
 .PHONY: clean

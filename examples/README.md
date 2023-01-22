@@ -33,7 +33,7 @@ STM32L0 Low Power Switch Debounce Example
 
 ./POSIX/test/
 
-The test example project is designed to be compiled and ran on a POSIX system (Linux, OSX or Windows using Cygwin).  The project requires the GCC toolchain and Make.  The host system must have console access to monitor the test results.
+The test example project is designed to be compiled and ran on a POSIX system (Linux, OSX, Raspberry PI or Windows using Cygwin).  The project requires the GCC toolchain and Make.  The host system must have console access to monitor the test results.
 
 The project is mainly useful for testing the scheduler library.  It offers the following features:
 

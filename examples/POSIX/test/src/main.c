@@ -270,16 +270,18 @@ static void test_tasks_start() {
   sched_task_start(&stop_task);
 }
 
-// Functino for restarting the scheduler and all tasks after it
+// Function for restarting the scheduler and all tasks after it
 // has been stopped.
 static void scheduler_restart() {
   
+  // Initialize the scheduller.
   assert(sched_init());
   
+  // Configure and Start the Tasks
   test_tasks_config();
   test_tasks_start();
   
-  // Update task interval tracking stats
+  // Update task interval tracking stats.
   task_time_set_interval(&rand_task_time, SEC_INTERVAL_MS);
   task_time_set_interval(&sec_task_time, SEC_INTERVAL_MS);
   task_time_set_interval(&min_task_time, MIN_INTERVAL_MS);
@@ -330,7 +332,7 @@ int main()
         fflush(stdout);
         scheduler_restart();
       } else {
-        printf("No Events in Que - Scheduler Test Complete.\n");
+        printf("Scheduler Test Complete.\n");
         // Log the final task stats
         log_task_stats();
         fflush(stdout);
