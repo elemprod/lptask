@@ -45,4 +45,5 @@ dkms.conf
 .DS_Store
 Output
 *.emSession
-/examples/POSIX/test/log.txt
+log.txt
+examples/STM32L0/SDK
