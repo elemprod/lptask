@@ -47,13 +47,12 @@
  *
  * @param[in] p_context   Pointer to the user taks context.
  */
-typedef void (*sched_handler_t)(void * p_context);
+typedef void (*sched_handler_t)(void *p_context);
 
 /**
  * The locally stored data structure for a single sheduler task.
  *
- * Notes:
- * The task structure can be defined and intialized with the 
+ * The task structure can be defined and intialized with the
  * SCHED_TASK_DEF() macro.
  *
  * The task data structure should only be accessed using the
@@ -61,18 +60,18 @@ typedef void (*sched_handler_t)(void * p_context);
  */
 typedef struct _sched_task {
 
-  sched_handler_t       handler;          // The task handler function.
-  void                * p_context;        // Pointer to the user supplied context.
+  sched_handler_t handler; // The task handler function.
+  void *p_context;         // Pointer to the user supplied context.
 
-  struct _sched_task  * p_next;           // Pointer to the next task in the linked list
+  struct _sched_task *p_next; // Pointer to the next task in the linked list
 
-  uint32_t              start_ms;         // Time at task start or restart (mS).
+  uint32_t start_ms; // Time at task start or restart (mS).
 
-  bool                  repeat : 1;       // Should the task be repeated?
-  bool                  active : 1;       // Is the task active?
-  bool                  added : 1;        // Has the task been added taks que?
+  bool repeat : 1; // Should the task be repeated?
+  bool active : 1; // Is the task active?
+  bool added : 1;  // Has the task been added taks que?
 
-  uint32_t              interval_ms : 29; // Task execution interval (mS).
+  uint32_t interval_ms : 29; // Task execution interval (mS).
 } sched_task_t;
 
 /**
@@ -83,13 +82,6 @@ typedef struct _sched_task {
       .active = false,              \
       .added = false,               \
   };
-
-/**
- * Function like macro for checking if a task is active.
- *
- *  @param[in] task   The task.
- */
-#define SCHED_TASK_ACTIVE(task) (task.active == true)
 
 /**
  * Function for configuring or reconfiguring a scheduler task and adding it
@@ -114,11 +106,11 @@ typedef struct _sched_task {
  * @return    none.
  *
  */
-void sched_task_config( sched_task_t    * p_task,
-                        sched_handler_t   handler,
-                        void            * p_context,
-                        uint32_t          interval_ms,
-                        bool              repeat);
+void sched_task_config(sched_task_t *p_task,
+    sched_handler_t handler,
+    void *p_context,
+    uint32_t interval_ms,
+    bool repeat);
 
 /**
  * Function for starting a scheduler task.
@@ -128,7 +120,7 @@ void sched_task_config( sched_task_t    * p_task,
  * @param[in] p_task   Pointer to the task to add to the scheduler
  * @return    none.
  */
-void sched_task_start(sched_task_t * p_task);
+void sched_task_start(sched_task_t *p_task);
 
 /**
  * Function for updating a scheduler task with a new interval and starting it.
@@ -137,11 +129,11 @@ void sched_task_start(sched_task_t * p_task);
  *
  * @param[in] p_task        Pointer to the task to add to the scheduler
  * @param[in] interval_ms   Task interval for a repeating task or a delay for
- *                          single-shot task (mS). 
+ *                          single-shot task (mS).
  *                          next sched_execute() call.
  * @return    none.
  */
-void sched_task_update(sched_task_t * p_task, uint32_t interval_ms);
+void sched_task_update(sched_task_t *p_task, uint32_t interval_ms);
 
 /**
  * Function for stopping an active scheduler task.
@@ -152,7 +144,7 @@ void sched_task_update(sched_task_t * p_task, uint32_t interval_ms);
  * @param[in] p_task  Pointer to the task to stop to the scheduler
  * @return    none.
  */
-void sched_task_stop(sched_task_t * p_task);
+void sched_task_stop(sched_task_t *p_task);
 
 /**
  * Function for checking if a task's timer has expired.
@@ -162,7 +154,7 @@ void sched_task_stop(sched_task_t * p_task);
  * @param[in] p_task  Pointer to the task to stop to the scheduler
  * @return            true if task's timer has expired.
  */
-bool sched_task_expired(sched_task_t * p_task);
+bool sched_task_expired(sched_task_t *p_task);
 
 /**
  * Function for calculating the time until a task's timer expires.
@@ -170,10 +162,10 @@ bool sched_task_expired(sched_task_t * p_task);
  * Note that the task must be active to check the remaining time.
  *
  * @param[in] p_task  Pointer to the task to stop to the scheduler
- * @return            The time in mS until the task expires or 0 if 
+ * @return            The time in mS until the task expires or 0 if
  *                    the task has already expired.
  */
-uint32_t sched_task_remaining_ms(sched_task_t * p_task);
+uint32_t sched_task_remaining_ms(sched_task_t *p_task);
 
 /**
  * Function for calculating the time since a task's timer was started
@@ -184,7 +176,16 @@ uint32_t sched_task_remaining_ms(sched_task_t * p_task);
  * @param[in] p_task  Pointer to the task to stop to the scheduler
  * @return    The time in mS since the task was started.
  */
-uint32_t sched_task_elapsed_ms(sched_task_t * p_task);
+uint32_t sched_task_elapsed_ms(sched_task_t *p_task);
+
+/**
+ * Function for comparing the time until expiration of two tasks and returning
+ * a pointer to one which expires sooner.
+ *
+ * @return    Returns a pointer to the task which will expire sooner or
+ *            NULL if both tasks are inactive.
+ */
+sched_task_t *sched_task_compare(sched_task_t *p_task_a, sched_task_t *p_task_b);
 
 /**
  * Function for executing all scheduled tasks.
@@ -199,7 +200,7 @@ uint32_t sched_task_elapsed_ms(sched_task_t * p_task);
  *          sched_execute() again.  If the expiration time is longer, the processor may want
  *          to schedule a wakeup using a low power timer prior to sleeping.
  */
-sched_task_t * sched_execute(void);
+sched_task_t *sched_execute(void);
 
 /**
  * Function for initializing and starting the scheduler module if not already
@@ -214,15 +215,15 @@ bool sched_init(void);
 /**
  * Function for stopping the scheduler module and cleaing the scheduler's que.
  *
- * Note that scheduler may not immediately stop if the function is called 
- * outside of the Main context.  If it is called from within an ISR while a 
- * task's handler  is currently executing, the scheduler must wait for the 
- * task's handler to complete before stopping.  In this case, it will move 
- * to the stopping state and finish stopping once the active task handler 
+ * Note that scheduler may not immediately stop if the function is called
+ * outside of the Main context.  If it is called from within an ISR while a
+ * task's handler  is currently executing, the scheduler must wait for the
+ * task's handler to complete before stopping.  In this case, it will move
+ * to the stopping state and finish stopping once the active task handler
  * completes.
  *
  * @return  True if the scheduler was stopped immediately.
- *          False if the scheduler is waiting for an active task handler 
+ *          False if the scheduler is waiting for an active task handler
  *          to complete before stopping.
  */
 bool sched_stop(void);
