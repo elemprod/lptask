@@ -213,18 +213,16 @@ sched_task_t *sched_execute(void);
 bool sched_init(void);
 
 /**
- * Function for stopping the scheduler module and cleaing the scheduler's que.
+ * Function for stopping the scheduler module and clearing the scheduler's que.
  *
  * Note that scheduler may not immediately stop if the function is called
- * outside of the Main context.  If it is called from within an ISR while a
- * task's handler  is currently executing, the scheduler must wait for the
- * task's handler to complete before stopping.  In this case, it will move
- * to the stopping state and finish stopping once the active task handler
- * completes.
+ * outside of the main context.  If it is called from within an ISR while
+ * the scheduler is currently executing its task que, the scheduler will 
+ * finish executing any expired tasks before completing the stop.
  *
  * @return  True if the scheduler was stopped immediately.
- *          False if the scheduler is waiting for an active task handler
- *          to complete before stopping.
+ *          False if the scheduler is currently busy but will be stop
+ *          once it completes executing the active tasks.
  */
 bool sched_stop(void);
 

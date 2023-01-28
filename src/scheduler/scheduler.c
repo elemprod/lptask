@@ -48,7 +48,6 @@ typedef enum {
   SCHED_STATE_STOPPING,    // The scheduler is in the process of stopping.
 } sched_state_t;
 
-// TODO it would be relatively easy to add support for pausing the scheduler which might be useful?
 
 /**
  * The scheduler's interal data structure.
@@ -136,7 +135,7 @@ static void sched_clear_que() {
  * Function for completing a scheduler stop.
  */
 static void sched_stop_finalize(void) {
-  // Can't stop if the scheduler is currently executing a task handler.
+  // Can't stop if the scheduler is currently executing the task que.
   assert(scheduler.state != SCHED_STATE_ACTIVE);
 
   // Clear the que.
@@ -157,15 +156,18 @@ bool sched_stop(void) {
     return true;
 
   case SCHED_STATE_WAIT:
-    // The scheduler isn't executing a task, it can stop immediately.
+    /* The scheduler isn't executing the task que, 
+     * it can stop immediately.
+     */
     scheduler.state = SCHED_STATE_STOPPING;
     sched_stop_finalize();
     return true;
 
   case SCHED_STATE_ACTIVE:
-    // The scheduler is currently executing a task.
-    // Move to the stopping state so the scheduler will be stopped
-    // once the current task completes.
+    /* The scheduler is currently executing a task.
+     * Move to the stopping state so the scheduler will be 
+     * stopped once the current task completes.
+     */
     scheduler.state = SCHED_STATE_STOPPING;
     return false;
 
@@ -181,7 +183,7 @@ void sched_task_config(sched_task_t *p_task,
     uint32_t interval_ms,
     bool repeat) {
 
-  // A pointer to the task to be added the schedueler que must be supplied.
+  // A pointer to the task to be added the scheduler que must be supplied.
   assert(p_task != NULL);
 
   // The task's handler must be supplied.
@@ -225,6 +227,7 @@ void sched_task_config(sched_task_t *p_task,
   }
 }
 
+#if 0
 /**
  * Function for updating the next scheduler task reference.
  *
@@ -242,6 +245,9 @@ static void sched_update_next(sched_task_t *p_next_task) {
     scheduler_port_que_free();
   }
 }
+
+#endif
+
 void sched_task_start(sched_task_t *p_task) {
 
   // A pointer to the task to start must be supplied.
@@ -253,11 +259,13 @@ void sched_task_start(sched_task_t *p_task) {
   // Store the start time.
   p_task->start_ms = scheduler_port_ms();
 
-  // Mark the task as active before the next task is updated.
+  // Mark the task as active.
   p_task->active = true;
 
-  // Update the cached next task if the new task expires sooner than it.
-  sched_update_next(sched_task_compare(scheduler.p_next, p_task));
+  /* Clear the reference to the cached next task. This 
+   * task might expire before it does.
+   */
+  scheduler.p_next = NULL;
 }
 
 void sched_task_update(sched_task_t *p_task, uint32_t interval_ms) {
@@ -265,7 +273,7 @@ void sched_task_update(sched_task_t *p_task, uint32_t interval_ms) {
   // A pointer to the task to update must be supplied.
   assert(p_task != NULL);
 
-  // Store the new period limiting it to the max interval.
+  // Store the new interval limiting it to the max interval.
   p_task->interval_ms = (interval_ms & SCHEDULER_MS_MAX);
 
   // Start the task
@@ -277,15 +285,9 @@ void sched_task_stop(sched_task_t *p_task) {
   // A pointer to the task to stop must be supplied.
   assert(p_task != NULL);
 
-  /* If the next task is the task being stopped, clear the
-   * next task since it's no longer valid.
-   */
-  if (p_task == scheduler.p_next) {
-    sched_update_next(NULL);
-  }
-
-  /* Set the task as inactive but don't remove it from the que
-   * after the next task has been updated.
+  /* Set the task as inactive but don't remove it from 
+   * the que.  We don't need to clear the cached next task
+   * since the active bit is checked before the task is used.
    */
   p_task->active = false;
 }
@@ -386,65 +388,60 @@ sched_task_t *sched_execute(void) {
 
   if (scheduler.state == SCHED_STATE_WAIT) {
 
-    // Return if the next cached task hasn't expired yet.
-    if (scheduler.p_next != NULL &&
+    /* Skip executing the taks que if a cached next task 
+     * is valid and hasn't expired yet. This check avoids 
+     * having to check every task in the que for expiration.
+     */
+    if (TASK_ACTIVE_SAFE(scheduler.p_next) && 
         !TASK_EXPIRED(scheduler.p_next)) {
-      // The next task should be active here.
-      assert(TASK_ACTIVE(scheduler.p_next));
       return scheduler.p_next;
     }
 
     // Move to the active state.
     scheduler.state = SCHED_STATE_ACTIVE;
-  }
 
-  // Loop through each task in the linked list starting with the head task
-  sched_task_t *p_current_task = scheduler.p_head;
+    // Loop through each task in the linked list starting with the head task
+    sched_task_t *p_current_task = scheduler.p_head;
 
-  // Check the scheduler state each time through the task loop since it may have
-  // changed to stopping if the stop function was called.
-  while (p_current_task != NULL && (scheduler.state == SCHED_STATE_ACTIVE)) {
+    while (p_current_task != NULL) {
 
-    // Filter on active tasks with expired timers.
-    if (p_current_task->active && TASK_EXPIRED(p_current_task)) {
+      // Filter on active tasks with expired timers.
+      if (p_current_task->active && TASK_EXPIRED(p_current_task)) {
 
-      // Update the start time before calling the handler so the
-      // handler's execution time doesn't introduce error into the
-      // start time calculation.
-      p_current_task->start_ms = scheduler_port_ms();
+        // Update the start time before calling the handler so the
+        // handler's execution time doesn't introduce error into the
+        // start time calculation.
+        p_current_task->start_ms = scheduler_port_ms();
 
-      // Update the active flag before calling the handler to avoid overwriting
-      // any active flag changess made inside of the handler.  A task will only
-      // be active at this point if its a repeating task.
-      p_current_task->active = p_current_task->repeat;
+        // Update the active flag before calling the handler to avoid overwriting
+        // any active flag changess made inside of the handler.  A task will only
+        // be active at this point if its a repeating task.
+        p_current_task->active = p_current_task->repeat;
 
-      // Execute the task Handler with the user supplied context.
-      p_current_task->handler(p_current_task->p_context);
+        // Execute the task Handler with the user supplied context.
+        p_current_task->handler(p_current_task->p_context);
+      }
+
+      // Move to the next task in the list
+      p_current_task = p_current_task->p_next;
     }
 
-    // Move to the next task in the list
-    p_current_task = p_current_task->p_next;
-  }
+    if (scheduler.state == SCHED_STATE_STOPPING) {
+      /* Finishing stopping the scheduler if the stop function was
+       * called while it was executing the task que. (active)
+       */
+      sched_stop_finalize();
+    } else {
+      // Calculate the next expiring task.
+      scheduler.p_next = sched_next_task();
 
-  if (scheduler.state == SCHED_STATE_STOPPED) {
-    return NULL;
-  } else if (scheduler.state == SCHED_STATE_STOPPING) {
-
-    // Finishing stopping the scheduler.
-    sched_stop_finalize();
-    return NULL;
-  } else {
-
-    // Move back to the wait state.
-    scheduler.state = SCHED_STATE_WAIT;
-
-    // Calculate the next expiring task if not set.
-    if (scheduler.p_next == NULL) {
-      sched_update_next(sched_next_task());
+      // Move back to the wait state.
+      scheduler.state = SCHED_STATE_WAIT;
     }
+  } 
 
-    return scheduler.p_next;
-  }
+  // Note that the next task will be NULL for the stop states.
+  return scheduler.p_next;
 }
 
 /**
