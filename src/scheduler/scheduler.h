@@ -149,7 +149,8 @@ void sched_task_stop(sched_task_t *p_task);
 /**
  * Function for checking if a task's timer has expired.
  *
- * Note that an inactive tasks never expire.
+ * Note that NULL or Inactive tasks return false since they
+ * can't be expired.
  *
  * @param[in] p_task  Pointer to the task to stop to the scheduler
  * @return            true if task's timer has expired.
@@ -159,7 +160,7 @@ bool sched_task_expired(sched_task_t *p_task);
 /**
  * Function for calculating the time until a task's timer expires.
  *
- * Note that the task must be active to check the remaining time.
+ * Note that NULL or Inactive tasks will return SCHEDULER_MS_MAX.
  *
  * @param[in] p_task  Pointer to the task to stop to the scheduler
  * @return            The time in mS until the task expires or 0 if
@@ -171,7 +172,7 @@ uint32_t sched_task_remaining_ms(sched_task_t *p_task);
  * Function for calculating the time since a task's timer was started
  * or restarted in the case of a repeating timer.
  *
- * Note that the task must be active to calculate the elapsed time.
+ * Note that NULL or Inactive tasks will be return 0.
  *
  * @param[in] p_task  Pointer to the task to stop to the scheduler
  * @return    The time in mS since the task was started.
@@ -183,7 +184,7 @@ uint32_t sched_task_elapsed_ms(sched_task_t *p_task);
  * a pointer to one which expires sooner.
  *
  * @return    Returns a pointer to the task which will expire sooner or
- *            NULL if both tasks are inactive.
+ *            NULL if both tasks are NULL or Inactive.
  */
 sched_task_t *sched_task_compare(sched_task_t *p_task_a, sched_task_t *p_task_b);
 
