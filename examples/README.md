@@ -1,37 +1,46 @@
-# STM32L0 Example Projects
+# STM32L0 Example Project 
 
-Three different STM32L0XX examples projects are provided.  Each project implements a progressively more sosphisicated power reduction technique.
+STM32L0 Power Example
+
+examples/STM32L0/power/
+
+The project demostrates 3 different sleep method for the STM32L0XX processor. The active sleep method can be selected with a #define.  Each of the progressively more sosphisicated sleep technique provide reduced power consumption.
 
 
-STM32L0 Simple Example
-
-./STM32L0/simple/
 
     - A Basic Scheduler example designed to illustrate the most simple scheduler implementation.
-    - The example utilizes the most basic power reduction techniques of simply simply sleeping
-    between systick interrupts while not excecuting scheduler tasks.
-
-STM32L0 Low Power Example
-
-./STM32L0/low_power/
+    - An LED is repeatably toggled on and off.
     
-    - Utilizes the Targets LPTIMER module to stop and wake the processor as needed to 
-    processs scheduler events.
-    - The examples toggles GPIO's at various rates using repeating tasks over a long duration.
+Current Measurements:
 
-STM32L0 Low Power Switch Debounce Example
-   
-./(TARGET)/switch/
-    
-    - Utilizes a one shot scheduler events to filter switch events.
-    - Switch presses are debounced for a configurable time period.
-    - Switch holds are also detected.
-    - A switch event callback is made on switch status change detectionn.
+STM2L053C8 Processor
+Run Mode Clock : 4.194 MHz Medium Speed Internal Clock   
+Stop Mode Clock: 32,768 Hz External Crystal Clock
+Power: 3.0V CR2032 Lithuim Coin Cell Battery
 
+Sleep Technique     Measured Current
+
+SLEEP_NONE
+SLEEP_SYSTICK    
+SLEEP_LPTIMER
+
+Setup:
+
+The STM32L0 Project requires that the STMicroelectronics supplied STM32CubeL0 SDK be clonde to the following folder:
+
+examples/STM32L0/SDK
+
+The STM32CubeL0 SDK is available at:
+
+https://github.com/STMicroelectronics/STM32CubeL0.git
+
+Build:
+
+The STM32LO example projects are provided for Segger Embedded Studio (SES).  Segger offers a free non-commerical license for SES. It should be relatively straight forward to setup the project with other compliers if desired.
 
 # POSIX Example Project
 
-./POSIX/test/
+examples/POSIX/test/
 
 The test project is designed to be compiled and ran on a POSIX system (Linux, OSX, Raspberry Pi or Windows under Cygwin).  The project requires the GCC toolchain.  The host system must have console access to monitor the test results.
 
