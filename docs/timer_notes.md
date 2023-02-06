@@ -1,8 +1,8 @@
 #  Scheduler Tick Timer Notes
 
-The Scheduler mS tick timer is implemented as a unsigned integer which will rolls over to 0 once it it exceeds the UINT32_MAX value.   The tick counter operates in away similar to the mintues hand on a typical wall clock which simply goes back 0 after 59.  The diference is that tick counter provides no hour hand so there's no method to detect roll overs.  
+The Scheduler mS tick timer is implemented as a unsigned integer which rolls over to 0 once it it exceeds the UINT32_MAX value.   The tick counter's' operation is similar to the mintue hand on a analog clock which simply goes back 0 after 59.  The diference betweeen is that tick counter provides no hour hand so there's no method to detect roll overs.  
 
-The modular arithmetic counter  behaviour must therefore be considered when calcuating the number of ticks until task expiration and determining whether a task has expried.  Fortunately it is staright forward to do so using the following following formulas.
+The modular arithmetic behaviour of the counter must therefore be considered when calcuating the number of ticks until task expiration and determining whether a task has expried.  Fortunately it is staright forward to do so using the following following formulas.
   
 Calculate the Ticks since the Task was Started:  
  
@@ -12,20 +12,16 @@ Check if a Task has Expired:
 
 (now_ticks - start_tick) >= interval ticks  
                            
-A couple of examples are presented below using an UINT8_T timer for brevity.  The UINT8_T follows the same roll over behaviour of a UINT32_T value.
+A couple of examples are presented below using an unsigned byte sized timer counter for brevity.  The UINT8_T follows the same roll over behaviour of a UINT32_T value.
              
-    Now       Start     Interval  Elapsed
-    Ticks     Ticks     Ticks     Ticks
-
-A:  0xDC      0xC2      0x20      0xDC - 0xC2 = 0x1A   Unexpired(0x1A < 0X20) 
-    220       194       32        26                   Unexpired(26 < 32)
-
-B:  0XF5      0xC2      0x20      0XF5 - 0xC2 = 0x33   Expired (0x33 >= 0x20)
-    245       194       32        51                   Expired (51 >= 32) 
-
-(Timer Rolled)    
-C:  0x04      0xC2      0x20      0X04 - 0xC2 = 0x42   Expired (0x42 >= 0x20)
-    4         194       32        66                   Expired (66 >= 32)    
+|        |Now   |Start |Interval|Elapsed           |Counter Ticks         |
+|:----:  |:----:|:----:|:----:  |:----:            |:----:                |
+|A:      |0xDC  |0xC2  |0x20    |0xDC - 0xC2 = 0x1A|Unexpired(0x1A < 0X20)| 
+|^       |220   |194   |32      |26                |Unexpired(26 < 32)    | 
+|B:      |0XF5  |0xC2  |0x20    |0XF5 - 0xC2 = 0x33|Expired (0x33 >= 0x20)|
+|^       |245   |194   |32      |51                |Expired (51 >= 32)    |
+|C:      |0x04  |0xC2  |0x20    |0X04 - 0xC2 = 0x42|Expired (0x42 >= 0x20)|
+|(rolled)|4     |194   |32      |66                |Expired (66 >= 32)    | 
      
 To illustrate why these calculation techniques are required, consider using the naive expiration test of now_ticks >= start_ticks + interval_ticks.  Using the values from Timer Rolled Example C, one can see that this method fails.  The start_tick of 0xC2 added interval_tick of 0x20 is 0xE2 which is greater than now_ticks value of 0x04.  The task would be have been incorrectly detected as unexpired.  
 
