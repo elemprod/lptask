@@ -3,7 +3,7 @@
 *                        The Embedded Experts                        *
 **********************************************************************
 *                                                                    *
-*            (c) 2014 - 2022 SEGGER Microcontroller GmbH             *
+*            (c) 2014 - 2021 SEGGER Microcontroller GmbH             *
 *                                                                    *
 *       www.segger.com     Support: support@segger.com               *
 *                                                                    *
@@ -133,30 +133,54 @@ Additional information:
         .balign 4
         .global _vectors
 _vectors:
-        VECTOR __stack_end__
-        VECTOR Reset_Handler
-        ISR_HANDLER NMI_Handler
-        VECTOR HardFault_Handler
-        ISR_HANDLER MemManage_Handler 
-        ISR_HANDLER BusFault_Handler
-        ISR_HANDLER UsageFault_Handler
+        VECTOR        __stack_end__
+        VECTOR        Reset_Handler
+        ISR_HANDLER   NMI_Handler
+        VECTOR        HardFault_Handler
+        ISR_HANDLER   MemManage_Handler 
+        ISR_HANDLER   BusFault_Handler
+        ISR_HANDLER   UsageFault_Handler
         ISR_RESERVED
         ISR_RESERVED
         ISR_RESERVED
         ISR_RESERVED
-        ISR_HANDLER SVC_Handler
-        ISR_HANDLER DebugMon_Handler
+        ISR_HANDLER   SVC_Handler
+        ISR_HANDLER   DebugMon_Handler
         ISR_RESERVED
-        ISR_HANDLER PendSV_Handler
-        ISR_HANDLER SysTick_Handler
-        //
-        // Add external interrupt vectors here.
-        // Example:
-        //   ISR_HANDLER ExternalISR0
-        //   ISR_HANDLER ExternalISR1
-        //   ISR_HANDLER ExternalISR2
-        //   ISR_HANDLER ExternalISR3
-        //
+        ISR_HANDLER   PendSV_Handler
+        ISR_HANDLER   SysTick_Handler
+        ISR_HANDLER   WWDG_IRQHandler                 // Window Watchdog
+        ISR_HANDLER   PVD_IRQHandler                  // PVD through EXTI Line detect
+        ISR_HANDLER   RTC_IRQHandler                  // RTC through EXTI Line
+        ISR_HANDLER   FLASH_IRQHandler                // FLASH
+        ISR_HANDLER   RCC_CRS_IRQHandler              // RCC and CRS
+        ISR_HANDLER   EXTI0_1_IRQHandler              // EXTI Line 0 and 1
+        ISR_HANDLER   EXTI2_3_IRQHandler              // EXTI Line 2 and 3
+        ISR_HANDLER   EXTI4_15_IRQHandler             // EXTI Line 4 to 15
+        ISR_HANDLER   TSC_IRQHandler                  // TSC
+        ISR_HANDLER   DMA1_Channel1_IRQHandler        // DMA1 Channel 1
+        ISR_HANDLER   DMA1_Channel2_3_IRQHandler      // DMA1 Channel 2 and Channel 3
+        ISR_HANDLER   DMA1_Channel4_5_6_7_IRQHandler  // DMA1 Channel 4, Channel 5, Channel 6 and Channel 7
+        ISR_HANDLER   ADC1_COMP_IRQHandler            // ADC1, COMP1 and COMP2
+        ISR_HANDLER   LPTIM1_IRQHandler               // LPTIM1
+        ISR_RESERVED                                  // Reserved
+        ISR_HANDLER   TIM2_IRQHandler                 // TIM2
+        ISR_RESERVED                                  // Reserved
+        ISR_HANDLER   TIM6_DAC_IRQHandler             // TIM6 and DAC
+        ISR_RESERVED                                  // Reserved
+        ISR_RESERVED                                  // Reserved
+        ISR_HANDLER   TIM21_IRQHandler                // TIM21
+        ISR_RESERVED                                  // Reserved
+        ISR_HANDLER   TIM22_IRQHandler                // TIM22
+        ISR_HANDLER   I2C1_IRQHandler                 // I2C1
+        ISR_HANDLER   I2C2_IRQHandler                 // I2C2
+        ISR_HANDLER   SPI1_IRQHandler                 // SPI1
+        ISR_HANDLER   SPI2_IRQHandler                 // SPI2
+        ISR_HANDLER   USART1_IRQHandler               // USART1
+        ISR_HANDLER   USART2_IRQHandler               // USART2
+        ISR_HANDLER   RNG_LPUART1_IRQHandler          // RNG and LPUART1
+        ISR_HANDLER   LCD_IRQHandler                  // LCD
+        ISR_HANDLER   USB_IRQHandler                  // USB
 
         .section .vectors, "a"
         .size _vectors, .-_vectors

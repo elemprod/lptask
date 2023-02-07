@@ -86,9 +86,9 @@ typedef enum {
  * of the list.
  *
  * The next expiring task is cached which avoids having to recalculate it
- * during each sched_execute() call.  This significantly improves effiency.
+ * during each sched_execute() call which improves effiency.
  *
- * The que must be locked prior to writing any of these pointers.
+ * The que must be locked prior to modifiying any of these pointers.
  */
 typedef struct
 {
@@ -209,19 +209,19 @@ void sched_task_config(sched_task_t *p_task,
     uint32_t interval_ms,
     bool repeat) {
 
-  // A pointer to the task to be added the scheduler que must be supplied.
+  // The task to add must be supplied.
   SCHED_NULL_CHECK(p_task);
 
-  // The task's handler must be supplied.
+  // A task handler must be supplied.
   SCHED_NULL_CHECK(handler);
 
   // Mark the task as inactive.
   p_task->active = false;
-  // Set the task handler.
+  // Store the task handler.
   p_task->handler = (sched_handler_t)handler;
-  // Save the user context.
+  // Store the user context.
   p_task->p_context = (void *)p_context;
-  // Store the period limiting it to the max interval.
+  // Store the task interval limiting it to the max interval.
   p_task->interval_ms = (interval_ms & SCHEDULER_MS_MAX);
   // Store the repeating status.
   p_task->repeat = (bool)repeat;
@@ -236,17 +236,17 @@ void sched_task_config(sched_task_t *p_task,
     scheduler_port_que_lock();
 
     if (scheduler.p_head == NULL) {
-      // No other tasks exists in the list so the new task will be both the head & tail task.
+      // No other tasks exists in the list so the new task will be the head & tail tasks.
       scheduler.p_head = p_task;
     } else {
       // If other tasks exist, this task will be the next task for the current tail task.
       assert(scheduler.p_tail != NULL);
       scheduler.p_tail->p_next = p_task;
     }
-    // Set the new task to the tail task to add it to the end of the list.
+    // Set the new task to the tail task which adds it to the end of the list.
     scheduler.p_tail = p_task;
 
-    // Release task que exclusive access.
+    // Release the task que exclusive access.
     scheduler_port_que_free();
 
     p_task->added = true;
@@ -255,7 +255,7 @@ void sched_task_config(sched_task_t *p_task,
 
 void sched_task_start(sched_task_t *p_task) {
 
-  // A pointer to the task to start must be supplied.
+  // The task to start must be supplied.
   SCHED_NULL_CHECK(p_task);
 
   // The task must have been previously added to the que.
@@ -267,8 +267,8 @@ void sched_task_start(sched_task_t *p_task) {
     // Mark the task as active.
     p_task->active = true;
 
-    /* Clear the reference to the cached next task. This
-     * task might expire before it does.
+    /* Clear the reference to the cached next task since
+     * it may no longer be valid.
      */
     scheduler.p_next = NULL;
   }
@@ -276,7 +276,7 @@ void sched_task_start(sched_task_t *p_task) {
 
 void sched_task_update(sched_task_t *p_task, uint32_t interval_ms) {
 
-  // A pointer to the task to update must be supplied.
+  // The task to update must be supplied.
   SCHED_NULL_CHECK(p_task);
 
   // Store the new interval limiting it to the max interval.
@@ -288,7 +288,7 @@ void sched_task_update(sched_task_t *p_task, uint32_t interval_ms) {
 
 void sched_task_stop(sched_task_t *p_task) {
 
-  // A pointer to the task to stop must be supplied.
+  // The task to stop must be supplied.
   SCHED_NULL_CHECK(p_task);
 
   /* Set the task as inactive but don't remove it from

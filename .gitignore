@@ -47,3 +47,4 @@ Output
 *.emSession
 log.txt
 examples/STM32L0/SDK
+*.jlink
