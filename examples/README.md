@@ -18,6 +18,7 @@ SLEEP_LPTIMER: The processor is stopped between expiring task using the WFI inst
 
 A PCB with the following hardware was utilized for the test current measurements.
 
+|                 |                                 |
 | :----           | :----                           |
 | Processor       | STM2L053C8                      |
 | Run Mode Clock  | 4.194 MHz Medium Speed Internal |
