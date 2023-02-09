@@ -1,25 +1,23 @@
-# emsched (Embedded Scheduler)
+# Embedded Scheduler
 
-# What is `emsched`?
+The embedded C language scheudler module provides a simple method for scheduling tasks to be executed in the future without the complexity or overhead of a full RTOS.  A task's handler is called from the main context once its interval has expired.  Tasks can be configured as repeating, in which case they will be executed periodically until stopped, or as one-shot tasks.  
 
-Emsched is a lightweight embedded C language scheduler module. The module provides a simple method for scheduling tasks to be executed in the future without the complexity or overhead of a full RTOS.  A task's  handler is called from the main context once its timer has expired.  Tasks can be configured as repeating, in which case they will be executed periodically until stopped, or as one-shot tasks.  
-
-# Features
+## Features
 
 The scheduler module has minimal RAM and ROM requirements making it well suited for typical embedded platforms.
 
-* The core scheduler module requires ~500 bytes of ROM.
+* The core scheduler module requires ~650 bytes of ROM.
 * Each scheduler task requires 20 bytes of RAM on platforms which utilize 32-bit pointers.
 
 The scheduler's task que is implemented as a single linked list.  Each task contains a reference to the next task in the que.  Tasks are statically allocated utilizing a convenience macro.  This results in the scheduler having a fixed compile time memory footprint avoiding the overhead and risk associated with dynamic memory allocation.  
 
-In addition to scheduling tasks to be executed in the future, the scheduler provides an easy to use mechanism for moving work out of hardware triggered ISR's and into the main context.  This encourages the good practice of writing lightweight interrupt handlers which can improve system responsiveness and stability.
+In addition to scheduling tasks to be executed in the future, the scheduler provides an easy to use mechanism for moving work out of hardware triggered ISR's and into the main context.  This encourages the good practice of writing lightweight interrupt handlers which can often improve system responsiveness and stability.
 
-The scheduler is simple to learn and easy to use  Configuring a new task only requires a few lines of code.  Porting to new platform only requires implement 3 platform specific functions.
+The scheduler is simple to learn and easy to use  Configuring a new task only requires a few lines of code.  Porting to new platform requires implementing 3 platform specific functions.
 
-The scheduler was architected with an eye towards power reduction.  
+The scheduler was architected with an eye towards power reduction. 
 
-# Comparison to RTOS
+## Comparison to RTOS
                                                             
 The scheduler does not provide all of the same features that Real Time Operating System does, the major differences include:
 

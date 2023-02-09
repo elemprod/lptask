@@ -1,40 +1,53 @@
 # STM32L0 Example Project 
 
-STM32L0 Power Example
-
 examples/STM32L0/power/
 
-The project demostrates 3 different sleep method for the STM32L0XX processor. The active sleep method can be selected with a #define.  Each of the progressively more sosphisicated sleep technique provide reduced power consumption.
-
-
-
-    - A Basic Scheduler example designed to illustrate the most simple scheduler implementation.
-    - An LED is repeatably toggled on and off.
+The project demostrates 3 different sleep methods for the STM32L0XX processor. Each of the progressively more sosphisicated sleep technique offers additional power consumption improvements.  A single scheduler task is configured to toggle an LED 5 Hz.
     
-Current Measurements:
+### Sleep Mode Selection
 
-STM2L053C8 Processor
-Run Mode Clock : 4.194 MHz Medium Speed Internal Clock   
-Stop Mode Clock: 32,768 Hz External Crystal Clock
-Power: 3.0V CR2032 Lithuim Coin Cell Battery
+One of the three supported modes can be selected with a #define SLEEP_METHOD.
 
-Sleep Technique     Measured Current
+SLEEP_NONE:  No sleep method is implemented. The processor simply busy waits while waiting for the next task to expire.
 
-SLEEP_NONE
-SLEEP_SYSTICK    
-SLEEP_LPTIMER
+SLEEP_SYSTICK:  The processor is stopped between expired tasks using the WFI instruction.  The SYSTICK timer is configured to generate an interrupt every 1 mS and is enabled during sleep. The results in the processor waking every 1mS, checking if has expired tasks and then going back to sleep if not.   The next expiring task by the scheduler preventing it from having to check each task for expiration on wake.
 
-Setup:
+SLEEP_LPTIMER: The processor is stopped between expiring task using the WFI instruction but the SYSTICK timer is disabled with this sleep mode.   The LPTIM (Low Power Timer) is instead used to wake the processor once the next taks expires.  The LPTIM is confiured to generate an interrrupt at the next tasks expiration interval.   
 
-The STM32L0 Project requires that the STMicroelectronics supplied STM32CubeL0 SDK be clonde to the following folder:
+### Hardware Configuration
 
-examples/STM32L0/SDK
+A PCB with the following hardware was utilized for the test current measurements.
+
+| :----           | :----                           |
+| Processor       | STM2L053C8                      |
+| Run Mode Clock  | 4.194 MHz Medium Speed Internal |
+| Stop Mode Clock | 32,768 Hz External Crystal      |
+| Power           | 3.0V CR2032 Battery             |
+| LED             | Port B, GPIO 8                  |
+
+### Current Measurement
+
+| Sleep Method   | Current | Jitter |
+| :----          | ----:   | ----:  |    
+| SLEEP_NONE     | ? mA    | ? uS   |
+| SLEEP_SYSTICK  | ? uA    | ? uS   |
+| SLEEP_LPTIMER  | ? uA    | ? uS   |
+
+The average processor current was measured for each sleep method using a 7-1/2 Digit Keithley DMM7510 DMM.  Note that the LED current was not included in the above measurement.
+
+The task execution time interval jitter was measured by probing the LED output with an oscilliscope.  The deviation from the task programmed interval was calculated and averaged over a 60 second time period.
+
+## Project Setup
+
+The STM32L0 Project requires that the STMicroelectronics supplied STM32CubeL0 SDK be cloned to the following folder:
+
+/examples/STM32L0/SDK
 
 The STM32CubeL0 SDK is available at:
 
 https://github.com/STMicroelectronics/STM32CubeL0.git
 
-Build:
+## Build
 
 The STM32LO example projects are provided for Segger Embedded Studio (SES).  Segger offers a free non-commerical license for SES. It should be relatively straight forward to setup the project with other compliers if desired.
 
@@ -53,11 +66,11 @@ The project is mainly meant to be used for testing the scheduler library since a
   - The test stops after 7 days and the results are reported to the console.
   - A 2nd random interval task is included for testing stopping and starting the scheduler module.  It stops the scheduler in its handler.  The scheduler and all tasks are restarted once the scheduler stop has completed.
 
-Build:
+##Build
 
-Run make from a console inside the project directory to build the project.
+Run the make command from a console inside the project directory to build the project.
 
-Usage:
+##Usage
 
 ./build/sched_test
 
