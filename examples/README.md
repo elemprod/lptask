@@ -14,19 +14,19 @@ SLEEP_SYSTICK:  The processor is stopped between expired tasks using the WFI ins
 
 SLEEP_LPTIMER: The processor is stopped between expiring task using the WFI instruction but the SYSTICK timer is disabled with this sleep mode.   The LPTIM (Low Power Timer) is instead used to wake the processor once the next taks expires.  The LPTIM is confiured to generate an interrrupt at the next tasks expiration interval.   
 
-### Hardware Configuration
+### Hardware Test Setup
 
-A PCB with the following hardware was utilized for the test current measurements.
+A PCB with the following hardware configuration was utilized for the test current measurements.
 
-|                 |                                 |
+| Hardware        | Configuration                   |
 | :----           | :----                           |
 | Processor       | STM2L053C8                      |
 | Run Mode Clock  | 4.194 MHz Medium Speed Internal |
-| Stop Mode Clock | 32,768 Hz External Crystal      |
+| Stop Mode Clock | 32.768 kHz External Crystal     |
 | Power           | 3.0V CR2032 Battery             |
 | LED             | Port B, GPIO 8                  |
 
-### Current Measurement
+### Test Results
 
 | Sleep Method   | Current | Jitter |
 | :----          | ----:   | ----:  |    
@@ -36,7 +36,7 @@ A PCB with the following hardware was utilized for the test current measurements
 
 The average processor current was measured for each sleep method using a 7-1/2 Digit Keithley DMM7510 DMM.  Note that the LED current was not included in the above measurement.
 
-The task execution time interval jitter was measured by probing the LED output with an oscilliscope.  The deviation from the task programmed interval was calculated and averaged over a 60 second time period.
+The task execution time interval jitter was measured by probing the LED output with an oscilliscope.  The deviation from the programmed interval was calculated and averaged over a 60 second time period.
 
 ## Project Setup
 
