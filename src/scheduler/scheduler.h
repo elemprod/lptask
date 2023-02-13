@@ -2,29 +2,7 @@
  * scheduler.h
  *
  * The Scheduler module provides a simple method for scheduling tasks to be
- * executed at a later time without the complexity of an RTOS.  The task's
- * handler function is called from the main context with an optional delay.
- * tasks may be
- * configured as repeating, in which case they will be executed periodically
- * until stopped.
- *
- * Note that the scheduler does not provide the same real time capability that
- * an RTOS offers.  Scheduled tasks are are executed in the order they are
- * added to the scheduler with no prioritization functionality provided.  Each
- * task executes until completion after it's timer expires.  Task execution is
- * only paused by a hardware IRQ.  Many embedded systems outside of motion and
- * process control don't require hard real time operation and therefore can live
- * within these constraints saving complexity and overhead .
- *
- * tasks are are stored as nodes in a Single Linked List providing a fixed
- * compile time RAM utilization.  Each task must must be statically stored by
- * the calling module.
- *
- * The scheduler disables global interupts while adding tasks from the tasks
- * que in order to gain exclusive access to the list. This technique works with
- * a single core processor and eliminates the need for mutex a lock.
- *
- *
+ * executed at a later time without the complexity of an RTOS.  
  */
 
 #ifndef SCHEDULER_H__
@@ -69,10 +47,13 @@ typedef struct _sched_task {
 
   bool repeat : 1; // Should the task be repeated?
   bool active : 1; // Is the task active?
-  bool added : 1;  // Has the task been added taks que?
+  bool added : 1;  // Has the task been added task que?
 
   uint32_t interval_ms : 29; // Task execution interval (mS).
 } sched_task_t;
+
+// TODO the added bit could potentially be replaced by checking if p_next is not NULL
+// combined with checking the scheduler's last tasks not equal to this task.
 
 /**
  * Function like macro for defining a scheduler task.
@@ -91,20 +72,19 @@ typedef struct _sched_task {
  * must be enabled with with sched_task_start() function
  *
  * The task interval for a repeating task is desired time between task
- * haandler calls.   The interval for non-repeating task is the time delay
+ * handler calls.   The interval for non-repeating task is the time delay
  * until the task handler is called.
  *
  * The function can also be used to reconfigure a previously configured function.
  *
- * @param[in] p_task              Pointer to the task to add to the scheduler
- * @param[in] handler           Task handler function.
- * @param[in] p_context       Pointer to the user data to pass the task. (can be NULL)
+ * @param[in] p_task        Pointer to the task to add to the scheduler
+ * @param[in] handler       Task handler function.
+ * @param[in] p_context     Pointer to the user data to pass the task. (can be NULL)
  * @param[in] interval_ms   The task interval (mS)
  *
  * @param[in] repeat        True for a repeating tasks / False for single shot tasks.
  *
  * @return    none.
- *
  */
 void sched_task_config(sched_task_t *p_task,
     sched_handler_t handler,
@@ -115,7 +95,8 @@ void sched_task_config(sched_task_t *p_task,
 /**
  * Function for starting a scheduler task.
  *
- * Note that an task must have been previously configured with sched_task_config()
+ * Note that an task must have been previously configured with 
+ * the sched_task_config() function.
  *
  * @param[in] p_task   Pointer to the task to add to the scheduler
  * @return    none.
@@ -130,7 +111,6 @@ void sched_task_start(sched_task_t *p_task);
  * @param[in] p_task        Pointer to the task to add to the scheduler
  * @param[in] interval_ms   Task interval for a repeating task or a delay for
  *                          single-shot task (mS).
- *                          next sched_execute() call.
  * @return    none.
  */
 void sched_task_update(sched_task_t *p_task, uint32_t interval_ms);
@@ -188,43 +168,45 @@ uint32_t sched_task_elapsed_ms(sched_task_t *p_task);
  */
 sched_task_t *sched_task_compare(sched_task_t *p_task_a, sched_task_t *p_task_b);
 
-/**
- * Function for executing all scheduled tasks.
- *
- * This function must be called from within the main loop. It will execute
- * all scheduled tasks having expired timers before returning.
- *
- * @return  A pointer to the next expiring task or NULL if no other tasks are
- *          scheduled.  The return value can be used to control the processors sleep operation.
- *          If no tasks are scheduled, the processor can enter a deep sleep or stop mode.
- *          If the next task expiration time is short, the processor may simply want to call
- *          sched_execute() again.  If the expiration time is longer, the processor may want
- *          to schedule a wakeup using a low power timer prior to sleeping.
- */
-sched_task_t *sched_execute(void);
 
 /**
  * Function for initializing and starting the scheduler module if not already
- * started.  This must be callled before configuring the task.
+ * started.  This must be called before configuring the task.
  *
  * @return  True if the scheduler was initialized.
- *          False if the scheduler could not be intialized because it is currently
- *          in the stopping state.  Wait for the stop to complete before calling init.
+ *          False if the scheduler could not be initalized because it is currently
+ *          in the stopping state.  Try again once the stop completes.
  */
 bool sched_init(void);
 
 /**
+ * Function for starting scheduler execution.  
+ *
+ * The function repeatably executes all scheduled tasks as they expire.
+ * This function must be called from main, typically after all platform 
+ * initialization has completed. The function does not return until 
+ * scheduler has stopped.
+ *
+ * Note that if at any point there are no tasks in the scheduler que or 
+ * there are no active tasks in the que, the scheduler will attempt to 
+ * sleep for the maximum sleep interval.  In this case, tasks can only be
+ * added to the que through a interrupt event.
+ *
+ * The scheduler must have been previously initalized before 
+ * calling this function.
+ *
+ * @return    none.
+ */
+void sched_start(void);
+
+/**
  * Function for stopping the scheduler module and clearing the scheduler's que.
  *
- * Note that scheduler may not immediately stop if the function is called
- * outside of the main context.  If it is called from within an ISR while
- * the scheduler is currently executing its task que, the scheduler will 
- * finish executing any expired tasks before completing the stop.
- *
- * @return  True if the scheduler was stopped immediately.
- *          False if the scheduler is currently busy but will be stop
- *          once it completes executing the active tasks.
+ * Note that scheduler does not immediately stop.  The scheduler will finish
+ * executing any tasks with expired timers before completing the stop. 
+ * 
+ * @return    none.
  */
-bool sched_stop(void);
+void sched_stop(void);
 
 #endif // SCHEDULER_H__

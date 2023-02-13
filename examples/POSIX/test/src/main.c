@@ -19,15 +19,15 @@
  *  Test Tasks:
  *
  *  Random Interval Task
- *    A one-shot task which updates its interval new random value each time the task's
- *    handler is called.
+ *    A one-shot task which uses a new random inveral time for every task
+ *    handler call.
  *
  *  Second, Minute, Hour & Day Interval Task's
  *    Long running repeating tasks.
  *
  *  Stop Task
- *    Stops the scheduler.
- *
+ *    Stops the scheduler.  The scheduler is restarted if its ran for less
+ *    than 7 days.
  *
  */
 
@@ -37,9 +37,6 @@
 #define MIN_INTERVAL_MS (1000 * 60)
 #define HOUR_INTERVAL_MS (1000 * 60 * 60)
 #define DAY_INTERVAL_MS (1000 * 60 * 60 * 24)
-
-//
-#define STOP_INTERVAL_MS (16232)
 
 // Number of Hours & Days the Test has been Running for
 static uint32_t run_hours = 0;
@@ -67,8 +64,9 @@ task_time_t day_task_time;
 
 // Task called to test stopping and then restarting the scheduler.
 SCHED_TASK_DEF(stop_task);
+
 // Count of the number of times stopped.  A pointer to this variable is
-// passed with the stop handler which increments it during each call.
+// passed with the stop handler.  It is incremented during the handler call.
 uint32_t stop_count = 0;
 
 // Function for logging all of the task time stats.
@@ -94,15 +92,6 @@ static void log_task_stats() {
 // Random Interval Task Schedule Handler.
 static void rand_task_handler(void * p_context) {
   
-#if 0
-  // Store the Last Time the Handler was called.
-  static uint32_t time_ms_last = 0;
-  if(time_ms_last != 0) {
-    printf("Interval %ld mS\n", (long) sched_get_ms() - time_ms_last);
-  }
-  time_ms_last = sched_get_ms();
-#endif
-  
   // Update the task statistics
   task_time_update(&rand_task_time);
 
@@ -114,11 +103,6 @@ static void rand_task_handler(void * p_context) {
   
   // Update the task's interval & restart the task.
   sched_task_update(&rand_task, interval);
-
-#if 0
-  task_time_log(&rand_task_time);
-  fflush(stdout);
-#endif
 }
 
 static void sec_task_handler(void * p_context) {
@@ -132,22 +116,7 @@ static void min_task_handler(void * p_context) {
   // Update the task statistics
   task_time_update(&min_task_time);
 
-#if 0
-  // Number of Running Minutes
-  static uint32_t run_mins = 0;
-  run_mins ++;
-  
-
-  time_t mytime = time(NULL);
-  char * time_str = ctime(&mytime);
-  time_str[strlen(time_str)-1] = '\0';
-  
-  if((run_mins > 0) && (run_mins % 15 == 0)) {
-    printf("Running for %d Minutes, Time : %s\n", run_mins, time_str);
-  }
-#endif
-  
-  // Update the Console Once per Minute
+  // Update the Console with an Log Messages Once per Minute
   fflush(stdout);
 }
 
@@ -179,7 +148,7 @@ static void day_task_handler(void * p_context) {
   
   printf("Run %d Days, Time : %s\n", run_days, time_str);
   
-  // Stop all tasks after 7 days / exit the program.
+  // Stop the the test after 7 days.
   if(run_days >= 7) {
     sched_task_stop(&rand_task);
     sched_task_stop(&sec_task);
@@ -187,6 +156,7 @@ static void day_task_handler(void * p_context) {
     sched_task_stop(&hour_task);
     sched_task_stop(&day_task);
     sched_task_stop(&stop_task);
+    sched_stop();
   }
 }
 
@@ -197,43 +167,10 @@ static void stop_task_handler(void * p_context) {
   
   // Increment the stop count variable.
   (* p_stop_count) ++;
-  
-  // Stop the Scheduler
-  bool stopped = sched_stop();
-  if(stopped) {
-    printf("Scheduler Stopped, Count: %u\n", * p_stop_count);
-  } else {
-    printf("Scheduler Stop Qued, Count: %u\n", * p_stop_count);
-  }
-  fflush(stdout);
+  sched_stop();
+ 
+  printf("Scheduler Stop Count: %u\n", (* p_stop_count)); 
 }
-
-// Function for sleeping for a time interval in mS.
-void sleep_ms(int milliseconds){
-  struct timespec ts;
-  ts.tv_sec = milliseconds / 1000;
-  ts.tv_nsec = (milliseconds % 1000) * 1000000;
-  nanosleep(&ts, NULL);
-}
-
-#define TEST_INTERVAL_MS 853
-// Simple function for testing the scheduler sched_get_ms() funcition.
-static void sched_get_ms_test() {
-  
-  // Store the Start time.
-  uint32_t time_ms_start = scheduler_port_ms();
-  // Sleep for the Test Time
-  sleep_ms(TEST_INTERVAL_MS);
-  // Get the End time
-  uint32_t time_ms_end = scheduler_port_ms();
-  // Calculate the interval slept and  the error.
-  int32_t time_ms_elapsed = time_ms_end - time_ms_start;
-  int32_t time_ms_error = time_ms_elapsed - TEST_INTERVAL_MS;
-  printf("Start: %u mS, End: %u mS\n", time_ms_start, time_ms_end);
-  printf("Interval: %d mS, Error: %d mS\n", time_ms_elapsed, time_ms_error);
-  fflush(stdout);
-}
-
 
 // Function for configuring all of the test tasks
 static void test_tasks_config() {
@@ -260,34 +197,34 @@ static void test_tasks_config() {
   sched_task_config(&stop_task, stop_task_handler, &stop_count, interval, false);
 }
 
-// Function for starting all of the test tasks
+// Function for starting all of the task except the stop task.
 static void test_tasks_start() {
   sched_task_start(&rand_task);
   sched_task_start(&sec_task);
   sched_task_start(&min_task);
   sched_task_start(&hour_task);
   sched_task_start(&day_task);
-  sched_task_start(&stop_task);
 }
 
 // Function for restarting the scheduler and all tasks after it
 // has been stopped.
 static void scheduler_restart() {
   
-  // Initialize the scheduller.
+  // Initialize the scheduler.
   assert(sched_init());
   
-  // Configure and Start the Tasks
+  // Configure and Start all of the tasks except for the stop task.
+  // The stop task is only runs one time.
   test_tasks_config();
   test_tasks_start();
   
-  // Update task interval tracking stats.
+  // Update task interval tracking stats if stopped and restarted to 
+  // avoid introducing error into the into the interval stats.
   task_time_set_interval(&rand_task_time, SEC_INTERVAL_MS);
   task_time_set_interval(&sec_task_time, SEC_INTERVAL_MS);
   task_time_set_interval(&min_task_time, MIN_INTERVAL_MS);
   task_time_set_interval(&hour_task_time, HOUR_INTERVAL_MS);
   task_time_set_interval(&day_task_time, DAY_INTERVAL_MS);
-
 }
 
 int main()
@@ -314,35 +251,29 @@ int main()
   
   // Start each of the test tasks
   test_tasks_start();
-
-  //sched_get_ms_test();
+  sched_task_start(&stop_task);
   
-  while(true) {
-    // Execute the scheduler Que
-    sched_task_t * p_next_task = sched_execute();
-    // Check if there are any tasks left in the que.
-    if(p_next_task != NULL) {
-      // Sleep until the next task expires.
-      sleep_ms(sched_task_remaining_ms(p_next_task));
-    } else {
-      // No more tasks in the scheduler que.
-      if(run_days < 7) {
-        // Restart the scheduler if the test is still running
-        printf("Scheduler Stopped - Restarting.\n");
-        fflush(stdout);
-        scheduler_restart();
-      } else {
-        printf("Scheduler Test Complete.\n");
-        // Log the final task stats
-        log_task_stats();
-        fflush(stdout);
-        return 0;
-      }
-    }
+  // Start the Scheduler.
+  sched_start();
+
+  // Restart the scheduler if the test is still running.
+  while(run_days < 7) {
+    printf("Scheduler Stopped - Restarting.\n");
+    fflush(stdout);
+    scheduler_restart();
   }
+  
+  // Test Complete
+  printf("Scheduler Test Complete.\n");
+
+  // Log the final task stats
+  log_task_stats();
+  fflush(stdout);
+  return 0;
+
 }
 
-// Optional Scheduler Port Init / Deinit (debugging)
+// Optional Scheduler Port Init / Deinit (for debugging)
 void scheduler_port_init(void) {
   printf("scheduler_port_init()\n");
   fflush(stdout);
