@@ -1,11 +1,12 @@
+#include <assert.h>
 #include "scheduler.h"
 #include "scheduler_port.h"
-#include <assert.h>
+#include "scheduler_int.h"
 
 /**
  * Function like macro for NULL checking pointer parameters
- * of user (public) functions.  The end user can provide
- * their own defintion should they wish to NULL check
+ * of user (public) functions.  The end user can define
+ * their own macro should they wish to NULL check
  * parameter values using an alternate method.
  *
  * The default method asserts if the supplied pointer value 
@@ -14,7 +15,6 @@
  *
  *  @param[in] param   The parameter to NULL check.
  */
-
 #ifndef SCHED_NULL_CHECK
 
 #ifdef DEBUG
@@ -28,46 +28,7 @@
 #endif
 
 /**
- * Function like macro for checking if a task is active.
- *
- * Note that the task pointer is not NULL checked
- *
- *  @param[in] p_task   Pointer to the task.
- *  @return             True if the task is active else False.
- */
-#define TASK_ACTIVE(p_task) (p_task->active == true)
-
-/**
- * Function like macro for safely checking if a task is active.
- *
- *  @param[in] p_task   Pointer to the task.
- *  @return             True if the task is active.
- *                      False if the task is NULL or inactive.
- */
-#define TASK_ACTIVE_SAFE(p_task) ((p_task != NULL) && (p_task->active == true))
-
-/**
- * Function like macro for checking if a task has expired.
- *
- * Note that the task pointer is not NULL checked and the
- * task's Active status is not checked.
- *
- *  @param[in] p_task   Pointer to the task.
- *  @return             True if the task is expired else False.
- */
-#define TASK_EXPIRED(p_task) ((scheduler_port_ms() - p_task->start_ms) >= p_task->interval_ms)
-
-/**
- * Function like macro for safely checking if a task has expired.
- *
- *  @param[in] p_task   Pointer to the task.
- *  @return             True if the task is active and expired.
- *                      False if the task is inactive or NULL.
- */
-#define TASK_EXPIRED_SAFE(p_task) (TASK_ACTIVE_SAFE(p_task) && TASK_EXPIRED(p_task))
-
-/**
- * Module State Definitions
+ * Scheduler State Definitions
  */
 typedef enum {
   SCHED_STATE_STOPPED = 0, // The scheduler is stopped.
@@ -107,7 +68,7 @@ static scheduler_t scheduler = {.p_head = NULL,
 bool sched_init(void) {
 
   if (scheduler.state == SCHED_STATE_STOPPING) {
-    // The scheduler can not be started if it is currently stopping.
+    // The scheduler can not be initialized if it is currently stopping.
     return false;
   }
 

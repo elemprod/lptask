@@ -1,8 +1,8 @@
 /**
  * scheduler.h
  *
- * The Scheduler module provides a simple method for scheduling tasks to be
- * executed at a later time without the complexity of an RTOS.  
+ * The scheduler module provides a simple method for scheduling tasks 
+ * to be executed at a later time without the complexity of an RTOS.  
  */
 
 #ifndef SCHEDULER_H__
@@ -13,31 +13,25 @@
 #include <stdlib.h>
 
 /**
- * The maximum task interval time in mS. (~6.2 days)
- */
-#define SCHEDULER_MS_MAX 0x1FFFFFFF
-
-/**
  * Scheduler Task Handler Function Prototype.
  *
  * The handler function is called after the task's interval has
  * expired.
  *
- * @param[in] p_context   Pointer to the user taks context.
+ * @param[in] p_context   Pointer to the user task context.
  */
 typedef void (*sched_handler_t)(void *p_context);
 
 /**
- * The locally stored data structure for a single sheduler task.
+ * The data structure for a single scheduler task.
  *
- * The task structure can be defined and intialized with the
+ * The task data structure can be defined and initialized with the
  * SCHED_TASK_DEF() macro.
  *
- * The task data structure should only be accessed using the
- * supplied scheduler functions and function like macros.
+ * The task should only be modified using the supplied scheduler
+ * functions and macros.
  */
 typedef struct _sched_task {
-
   sched_handler_t handler; // The task handler function.
   void *p_context;         // Pointer to the user supplied context.
 
@@ -52,8 +46,9 @@ typedef struct _sched_task {
   uint32_t interval_ms : 29; // Task execution interval (mS).
 } sched_task_t;
 
+
 // TODO the added bit could potentially be replaced by checking if p_next is not NULL
-// combined with checking the scheduler's last tasks not equal to this task.
+// combined with checking the scheduler's last tasks not equal to the task.
 
 /**
  * Function like macro for defining a scheduler task.
@@ -81,7 +76,6 @@ typedef struct _sched_task {
  * @param[in] handler       Task handler function.
  * @param[in] p_context     Pointer to the user data to pass the task. (can be NULL)
  * @param[in] interval_ms   The task interval (mS)
- *
  * @param[in] repeat        True for a repeating tasks / False for single shot tasks.
  *
  * @return    none.
@@ -106,7 +100,8 @@ void sched_task_start(sched_task_t *p_task);
 /**
  * Function for updating a scheduler task with a new interval and starting it.
  *
- * Note that an task must have been previously configured with sched_task_config()
+ * Note that an task must have been previously configured with the 
+ * sched_task_config() function.
  *
  * @param[in] p_task        Pointer to the task to add to the scheduler
  * @param[in] interval_ms   Task interval for a repeating task or a delay for
@@ -118,56 +113,13 @@ void sched_task_update(sched_task_t *p_task, uint32_t interval_ms);
 /**
  * Function for stopping an active scheduler task.
  *
- * Note that a stopped task remains in the scheduler task que but has its active
- * flag cleared to disable it.
+ * Note that a stopped task remains in the scheduler task que but has its 
+ * active flag cleared to disable it.
  *
  * @param[in] p_task  Pointer to the task to stop to the scheduler
  * @return    none.
  */
 void sched_task_stop(sched_task_t *p_task);
-
-/**
- * Function for checking if a task's timer has expired.
- *
- * Note that NULL or Inactive tasks return false since they
- * can't be expired.
- *
- * @param[in] p_task  Pointer to the task to stop to the scheduler
- * @return            true if task's timer has expired.
- */
-bool sched_task_expired(sched_task_t *p_task);
-
-/**
- * Function for calculating the time until a task's timer expires.
- *
- * Note that NULL or Inactive tasks will return SCHEDULER_MS_MAX.
- *
- * @param[in] p_task  Pointer to the task to stop to the scheduler
- * @return            The time in mS until the task expires or 0 if
- *                    the task has already expired.
- */
-uint32_t sched_task_remaining_ms(sched_task_t *p_task);
-
-/**
- * Function for calculating the time since a task's timer was started
- * or restarted in the case of a repeating timer.
- *
- * Note that NULL or Inactive tasks will be return 0.
- *
- * @param[in] p_task  Pointer to the task to stop to the scheduler
- * @return    The time in mS since the task was started.
- */
-uint32_t sched_task_elapsed_ms(sched_task_t *p_task);
-
-/**
- * Function for comparing the time until expiration of two tasks and returning
- * a pointer to one which expires sooner.
- *
- * @return    Returns a pointer to the task which will expire sooner or
- *            NULL if both tasks are NULL or Inactive.
- */
-sched_task_t *sched_task_compare(sched_task_t *p_task_a, sched_task_t *p_task_b);
-
 
 /**
  * Function for initializing and starting the scheduler module if not already
@@ -189,8 +141,8 @@ bool sched_init(void);
  *
  * Note that if at any point there are no tasks in the scheduler que or 
  * there are no active tasks in the que, the scheduler will attempt to 
- * sleep for the maximum sleep interval.  In this case, tasks can only be
- * added to the que through a interrupt event.
+ * sleep for the maximum sleep interval.  In this case, new tasks can 
+ * only be added to the que through a interrupt event.
  *
  * The scheduler must have been previously initalized before 
  * calling this function.
