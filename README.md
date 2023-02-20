@@ -1,6 +1,6 @@
 # Embedded Scheduler
 
-The C language scheduler module provides an easy to use mechanism for scheduling tasks to be executed in the future without the complexity or overhead of a full RTOS.  Once scheduled, a task's handler is executed from the main context once its interval timer has expired.  Tasks can be configured as one-shot or repeating. 
+ The C language scheduler module provides an easy to use mechanism for scheduling tasks to be executed in the future without the complexity or overhead of a full RTOS.  Once scheduled, a task's handler is executed from the main context once its interval timer has expired.  Tasks can be configured as one-shot or repeating. 
 
 ## Major Features
 

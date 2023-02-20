@@ -1,7 +1,7 @@
-#include <assert.h>
 #include "scheduler.h"
-#include "scheduler_port.h"
 #include "scheduler_int.h"
+#include "scheduler_port.h"
+#include <assert.h>
 
 /**
  * Function like macro for NULL checking pointer parameters
@@ -9,8 +9,8 @@
  * their own macro should they wish to NULL check
  * parameter values using an alternate method.
  *
- * The default method asserts if the supplied pointer value 
- * is NULL for debug builds and simply returns for release 
+ * The default method asserts if the supplied pointer value
+ * is NULL for debug builds and simply returns for release
  * builds.
  *
  *  @param[in] param   The parameter to NULL check.
@@ -20,9 +20,7 @@
 #ifdef DEBUG
 #define SCHED_NULL_CHECK(param) assert((param) != NULL)
 #else
-#define SCHED_NULL_CHECK(param) \
-  if ((param) == NULL)          \
-  return
+#define SCHED_NULL_CHECK(param) if ((param) == NULL) return
 #endif
 
 #endif
@@ -60,33 +58,11 @@ typedef struct
 } scheduler_t;
 
 // The module's internal data.
-static scheduler_t scheduler = {.p_head = NULL,
+static scheduler_t scheduler = {
+    .p_head = NULL,
     .p_tail = NULL,
     .p_next = NULL,
     .state = SCHED_STATE_STOPPED};
-
-bool sched_init(void) {
-
-  if (scheduler.state == SCHED_STATE_STOPPING) {
-    // The scheduler can not be initialized if it is currently stopping.
-    return false;
-  }
-
-  // Start the scheduler if currently stopped
-  if (scheduler.state == SCHED_STATE_STOPPED) {
-    // Perform any platform specific initialization first.
-    scheduler_port_init();
-
-    // Clear the task references.
-    scheduler.p_head = NULL;
-    scheduler.p_tail = NULL;
-    scheduler.p_next = NULL;
-
-    scheduler.state = SCHED_STATE_ACTIVE;
-  }
-
-  return true;
-}
 
 /**
  * Function for removing all tasks from the scheduler's que.
@@ -122,20 +98,20 @@ static void sched_clear_que() {
  * Function for completing a scheduler stop.
  */
 static void sched_stop_finalize(void) {
-  // Should be in the stopping state here
-  assert(scheduler.state = SCHED_STATE_STOPPING);
+  if (scheduler.state == SCHED_STATE_STOPPING) {
 
-  // Clear the que.
-  sched_clear_que();
+    // Clear the que.
+    sched_clear_que();
 
-  // Perform any platform specific deinitialization last.
-  scheduler_port_deinit();
+    // Perform any platform specific deinitialization last.
+    scheduler_port_deinit();
 
-  scheduler.state = SCHED_STATE_STOPPED;
+    scheduler.state = SCHED_STATE_STOPPED;
+  }
 }
 
 void sched_stop(void) {
-  if(scheduler.state != SCHED_STATE_STOPPED) {
+  if (scheduler.state != SCHED_STATE_STOPPED) {
     scheduler.state = SCHED_STATE_STOPPING;
   }
 }
@@ -192,7 +168,7 @@ void sched_task_config(sched_task_t *p_task,
 
 void sched_task_start(sched_task_t *p_task) {
 
-  // The task to start must be supplied.
+  // A pointer to the task to start must be supplied.
   SCHED_NULL_CHECK(p_task);
 
   // The task must have been previously added to the que.
@@ -213,7 +189,7 @@ void sched_task_start(sched_task_t *p_task) {
 
 void sched_task_update(sched_task_t *p_task, uint32_t interval_ms) {
 
-  // The task to update must be supplied.
+  // A pointer to the task to update must be supplied.
   SCHED_NULL_CHECK(p_task);
 
   // Store the new interval limiting it to the max interval.
@@ -225,12 +201,12 @@ void sched_task_update(sched_task_t *p_task, uint32_t interval_ms) {
 
 void sched_task_stop(sched_task_t *p_task) {
 
-  // The task to stop must be supplied.
+  // A pointer to the task to stop must be supplied.
   SCHED_NULL_CHECK(p_task);
 
   /* Set the task as inactive but don't remove it from
    * the que.  We don't need to clear the cached next task
-   * since the active bit will be checked before the task 
+   * since the active bit will be checked before the task
    * is executed.
    */
   p_task->active = false;
@@ -332,7 +308,7 @@ static sched_task_t *sched_next_task(void) {
  * This function must be called from within the main loop. It will execute
  * all scheduled tasks having expired timers before returning.
  *
- * @return  none 
+ * @return  none
  */
 void sched_execute_que(void) {
 
@@ -354,15 +330,15 @@ void sched_execute_que(void) {
     if (p_current_task->active && TASK_EXPIRED(p_current_task)) {
 
       /* Update the start time before calling the handler so the
-        * handler's execution time doesn't introduce error into the
-        * start time calculation.
-        */ 
+       * handler's execution time doesn't introduce error into the
+       * start time calculation.
+       */
       p_current_task->start_ms = scheduler_port_ms();
 
       /* Update the active flag before calling the handler to avoid overwriting
-        * any active flag changes made inside of the handler.  A task will only
-        * be active at this point if it is a repeating task.
-        */ 
+       * any active flag changes made inside of the handler.  A task will only
+       * be active at this point if it is a repeating task.
+       */
       p_current_task->active = p_current_task->repeat;
 
       // Execute the task Handler with the user supplied context.
@@ -377,17 +353,34 @@ void sched_execute_que(void) {
   scheduler.p_next = sched_next_task();
 }
 
-void sched_start(void)
-{
-  // Repeatably execute any tasks with expired timers sleeping in between.
+void sched_init(void) {
+
+  // Start the scheduler if not currently running.
+  if (scheduler.state == SCHED_STATE_STOPPED) {
+
+    // Perform any platform specific initialization first.
+    scheduler_port_init();
+
+    // Clear the task references.
+    scheduler.p_head = NULL;
+    scheduler.p_tail = NULL;
+    scheduler.p_next = NULL;
+
+    scheduler.state = SCHED_STATE_ACTIVE;
+  }
+}
+
+void sched_start(void) {
+  // Repeatably execute tasks in the que with expired timers.
   while (scheduler.state == SCHED_STATE_ACTIVE) {
+
     // Execute any tasks in the que with expired timers.
     sched_execute_que();
 
-    // Calculate the required sleep interval
+    // Calculate the time interval until the next expiring task.
     uint32_t sleep_interval = sched_task_remaining_ms(scheduler.p_next);
 
-    // Sleep until the next task expiration
+    // Sleep until the the task expires using the platform specific sleep method.
     if (sleep_interval > 0) {
       scheduler_port_sleep(sleep_interval);
     }

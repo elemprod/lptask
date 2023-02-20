@@ -211,7 +211,7 @@ static void test_tasks_start() {
 static void scheduler_restart() {
   
   // Initialize the scheduler.
-  assert(sched_init());
+  sched_init();
   
   // Configure and Start all of the tasks except for the stop task.
   // The stop task is only runs one time.

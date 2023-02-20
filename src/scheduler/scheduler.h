@@ -72,6 +72,9 @@ typedef struct _sched_task {
  *
  * The function can also be used to reconfigure a previously configured function.
  *
+ * The scheduler must be initialized prior to using this function to 
+ * configure the tasks.
+ *
  * @param[in] p_task        Pointer to the task to add to the scheduler
  * @param[in] handler       Task handler function.
  * @param[in] p_context     Pointer to the user data to pass the task. (can be NULL)
@@ -122,14 +125,14 @@ void sched_task_update(sched_task_t *p_task, uint32_t interval_ms);
 void sched_task_stop(sched_task_t *p_task);
 
 /**
- * Function for initializing and starting the scheduler module if not already
- * started.  This must be called before configuring the task.
+ * Function for initializing the scheduler module.
+ 
+ * Note that if the scheduler has been previously started and 
+ * then stopped, this function must not be called until the stop
+ * completes as indicated by sched_start() returning.
  *
- * @return  True if the scheduler was initialized.
- *          False if the scheduler could not be initalized because it is currently
- *          in the stopping state.  Try again once the stop completes.
  */
-bool sched_init(void);
+void sched_init(void);
 
 /**
  * Function for starting scheduler execution.  
@@ -137,7 +140,7 @@ bool sched_init(void);
  * The function repeatably executes all scheduled tasks as they expire.
  * This function must be called from main, typically after all platform 
  * initialization has completed. The function does not return until 
- * scheduler has stopped.
+ * scheduler has been stopped.
  *
  * Note that if at any point there are no tasks in the scheduler que or 
  * there are no active tasks in the que, the scheduler will attempt to 
