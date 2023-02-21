@@ -1,7 +1,7 @@
 //
 //  main.c
 //
-//  Scheduler Module Test Program
+//  POSIX Scheduler Test Program
 //
 
 #include <stdio.h>
@@ -26,7 +26,7 @@
  *    Long running repeating tasks.
  *
  *  Stop Task
- *    Stops the scheduler.  The scheduler is restarted if its ran for less
+ *    Stops the scheduler.  The scheduler is restarted if it has ran for less
  *    than 7 days.
  *
  */
@@ -225,6 +225,9 @@ static void scheduler_restart() {
   task_time_set_interval(&min_task_time, MIN_INTERVAL_MS);
   task_time_set_interval(&hour_task_time, HOUR_INTERVAL_MS);
   task_time_set_interval(&day_task_time, DAY_INTERVAL_MS);
+
+  // Start the Scheduler.
+  sched_start();
 }
 
 int main()
@@ -251,6 +254,7 @@ int main()
   
   // Start each of the test tasks
   test_tasks_start();
+  // Start the stop task one time.
   sched_task_start(&stop_task);
   
   // Start the Scheduler.

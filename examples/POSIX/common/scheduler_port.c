@@ -14,17 +14,20 @@
 static pthread_mutex_t sched_mutex =  PTHREAD_MUTEX_INITIALIZER;
 
 void scheduler_port_que_lock(void) {
-  assert(pthread_mutex_lock(&sched_mutex) == 0);
+  int ret = pthread_mutex_lock(&sched_mutex);
+  assert(ret == 0);
 }
 
 void scheduler_port_que_free(void) {
-  assert(pthread_mutex_unlock(&sched_mutex) == 0);
+  int ret = pthread_mutex_unlock(&sched_mutex);
+  assert(ret == 0);
 }
 
 uint32_t scheduler_port_ms(void) {
   // Get the current time.
   struct timespec time;
-  assert(clock_gettime(CLOCK_MONOTONIC, &time) == 0);
+  int ret = clock_gettime(CLOCK_MONOTONIC, &time);
+  assert(ret == 0);
   // Convert the current time to mS
   int64_t time_ms = (time.tv_sec * 1000) + lround(time.tv_nsec/1e6);
   // Limit the returned value.
@@ -33,7 +36,7 @@ uint32_t scheduler_port_ms(void) {
 
 #if 0
 /* Platform sleep function which sleeps for 1mS 
- * regardless of the suppliued interval parameter.
+ * regardless of the supplied interval parameter.
  */
 void scheduler_port_sleep(uint32_t interval_ms) {
   (void) interval_ms;
@@ -42,7 +45,7 @@ void scheduler_port_sleep(uint32_t interval_ms) {
 }
 #else 
 /* Platform sleep function which attempts to sleep
- * for the supplied intervale.  Note that nanosleep() 
+ * for the supplied interval.  Note that nanosleep() 
  * can be woken by any thread signal.
  */
 void scheduler_port_sleep(uint32_t interval_ms) {

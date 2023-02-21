@@ -10,8 +10,8 @@
  * parameter values using an alternate method.
  *
  * The default method asserts if the supplied pointer value
- * is NULL for debug builds and simply returns for release
- * builds.
+ * is NULL for debug builds which #define DEBUG and simply 
+ * return for release builds.
  *
  *  @param[in] param   The parameter to NULL check.
  */
