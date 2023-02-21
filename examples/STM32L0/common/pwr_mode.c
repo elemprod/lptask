@@ -58,6 +58,7 @@ const RCC_OscInitTypeDef RCC_LSE_ENABLE = {
 
 // Function for enabling / disabling the Low Speed Clock
 static void ls_clk_enable(bool enable) {
+  HAL_StatusTypeDef ret;
 
   // Read the RCC Current Clock Configuration
   RCC_OscInitTypeDef rcc_osc_current;
@@ -71,23 +72,26 @@ static void ls_clk_enable(bool enable) {
 
       // Disable the Internal & External Low Speed Oscillators first.
       // LSE transitions to the ON are only allowed from Off State (Not directly from Bypass)
-      assert(HAL_RCC_OscConfig((RCC_OscInitTypeDef *)&RCC_LSI_LSE_DISABLE) == HAL_OK);
+      ret = HAL_RCC_OscConfig((RCC_OscInitTypeDef *) &RCC_LSI_LSE_DISABLE);
+      assert(ret == HAL_OK);
 
       // Set the LSE Drive Strength
       LL_RCC_LSE_SetDriveCapability(PWR_LSE_DRIVE);
 
       // Enable the LSE Oscillator
-      assert(HAL_RCC_OscConfig((RCC_OscInitTypeDef *)&RCC_LSE_ENABLE) == HAL_OK);
+      ret = HAL_RCC_OscConfig((RCC_OscInitTypeDef *) &RCC_LSE_ENABLE);
+      assert(ret == HAL_OK);
     }
   } else {
     // Disable the Internal & External Low Speed Oscillator
-    assert(HAL_RCC_OscConfig((RCC_OscInitTypeDef *)&RCC_LSI_LSE_DISABLE) == HAL_OK);
+    ret = HAL_RCC_OscConfig((RCC_OscInitTypeDef *) &RCC_LSI_LSE_DISABLE);
+    assert(ret == HAL_OK);
   }
 }
 
 // Function for enabling the Regular Run Mode.
 void pwr_run_msi() {
-
+  HAL_StatusTypeDef ret;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
 
   // Configure the Voltage Range (Up to 4.2 MHz)
@@ -100,8 +104,8 @@ void pwr_run_msi() {
       .MSIClockRange = RCC_MSIRANGE_6,
       .MSICalibrationValue = 0x00,
       .PLL.PLLState = RCC_PLL_NONE};
-
-  assert(HAL_RCC_OscConfig((RCC_OscInitTypeDef *)&RCC_OSC_INIT_RUN_MODE) == HAL_OK);
+  ret = HAL_RCC_OscConfig((RCC_OscInitTypeDef *)&RCC_OSC_INIT_RUN_MODE);
+  assert(ret == HAL_OK);
 
   // Select MSI as system clock source and configure the HCLK, PCLK1 and PCLK2 clocks dividers
   const RCC_ClkInitTypeDef RCC_CLK_INIT_RUN_MODE = {
@@ -110,15 +114,15 @@ void pwr_run_msi() {
       .AHBCLKDivider = RCC_SYSCLK_DIV1,
       .APB1CLKDivider = RCC_HCLK_DIV1,
       .APB2CLKDivider = RCC_HCLK_DIV1};
-
-  assert(HAL_RCC_ClockConfig((RCC_ClkInitTypeDef *)&RCC_CLK_INIT_RUN_MODE, FLASH_LATENCY_0) == HAL_OK);
+  ret = HAL_RCC_ClockConfig((RCC_ClkInitTypeDef *)&RCC_CLK_INIT_RUN_MODE, FLASH_LATENCY_0);
+  assert(ret == HAL_OK);
 
   // Set the Wake from Stop clock to the Medium Speed Internal Oscillator
   __HAL_RCC_WAKEUPSTOP_CLK_CONFIG(RCC_STOP_WAKEUPCLOCK_MSI);
 }
 
 void pwr_run_hsi() {
-
+  HAL_StatusTypeDef ret;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
 
   // Configure the Voltage Range (Up to 16 MHz / Medium Power)
@@ -131,8 +135,8 @@ void pwr_run_hsi() {
       .HSIState = RCC_HSI_ON,
       .PLL.PLLState = RCC_PLL_NONE,
       .HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT};
-
-  assert(HAL_RCC_OscConfig((RCC_OscInitTypeDef *)&RCC_OSC_INIT_HS) == HAL_OK);
+  ret = HAL_RCC_OscConfig((RCC_OscInitTypeDef *)&RCC_OSC_INIT_HS);
+  assert(ret == HAL_OK);
 
   // Select HSI as system clock source and configure the HCLK, PCLK1 and PCLK2 clocks dividers
   // All buses set to run at 1 MHz
@@ -143,10 +147,8 @@ void pwr_run_hsi() {
       .APB1CLKDivider = RCC_HCLK_DIV1,
       .APB2CLKDivider = RCC_HCLK_DIV1,
   };
-
-  assert(HAL_RCC_ClockConfig((RCC_ClkInitTypeDef *)&RCC_CLK_INIT_HSI, FLASH_LATENCY_1) == HAL_OK);
-
-  // TODO do we need to explicity disable the MSI ??
+  ret = HAL_RCC_ClockConfig((RCC_ClkInitTypeDef *)&RCC_CLK_INIT_HSI, FLASH_LATENCY_1);
+  assert(ret == HAL_OK);
 
   // Set the Wake from Stop clock to the High Speed Internal Oscillator
   __HAL_RCC_WAKEUPSTOP_CLK_CONFIG(RCC_STOP_WAKEUPCLOCK_HSI);
@@ -156,15 +158,18 @@ void pwr_sleep() {
   HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
 }
 
+// Estimated Overhead in mS of using the Stop LPTIM Method
+#define STOP_LPTIM_OVERHEAD_MS 4
+
 void pwr_stop_lptim(uint16_t period_ms) {
 
-  if (period_ms > 2) {
+  if (period_ms > STOP_LPTIM_OVERHEAD_MS) {
 
     // Stop the SysTick IRQ
     HAL_SuspendTick();
 
-    // Enable the LPTIM with the desired delay
-    lptim_set(period_ms);
+    // Enable the LPTIM with the desired delay minus the estimated overhead.
+    lptim_set(period_ms - STOP_LPTIM_OVERHEAD_MS);
 
     // WFI Logic:
     // Each of the ISR's starts a scheduler event so we need for the scheduler to run after
@@ -174,11 +179,11 @@ void pwr_stop_lptim(uint16_t period_ms) {
     __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
     HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
 
-    /* After waking up from stop, update the SysTick counter with the time interval
+    /* After waking up from stop, correct the SysTick counter with the time interval
      * that the processor was stopped for.  This interval may be different than the
      * programmed interval if the processor was woken from a different interrupt.
      */
-    uwTick += lptim_ms_get();
+    uwTick = uwTick + lptim_ms_get() + STOP_LPTIM_OVERHEAD_MS;
 
     // Disable the LPTIM
     lptim_disable();
@@ -187,7 +192,7 @@ void pwr_stop_lptim(uint16_t period_ms) {
     HAL_ResumeTick();
   } else {
     // Just sleep without disabling the SysTick for short time periods
-    // The SysTic IRQ will wake the processor at the next Tick.
+    // The SysTick IRQ will wake the processor at the next Tick.
     pwr_sleep();
   }
 }

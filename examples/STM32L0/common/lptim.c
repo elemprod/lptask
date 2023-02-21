@@ -23,7 +23,7 @@
 
 // Function for Writing  the LPTIM Compare Register
 // Note LPTIM must be enabled before setting the register
-static bool lptim_compare_set(uint16_t cmp_reg) {
+static void lptim_compare_set(uint16_t cmp_reg) {
 
   if (LL_LPTIM_GetCompare(LPTIM1) != cmp_reg) {
 
@@ -33,17 +33,15 @@ static bool lptim_compare_set(uint16_t cmp_reg) {
 
     // Wait for the Write to Complete
     while (!LL_LPTIM_IsActiveFlag_CMPOK(LPTIM1)) {
-      if ((HAL_GetTick() - tickstart) > LPTIM_WRITE_TIMEOUT_MS) {
-        return false; // The write timed out.
-      }
+      // Write time out check
+      assert((HAL_GetTick() - tickstart) < LPTIM_WRITE_TIMEOUT_MS);
     }
   }
-  return true;
 }
 
 // Function for Writting the LPTIM Auto Reload Register
 // Note LPTIM must be enabled before setting the register
-static bool lptim_auto_reload_set(uint16_t arr_reg) {
+static void lptim_auto_reload_set(uint16_t arr_reg) {
 
   if (LL_LPTIM_GetAutoReload(LPTIM1) != arr_reg) {
 
@@ -52,12 +50,10 @@ static bool lptim_auto_reload_set(uint16_t arr_reg) {
     uint32_t tickstart = HAL_GetTick();
     // Wait for the Write to Complete
     while (!LL_LPTIM_IsActiveFlag_ARROK(LPTIM1)) {
-      if ((HAL_GetTick() - tickstart) > LPTIM_WRITE_TIMEOUT_MS) {
-        return false; // The write timed out.
-      }
+      // Write time out check
+      assert((HAL_GetTick() - tickstart) < LPTIM_WRITE_TIMEOUT_MS);
     }
   }
-  return true;
 }
 
 /*
@@ -122,7 +118,7 @@ static void lptim_init(void) {
   LL_LPTIM_Enable(LPTIM1);
 
   // Set the Auto Reload Register to the Max Value
-  assert(lptim_auto_reload_set(LPTIM_ARR_MAX));
+  lptim_auto_reload_set(LPTIM_ARR_MAX);
 
   // Enable the interrupt
   HAL_NVIC_SetPriority(LPTIM1_IRQn, 3, 0);
@@ -145,7 +141,7 @@ void lptim_set(uint16_t period_ms) {
   // Write the Compare Register Value / LPTIM must be enabled
   // TODO lptim enabled in init so enabling here shouldn't be needed
   LL_LPTIM_Enable(LPTIM1);
-  assert(lptim_compare_set(compare_value));
+  lptim_compare_set(compare_value);
 
   // Clear all of the LPTIM interrupt flags (Write Any Access)
   LPTIM1->ICR = 0x00000000;
@@ -183,7 +179,6 @@ void lptim_deinit(void) {
 
   // Disable the LPTIM Peripheral Clock
   __HAL_RCC_LPTIM1_CLK_DISABLE();
-  // TODO should we do a full reset??
 }
 
 void LPTIM1_IRQHandler(void) {

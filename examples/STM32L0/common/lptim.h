@@ -63,7 +63,7 @@ void lptim_disable(void);
 
 /**
  * Function stopping and deinitializing the LPTIM Module.
- * This places the LPTIM in the lowest poweer state.
+ * This places the LPTIM in the lowest power state.
  */
 void lptim_deinit(void);
 

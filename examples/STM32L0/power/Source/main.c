@@ -5,8 +5,8 @@
  *  Hardware Requirements:                                         *
  *                                                                 *
  *   STM2L053C8 Processor                                          *
- *   LED & current limiting resistor connected to Port B, GPIO 10  *
- *                                                                 *
+ *   32.768 kHz External Low Speed Crystal                         *
+ *   LED & current limiting resistor connected to a GPIO pin.      *
  *                                                                 *
  *******************************************************************/
 
@@ -22,17 +22,15 @@
 #include "stm32l0xx_hal.h"
 #include "stm32l0xx_ll_gpio.h"
 
-// Definitions for the different sleep types to use between scheduler tasks.
-#define SLEEP_NONE 0    // Don't sleep between tasks
-#define SLEEP_SYSTICK 1 // Sleep until the next systick interrupt
-#define SLEEP_LPTIMER 2 // Stop the processor and setup the LPTIMER to wake up.
+// LED0 GPIO & Port Definition
+// These defintions may need to be updated for the target board's hardware
 
-// Select which type of sleep to use.
-#define SLEEP_METHOD SLEEP_LPTIMER
+#if 1
+  #define LED0_PIN GPIO_PIN_8
+#else
+  #define LED0_PIN GPIO_PIN_7
+#endif
 
-// LED0 GPIO & Port Definition's
-// These defintions will need to be updated for the target board's hardware
-#define LED0_PIN GPIO_PIN_8
 #define LED0_PORT GPIOB
 #define LED0_PORT_CLK_EN() __HAL_RCC_GPIOB_CLK_ENABLE()
 
@@ -64,10 +62,11 @@ static void led0_task_handler(void *p_context) {
 
 int main(void) {
 
+  // Initialize the SDK
   HAL_Init();
 
   // Initialize the Scheduler
-  assert(sched_init());
+  sched_init();
 
   // Initialize the Power Hardware
   pwr_init();
@@ -75,65 +74,14 @@ int main(void) {
   // Initialize the LED GPIO
   gpio_init();
 
-  // Configure and start the LED0 Task to be called every 100 mS.
-  sched_task_config(&led0_task, led0_task_handler, NULL, 100, true);
+  // Configure and start the LED0 Task to be called every 250 mS.
+  sched_task_config(&led0_task, led0_task_handler, NULL, 250, true);
   sched_task_start(&led0_task);
 
-  printf("STM32L0 Scheduler Example Boot");
-#ifndef SLEEP_METHOD
-#error "The sleep type must be defined"
-#elif (SLEEP_METHOD == SLEEP_NONE)
+  printf("STM32L0 LED Fast Blink Example\n"); 
 
-  /*
-   * Repeatably excecute the scheduler event que ignoring the returned task.
-   * This is the simplest but most power intensive implementation.  It does
-   * not sleep between task execution.
-   */
-  while (true) {
-    sched_execute();
-  }
-
-#elif (SLEEP_METHOD == SLEEP_SYSTICK)
-  /*
-   * This implementation repeatably excecutes the scheduler event que ignoring
-   * the return result and sleeping between active tasks. After entering sleep,
-   * the processor can be woken from an hardware interrupts a which point it will
-   * execute any tasks with expired timers.   The systick timer is setup to
-   * trigger an interrupt once per mS which ensures tasks are executed
-   * as they expire with mS granularity.
-   */
-  while (true) {
-    sched_execute();
-    HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
-  }
-
-#elif (SLEEP_METHOD == SLEEP_LPTIMER)
-  /*
-   * This implementation enters Stop Mode between executing tasks.
-   * The next expiring task returned by the scheduler_execute() function is
-   * used to determine the optimal sleep time.  Calculating the interval
-   * until the next task expiration allows the implementation of a more
-   * agressive power reduction technque.
-
-   * The processor's systick timer is temporarily disabled in between task and
-   * the devices low power timer is instead utilized for timing the
-   * sleep intervals.   This prevents the processsor from needlessly waking
-   * every mS to check if the task has expired.
-   *
-   */
-
-  while (true) {
-    // Execute the scheduler Que saving a reference to the next expiring task
-    sched_task_t *p_next_task = sched_execute();
-    if (p_next_task != NULL) {
-      // Calculate the sleep interval
-      uint32_t sleep_interval_ms = sched_task_remaining_ms(p_next_task);
-      // TODO LPTIMER Sleep
-    }
-  }
-#else
-#error "Unrecognized Sleep Method"
-#endif
+  // Start the scheduler (doesn't return)
+  sched_start();
 }
 
 /*************************** End of file ****************************/

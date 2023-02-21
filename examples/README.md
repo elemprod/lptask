@@ -28,15 +28,15 @@ A PCB with the following hardware configuration was utilized for the test curren
 
 ### Test Results
 
-| Sleep Method   | Current | Jitter |
-| :----          | ----:   | ----:  |    
-| SLEEP_NONE     | ? mA    | ? uS   |
-| SLEEP_SYSTICK  | ? uA    | ? uS   |
-| SLEEP_LPTIMER  | ? uA    | ? uS   |
+| Sleep Method   | Current | Interval | Jitter |
+| :----          | ----:   | ----:    | ----:  |  
+| SLEEP_NONE     | 715 uA  | 501.9 mS | 57 uS  |
+| SLEEP_SYSTICK  | 146 uA  | 500.1 mS | 38 uS  | 
+| SLEEP_LPTIMER  | 2.1 uA  | 500.7 mS | 209 uS |
 
-The average processor current was measured for each sleep method using a 7-1/2 Digit Keithley DMM7510 DMM.  Note that the LED current was not included in the above measurement.
+The average processor current was measured for each sleep method using a 7-1/2 Digit Keithley DMM7510 DMM.  Note that the current measurement is for the processor only, the LED current is not included.  The task execution time interval and interval jitter (standard deviation interval) was also measured by probing the LED output with an oscilloscope. 
 
-The task execution time interval jitter was measured by probing the LED output with an oscilloscope.  The deviation from the programmed interval was calculated and averaged over a 60 second time period.
+Utilizing the the Low Power Timer offers over a 50 times reduction in current for this particular example at the expense of an increase in interval jitter. 
 
 ## Project Setup
 
