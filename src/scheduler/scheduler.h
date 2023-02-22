@@ -18,7 +18,7 @@
  * The handler function is called after the task's interval has
  * expired.
  *
- * @param[in] p_context   Pointer to the user task context.
+ * @param[in] p_context   Pointer to the user context for the task.
  */
 typedef void (*sched_handler_t)(void *p_context);
 
@@ -41,7 +41,7 @@ typedef struct _sched_task {
 
   bool repeat : 1; // Should the task be repeated?
   bool active : 1; // Is the task active?
-  bool added : 1;  // Has the task been added task que?
+  bool added : 1;  // Has the task been added to the que?
 
   uint32_t interval_ms : 29; // Task execution interval (mS).
 } sched_task_t;
@@ -52,6 +52,8 @@ typedef struct _sched_task {
 
 /**
  * Function like macro for defining a scheduler task.
+ *
+ * @param[in] sched_evt   Unique event name.
  */
 #define SCHED_TASK_DEF(sched_evt)   \
   static sched_task_t sched_evt = { \

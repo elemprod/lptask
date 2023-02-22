@@ -19,8 +19,6 @@
  */
 #define SCHEDULER_MS_MAX 0x1FFFFFFF
 
-
-
 /**
  * Function like macro for checking if a task is active.
  *
