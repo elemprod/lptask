@@ -52,10 +52,11 @@ void gpio_init() {
 }
 
 // LED0 Toggle Scheduler Task
+//SCHED_BUFF_TASK_DEF(led0_task, 4);
 SCHED_TASK_DEF(led0_task);
 
 // LED0 Toggle Scheduler Handler
-static void led0_task_handler(void *p_context) {
+static void led0_task_handler(void *p_data, uint8_t data_size) {
   // Toggle the LED Output On / Off
   HAL_GPIO_TogglePin(LED0_PORT, LED0_PIN);
 }
@@ -75,7 +76,7 @@ int main(void) {
   gpio_init();
 
   // Configure and start the LED0 Task to be called every 250 mS.
-  sched_task_config(&led0_task, led0_task_handler, NULL, 250, true);
+  sched_task_config(&led0_task, led0_task_handler, 250, true);
   sched_task_start(&led0_task);
 
   printf("STM32L0 LED Fast Blink Example\n"); 

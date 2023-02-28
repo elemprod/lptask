@@ -1,29 +1,8 @@
+#include <assert.h>
+#include <string.h>
 #include "scheduler.h"
 #include "scheduler_int.h"
 #include "scheduler_port.h"
-#include <assert.h>
-
-/**
- * Function like macro for NULL checking pointer parameters
- * of user (public) functions.  The end user can define
- * their own macro should they wish to NULL check
- * parameter values using an alternate method.
- *
- * The default method asserts if the supplied pointer value
- * is NULL for debug builds which #define DEBUG and simply 
- * return for release builds.
- *
- *  @param[in] param   The parameter to NULL check.
- */
-#ifndef SCHED_NULL_CHECK
-
-#ifdef DEBUG
-#define SCHED_NULL_CHECK(param) assert((param) != NULL)
-#else
-#define SCHED_NULL_CHECK(param) if ((param) == NULL) return
-#endif
-
-#endif
 
 /**
  * Scheduler State Definitions
@@ -116,13 +95,10 @@ void sched_stop(void) {
   }
 }
 
-void sched_task_config(sched_task_t *p_task,
-    sched_handler_t handler,
-    void *p_context,
-    uint32_t interval_ms,
-    bool repeat) {
+void sched_task_config(sched_task_t *p_task, sched_handler_t handler,
+    uint32_t interval_ms, bool repeat) {
 
-  // The task to add must be supplied.
+  // A pointer to the task to add must be supplied.
   SCHED_NULL_CHECK(p_task);
 
   // A task handler must be supplied.
@@ -130,14 +106,15 @@ void sched_task_config(sched_task_t *p_task,
 
   // Mark the task as inactive.
   p_task->active = false;
+
   // Store the task handler.
   p_task->handler = (sched_handler_t)handler;
-  // Store the user context.
-  p_task->p_context = (void *)p_context;
+
   // Store the task interval limiting it to the max interval.
-  p_task->interval_ms = (interval_ms & SCHEDULER_MS_MAX);
+  p_task->interval_ms = (interval_ms & SCHED_MS_MAX);
+
   // Store the repeating status.
-  p_task->repeat = (bool)repeat;
+  p_task->repeat = repeat;
 
   // Add the task to the scheduler's que if it hasn't been previously added.
   if (!p_task->added) {
@@ -171,7 +148,7 @@ void sched_task_start(sched_task_t *p_task) {
   // A pointer to the task to start must be supplied.
   SCHED_NULL_CHECK(p_task);
 
-  // The task must have been previously added to the que.
+  // The task must have been previously added to the que to start it.
   if (p_task->added) {
 
     // Store the start time.
@@ -193,10 +170,43 @@ void sched_task_update(sched_task_t *p_task, uint32_t interval_ms) {
   SCHED_NULL_CHECK(p_task);
 
   // Store the new interval limiting it to the max interval.
-  p_task->interval_ms = (interval_ms & SCHEDULER_MS_MAX);
+  p_task->interval_ms = (interval_ms & SCHED_MS_MAX);
 
   // Start the task
   sched_task_start(p_task);
+}
+
+
+uint8_t sched_task_data(sched_task_t * p_task, void * p_data, uint8_t data_size) {
+  // A pointer to the task must be supplied and data can only be
+  // added to inactive tasks.
+  if(p_task == NULL || p_task->executing) {
+    return 0;
+  }
+
+  // Set the data size.
+  p_task->data_size = data_size;
+
+  if(TASK_BUFFERED(p_task)) {
+
+    // Limit the data size to the task buffer size.
+    if(p_task->data_size > p_task->buff_size) {
+      p_task->data_size = p_task->buff_size;
+    }
+
+    if(p_data == NULL) {
+      p_task->data_size = 0;
+    } else {
+      // Copy the data into the task data buffer.
+      memcpy(p_task->p_data, p_data, data_size);
+    }
+  } else {
+    // Just set the data pointer for an unbuffered task.
+    p_task->p_data = p_data;
+  }
+
+  // Return the data size.
+  return p_task->data_size;
 }
 
 void sched_task_stop(sched_task_t *p_task) {
@@ -205,10 +215,15 @@ void sched_task_stop(sched_task_t *p_task) {
   SCHED_NULL_CHECK(p_task);
 
   /* Set the task as inactive but don't remove it from
-   * the que.  We don't need to clear the cached next task
-   * since the active bit will be checked before the task
+   * the que.  The repeating flag is also cleared so that
+   * the task isn't restarted if the function is called 
+   * while the task que is being executed.
+   *
+   * Don't need to clear the cached next task since 
+   * the active bit will be checked before the task
    * is executed.
    */
+  p_task->repeat = false;
   p_task->active = false;
 }
 
@@ -224,7 +239,7 @@ bool sched_task_expired(sched_task_t *p_task) {
 uint32_t sched_task_remaining_ms(sched_task_t *p_task) {
 
   if (p_task == NULL || (p_task->active == false)) {
-    return SCHEDULER_MS_MAX;
+    return SCHED_MS_MAX;
   } else {
 
     uint32_t elapsed_ms = scheduler_port_ms() - p_task->start_ms;
@@ -329,20 +344,28 @@ void sched_execute_que(void) {
     // Filter on active tasks with expired timers.
     if (p_current_task->active && TASK_EXPIRED(p_current_task)) {
 
-      /* Update the start time before calling the handler so the
+      // Mark the task as executing so the task data can not be 
+      // changed in the middle of the handler call.
+      p_current_task->executing = true;
+
+      /* Set the start time before calling the handler so the
        * handler's execution time doesn't introduce error into the
        * start time calculation.
        */
       p_current_task->start_ms = scheduler_port_ms();
 
       /* Update the active flag before calling the handler to avoid overwriting
-       * any active flag changes made inside of the handler.  A task will only
-       * be active at this point if it is a repeating task.
+       * any active flag changes made inside of the handler.  The active flag 
+       * would change if the task was started again inside the handler for example.
+       * A task will only be active at this point if it is a repeating task.
        */
       p_current_task->active = p_current_task->repeat;
 
-      // Execute the task Handler with the user supplied context.
-      p_current_task->handler(p_current_task->p_context);
+      // Call the task Handler.
+      p_current_task->handler(p_current_task->p_data, p_current_task->data_size);
+
+      // Clear the executing state.
+      p_current_task->executing = false;
     }
 
     // Move to the next task in the list

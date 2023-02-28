@@ -52,7 +52,7 @@ uint32_t scheduler_port_ms(void);
   * simply busy wait between tasks.  
   *
   * @param[in] interval_ms  The requested sleep interval (mS)
-  *                         0 to SCHEDULER_MS_MAX (mS)
+  *                         0 to SCHED_MS_MAX (mS)
   *
   * @return    none
   */
