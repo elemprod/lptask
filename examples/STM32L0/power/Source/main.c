@@ -52,8 +52,10 @@ void gpio_init() {
 }
 
 // LED0 Toggle Scheduler Task
-//SCHED_BUFF_TASK_DEF(led0_task, 4);
 SCHED_TASK_DEF(led0_task);
+
+//TODO remove
+SCHED_TASK_POOL_DEF(POOL_TEST, 4, 16);
 
 // LED0 Toggle Scheduler Handler
 static void led0_task_handler(void *p_data, uint8_t data_size) {
@@ -65,9 +67,6 @@ int main(void) {
 
   // Initialize the SDK
   HAL_Init();
-
-  // Initialize the Scheduler
-  sched_init();
 
   // Initialize the Power Hardware
   pwr_init();

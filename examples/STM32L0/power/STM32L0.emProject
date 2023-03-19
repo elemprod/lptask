@@ -50,6 +50,7 @@
       <file file_name="../../../src/scheduler/scheduler_int.h" />
       <file file_name="../common/scheduler_port.c" />
       <file file_name="../../../src/scheduler/scheduler_port.h" />
+      <file file_name="../../../src/scheduler/scheduler_types.h" />
     </folder>
     <folder Name="SDK">
       <file file_name="$(SDKDir)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal.c" />

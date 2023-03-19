@@ -1,6 +1,6 @@
 # Embedded Scheduler
 
- The C language scheduler module provides an easy to use mechanism for scheduling tasks to be executed in the future without the complexity or overhead of a full RTOS.  Once scheduled, a task's handler is executed from the main context once its interval timer has expired.  Tasks can be configured as one-shot or repeating. 
+ The C language cooperative scheduler module provides an easy to use mechanism for scheduling tasks to be executed in the future without the complexity or overhead of a multi-tasking operating system.  Once scheduled, a task's handler is executed from the main context after its interval timer expires.  Tasks can be configured as one-shot or repeating. 
 
 ## Major Features
 
@@ -13,16 +13,27 @@ The scheduler offers the following features:
 * The scheduler encourages the practice of writing lightweight interrupt handlers which can improve system responsiveness and stability.  ISR work can easily but moved into the main context with minimal overhead.
 * The scheduler was architected with an eye towards efficiency and power reduction.  It offers flexible support for platform specific sleep, timer and power reductions mechanisms through optional platform specific function calls.
 
-## Comparison to RTOS
+## Comparison to Multitasking OS
                                                             
-The scheduler does not provide all of the same features that Real Time Operating System does, the major differences include:
+The cooperative scheduler does not provide all of the same features which a multitasking OS typically does, the major differences include:
 
-* Scheduled tasks are are executed in the order in which they are added to the scheduler's que, no task prioritization functionality is provided.  
-* A task's handler executes until completion, once started, in a cooperative multitasking manner.  Task handlers can only be interrupted by a hardware IRQ event.
+* Expired tasks are are executed in the order in which they are added to the scheduler's que, no task prioritization functionality is provided.  
+* A task's handler executes until completion, once started, in a cooperative manner.  Task handlers can only be interrupted by a interrupt events and not by other other tasks..
 * It's typical to have several milliseconds of jitter in task execution intervals for a system with multiple active tasks queued at the same time.  This jitter is nearly always acceptable for UI tasks such as blinking an LED, debouncing a switch or timing the length of music note.
 * Repetitive tasks, which require finer grain control or more deterministic behavior, can be implemented using a separate hardware timer.  For example, an application could implement a real-time motion control loop with a 100 Hz hardware timer and perform UI tasks with the scheduler. 
                                                         
 Many embedded systems don't require hard real time performance and can live within the schedulers constraints saving the overhead and complexity required by full RTOS.    
+
+## Cooperative Scheduler Use Cases
+
+A cooperative scheduler can be used in most simple to meduim complexity embedded systems but really shines fo appllications which have some of the folllowing characteritics.
+
+* Power reduction is a high priority.
+* The selected platform is capable of stopping program execution and sleeping in a low power state.
+* The processor's is anticipated to be sleeping in the majority of the time. 
+* RAM and ROM resources are limited.
+
+
 
 ## Initializing & Starting the Scheduler
 

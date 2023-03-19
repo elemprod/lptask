@@ -13,9 +13,7 @@
 
  /**
   * Mandatory platform specific function for acquiring exclusive 
-  * access to the scheduler's linked list task que.  The function 
-  * is called by the scheduler whenever it needs to modify the 
-  * task que.  
+  * access to the scheduler's task que.
   *
   * The lock prevents different sections of code from modifying 
   * the task que pointers at the same time which could lead to 
@@ -25,7 +23,7 @@ void scheduler_port_que_lock(void);
 
 /**
   * Mandatory platform specific function for releasing exclusive 
-  * access to the scheduler's linked list.
+  * access to the scheduler's task que.
   */
 void scheduler_port_que_free(void);
 

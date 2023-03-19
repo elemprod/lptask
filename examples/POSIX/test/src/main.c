@@ -62,8 +62,15 @@ task_time_t hour_task_time;
 SCHED_TASK_DEF(day_task);
 task_time_t day_task_time;
 
-// Task called to test stopping and then restarting the scheduler.
+// Task to test stopping and then restarting the scheduler.
 SCHED_TASK_DEF(stop_task);
+
+// Buffered Test Task.
+SCHED_TASK_DEF_BUFF(buffered_task, sizeof(int64_t));
+
+// Scheduler Task Pool
+SCHED_TASK_POOL_DEF(task_pool, 16, 8);
+
 
 // Count of the number of times stopped.  A pointer to this variable is
 // passed with the stop handler.  It is incremented during the handler call.
@@ -90,7 +97,7 @@ static void log_task_stats() {
 }
 
 // Random Interval Task Schedule Handler.
-static void rand_task_handler(void * p_context) {
+static void rand_task_handler(void *p_data, uint8_t data_size) {
   
   // Update the task statistics
   task_time_update(&rand_task_time);
@@ -105,13 +112,13 @@ static void rand_task_handler(void * p_context) {
   sched_task_update(&rand_task, interval);
 }
 
-static void sec_task_handler(void * p_context) {
+static void sec_task_handler(void *p_data, uint8_t data_size) {
   
   // Update the task statistics
   task_time_update(&sec_task_time);
   
 }
-static void min_task_handler(void * p_context) {
+static void min_task_handler(void *p_data, uint8_t data_size) {
   
   // Update the task statistics
   task_time_update(&min_task_time);
@@ -120,7 +127,7 @@ static void min_task_handler(void * p_context) {
   fflush(stdout);
 }
 
-static void hour_task_handler(void * p_context) {
+static void hour_task_handler(void *p_data, uint8_t data_size) {
   
   // Update the task statistics
   task_time_update(&hour_task_time);
@@ -135,7 +142,7 @@ static void hour_task_handler(void * p_context) {
   log_task_stats();
 }
 
-static void day_task_handler(void * p_context) {
+static void day_task_handler(void *p_data, uint8_t data_size) {
   
   // Update the task statistics
   task_time_update(&day_task_time);
@@ -160,41 +167,57 @@ static void day_task_handler(void * p_context) {
   }
 }
 
-static void stop_task_handler(void * p_context) {
+static void stop_task_handler(void *p_data, uint8_t data_size) {
   
-  // Cast the context as a pointer to stop count variable.
-  uint32_t * p_stop_count = (uint32_t *) p_context;
+  assert(data_size = sizeof(uint32_t));
+
+  // Cast the data pointer to a pointer to the stop count variable.
+  uint32_t * p_stop_count = (uint32_t *) p_data;
   
   // Increment the stop count variable.
   (* p_stop_count) ++;
-  sched_stop();
- 
+
   printf("Scheduler Stop Count: %u\n", (* p_stop_count)); 
+
+  // Stop the Scheduler - will be restarted.
+  sched_stop();
+
+}
+
+// The buffered task handler adds random data to the task on each call.
+
+static void buffered_task_handler(void *p_data, uint8_t data_size) {
+
+
 }
 
 // Function for configuring all of the test tasks
 static void test_tasks_config() {
   
-  // Configure the random interval task as non-repeating with an intial interval
+  // Configure the random interval task as non-repeating with an initial interval
   // of 1 second.
-  sched_task_config(&rand_task, rand_task_handler, NULL, SEC_INTERVAL_MS, false);
+  sched_task_config(&rand_task, rand_task_handler, SEC_INTERVAL_MS, false);
 
   // Configure the second's task to be called once per second
-  sched_task_config(&sec_task, sec_task_handler, NULL, SEC_INTERVAL_MS, true);
+  sched_task_config(&sec_task, sec_task_handler, SEC_INTERVAL_MS, true);
 
   // Configure the minute task to be called once per minute
-  sched_task_config(&min_task, min_task_handler, NULL, MIN_INTERVAL_MS, true);
+  sched_task_config(&min_task, min_task_handler, MIN_INTERVAL_MS, true);
   
   // Configure the hour task to be called once per hour
-  sched_task_config(&hour_task, hour_task_handler, NULL, HOUR_INTERVAL_MS, true);
+  sched_task_config(&hour_task, hour_task_handler, HOUR_INTERVAL_MS, true);
 
   // Configure the day task to be called once per day
-  sched_task_config(&day_task, day_task_handler, NULL, DAY_INTERVAL_MS, true);
+  sched_task_config(&day_task, day_task_handler, DAY_INTERVAL_MS, true);
  
   // Configure the stop task with a random interval between 1 and 200 minutes
-  // Pass a pointer to the stop count.
   uint32_t interval = (rand() % (MIN_INTERVAL_MS * 199)) + MIN_INTERVAL_MS;
-  sched_task_config(&stop_task, stop_task_handler, &stop_count, interval, false);
+  sched_task_config(&stop_task, stop_task_handler, interval, false);
+  /* A pointer to the stop count is added to the unbuffered task to 
+   * test the pointer passsing functionality.
+   */
+  uint8_t bytes_added = sched_task_data(&stop_task, &stop_count, sizeof(stop_count));
+  assert(bytes_added == sizeof(stop_count));
 }
 
 // Function for starting all of the task except the stop task.
@@ -232,7 +255,9 @@ static void scheduler_restart() {
 
 int main()
 {
-  printf("*** Scheduler Test Start ***\n");
+  printf("\n*** Scheduler Test Started ***\n\n");
+  printf("Platform Pointer Size: %lu bits.\n", sizeof(uint8_t *) * 8);
+  printf("Scheduler Task Size: %lu bytes.\n\n", sizeof(sched_task_t));
   fflush(stdout);
   
   // Initialize the Scheduler
@@ -254,6 +279,7 @@ int main()
   
   // Start each of the test tasks
   test_tasks_start();
+
   // Start the stop task one time.
   sched_task_start(&stop_task);
   

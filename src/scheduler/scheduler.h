@@ -2,7 +2,7 @@
  * scheduler.h
  *
  * The scheduler module provides a simple method for scheduling tasks 
- * to be executed at a later time without the complexity of an RTOS.  
+ * to be executed at a later time. 
  */
 
 #ifndef SCHEDULER_H__
@@ -11,55 +11,27 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "scheduler_types.h"
 
 /**
- * Scheduler Task Handler Function Prototype.
+ * Macro for defining an unbuffered scheduler task.
  *
- * The handler function which is called at task interval
- * expiration.
+ * An unbuffered scheduler task does not contain an internal buffer 
+ * for user data. Data is added to unbuffered tasks by reference 
+ * rather than by copy.  The is different than the operaton of 
+ * buffered task which copies and stores the user data to its
+ * internal buffer.
  *
- * @param[in] p_data   Pointer to the task data.
- */
-typedef void (*sched_handler_t)(void *p_data, uint8_t data_size);
-
-/**
- * The data structure for a single scheduler task.
+ * Note that the data referenced by an unbuffered task needs 
+ * to still be valid when the task handler is called at later
+ * point in time.
  *
- * The task data structure should be defined and initialized with the
- * SCHED_TASK_DEF() or the SCHED_BUFF_TASK_DEF() macros.
- *
- * Scheduler tasks should only be modified using the supplied scheduler
- * functions and macros.
- */
-typedef struct _sched_task {
-
-  uint32_t start_ms;    // The task start time (mS).
-  uint32_t interval_ms; // The task interval (mS).
-
-  struct _sched_task *p_next; // Pointer to the next task in the linked list
-
-  sched_handler_t handler; // The task handler function.
-
-  uint8_t *p_data; // Pointer to the data location.
-
-  uint8_t buff_size; // Size of the data buffer. (bytes)
-                     // 0 for unbuffered tasks.
-  uint8_t data_size; // The size of the data stored in the task. (bytes)
-
-  bool repeat : 1;    // Should the task repeat?
-  bool active : 1;    // Is the task active?
-  bool added : 1;     // Has the task been added to the que?
-  bool executing : 1; // Is the task's handler currently executing?
-
-} sched_task_t;
-
-/**
- * Function like macro for defining an unbuffered scheduler task.
- *
- * An unbuffered scheduler task doesn't have a data buffer 
- * dedicated to task but users can still store and pass a data 
- * pointer and data size to task handler.
- *
+ * An unbuffered task can also be used for tasks which do 
+ * not need to pass data to their handlers.  For example,
+ * an LED blink taks may not need to store any data 
+ * internally.  It can simple invert the LED GPIO output on
+ * call.
+ * 
  * @param[in] TASK_ID  Unique task name.
  */
 #define SCHED_TASK_DEF(TASK_ID)       \
@@ -68,45 +40,88 @@ typedef struct _sched_task {
       .buff_size = 0,                 \
       .data_size = 0,                 \
       .repeat = false,                \
-      .active = false,                \
-      .added = false,                 \
-      .executing = false,             \
+      .allocated = false,             \
+      .state = TASK_STATE_UNINIT,     \
   } 
 
 /**
- * Function like macro for defining a buffered scheduler task.
+ * Macro for defining a buffered scheduler task.
  *
- * A buffered schedulelr task contains a data buffer for passing user
- * data to the task handler.  User data is  can be copied to the
- * tasks internal buffer and is supplied to the task handler when
- * called.
+ * A buffered scheduler task and an internal data buffer
+ * are defined. The buffer is used to pass a copy of the 
+ * user supplied data to the task handler.  The buffer 
+ * size is configurable on per task basis and should be 
+ * set the maximum data size which will be stored in the task.
  *
  * @param[in] TASK_ID     Unique task name.
- * @param[in] BUFF_SIZE   The buffer size to allocate for the task (bytes)
- *                        Must be > 0 and <= UINT8_MAX
+ * @param[in] BUFF_SIZE   The maximum buffer size available to the task.
+ *                        0 to UINT8_MAX (bytes)
  */
-#define SCHED_BUFF_TASK_DEF(TASK_ID, BUFF_SIZE)           \
-  static uint8_t TASK_ID##_BUFF[(BUFF_SIZE) % UINT8_MAX]; \
-  static sched_task_t TASK_ID = {                         \
-      .p_data = TASK_ID##_BUFF,                           \
-      .buff_size = (BUFF_SIZE) % UINT8_MAX,               \
-      .data_size = 0,                                     \
-      .repeat = false,                                    \
-      .active = false,                                    \
-      .added = false,                                     \
-      .executing = false,                                 \
+#define SCHED_TASK_DEF_BUFF(TASK_ID, BUFF_SIZE)               \
+  static uint8_t TASK_ID##_BUFF[SCHED_BUFF_LIMIT(BUFF_SIZE)]; \
+  static sched_task_t TASK_ID = {                             \
+      .p_data = TASK_ID##_BUFF,                               \
+      .buff_size = SCHED_BUFF_LIMIT(BUFF_SIZE),               \
+      .data_size = 0,                                         \
+      .repeat = false,                                        \
+      .state = TASK_STATE_UNINIT,                             \
   }                                
 
 
-// TODO it would be nice to have some way for defining arrays of tasks.
-// We would require an array_init function in addition to the define macro.
+/**
+ * Macro for defining a pool of buffered scheduler tasks.
+ *
+ * A buffered scheduler task and an internal data buffer
+ * are defined. The buffer is used to pass a copy of the 
+ * user supplied data to the task handler.
+ *
+ * All tasks in the pool have the same length data buffer.
+ * The buffer lengths should be set to the maximum data size
+ * which will be stored in the task.
+ *
+ * @param[in] POOL_ID       Unique name for the pool of tasks.
+ * @param[in] BUFF_SIZE     The maximum buffer size available for each task.
+ *                          0 to UINT8_MAX (bytes)
+ * @param[in] TASK_CNT      The number of tasks available in the pool.
+ *                          0 to UINT8_MAX (tasks)
+ */
+#define SCHED_TASK_POOL_DEF(POOL_ID, BUFF_SIZE, TASK_CNT)                                   \
+  static uint8_t POOL_ID##_BUFF[SCHED_TASK_LIMIT(TASK_CNT) * SCHED_BUFF_LIMIT(BUFF_SIZE)];  \
+  static sched_task_t POOL_ID##_TASKS[SCHED_TASK_LIMIT(TASK_CNT)];                          \
+  static sched_task_pool_t POOL_ID = {                                                      \
+    .p_data = POOL_ID##_BUFF,                                                               \
+    .p_tasks = POOL_ID##_TASKS,                                                             \
+    .buff_size = SCHED_BUFF_LIMIT(BUFF_SIZE),                                               \
+    .task_cnt = SCHED_TASK_LIMIT(TASK_CNT),                                                 \
+    .initialized = false                                                                    \
+  }
 
 /**
- * Function for configuring or reconfiguring a scheduler task and adding it
- * to the scheduler task que.
+ * Function for allocating a single buffered scheduler task from the task pool.
+ * The pool serves as a simple mechanism for creating and tracking multiple
+ * reusable tasks.
+ * 
+ * Once allocated, the task can be configured and accesssed in the same
+ * way a normal task would be used.  A task remains allocated until it is stopped 
+ * either do to task expiration and subsquent handler return for a non-repeating 
+ * task or it is stopped for a repeating task. Once the task stops, it returns 
+ * to the task pool will be available for reuse at the next 
+ * sched_task_alloc() call.
+ * 
+ * 
+ * @param[in] p_pool  Pointer to pool configuration structure.
+ * @return            The allocated task or NULL if no free tasks are available.
+ *                    A NULL return would typically indicate that the pool task 
+ *                    count needs to be increased.
+ */
+sched_task_t * sched_task_alloc(sched_task_pool_t * const p_pool);
+
+/**
+ * Function for configuring or reconfiguring a scheduler task.
  *
- * The task will be inactive after calling sched_task_config() and it
- * must be made active with with sched_task_start() function.
+ * The task will be stopped after calling sched_task_config() and it
+ * must started with with sched_task_start() function before it
+ * becomes active.
  *
  * The task interval for a repeating task is the desired time in mS between 
  * task handler calls.   The interval for non-repeating task is the time
@@ -114,8 +129,8 @@ typedef struct _sched_task {
  * result in handler being called as soon as possible.
  *
  * The function can also be used to reconfigure a previously configured task.
- *
- * The scheduler must be initialized prior to calling this function.
+ * The scheduler must be initialized prior to calling the function and the 
+ * task's handler must not currently executing when the function is called.
  *
  * @param[in] p_task        Pointer to the task.
  * @param[in] handler       Task handler function.
@@ -123,111 +138,129 @@ typedef struct _sched_task {
  * @param[in] repeat        True for a repeating tasks.
  *                          False for single shot tasks.
  *
- * @return                  None.
+ * @return                  True if the configuration suceeded.
+ *
+ *                          False if the configuration failed because the 
+ *                          task handler is currently executing, the task
+ *                          pointer was NULL or the task handler was NULL.
  */
-void sched_task_config(sched_task_t *p_task,
+bool sched_task_config(sched_task_t *p_task,
     sched_handler_t handler,
     uint32_t interval_ms,
     bool repeat);
 
 /**
- * Function for configuring the task data.
- * 
- * Note that the task data can not be modified if a 
- * previously started task's handler is currently executing.
- * Attempts to set a task's data which is currently executing
- * its handler will return 0 indicating that no data was 
- * stored in the task.  
+ * Function for updating a task's user data.
  *
- * The data is copied to the task's internal memory for buffered 
- * tasks during the function call. Note that data_size is limited to 
- * be less than or equal to the buffer size memory for buffered tasks.
+ * A pointer to the task data and the data size will be supplied
+ * to the task's handler function at task expiration.  The operation
+ * of the function is different depending on the type of task as 
+ * described below.
+ *
+ * Unbuffered Tasks:
+ *
+ * Data is added to unbuffered tasks by reference.  The 
+ * supplied data pointer and data size are stored in the task but
+ * the actual data not copied into the task since unbuffered 
+ * tasks don't have internal buffers.  The referenced task 
+ * data must still be valid when the task's handler is called.  
+ *
+ * Buffered Tasks:
+ *
+ * The user data at the supplied pointer addresss  is copied to 
+ * the task's internal memory during sched_task_data() calls for 
+ * buffered tasks.  A pointer to the task's internal
+ * data buffer is then supplied to the handler along with the data_size
+ * after the task expires.  
+ * Note that data_size is limited to 
+ * be less than or equal to the task's buffer size which was was
+ * supplied to the SCHED_TASK_DEF_BUFF() macro.
  * 
- * Only the data pointer nd the data size are stored for unbuffered 
- * tasks.  Since the data at the pointer location is not copied for 
- * unbuffered task, the data must still be valid when the task's 
- * handler is callled.  
+ * Note that a task must be stopped before it's data can be updated 
+ * to avoid potential data accesss conflicts. Attempts to update a 
+ * task's data which is not currently stopped will return 0 indicating 
+ * that the task data was not updated. 
  *
  * @param[in] p_task        Pointer to the task.
- * @param[in] p_data        Pointer to the data.
- * @param[in] data_size     The length of the data (bytes).  
+ * @param[in] p_data        Pointer to the user data to add to the tassk.
+ * @param[in] data_size     The length of the user data (bytes).  
  *
  * @return                  The size of the data copied into a buffered 
  *                          task or the data size value to be passed to 
  *                          the handler for an upbuffered task.  
+ *
+ *                          0 if the task pointer was NULL, the task
+ *                          has not previously been configured or the
+ *                          the task not stopped.
  */
 uint8_t sched_task_data(sched_task_t * p_task, void * p_data, uint8_t data_size);
 
 /**
  * Function for updating a scheduler task with a new interval and starting it.
  *
- * Note that an task must have been previously configured with the 
- * sched_task_config() function.
+ * Note that a task must have been previously configured to update the 
+ * interval.
  *
  * @param[in] p_task        Pointer to the task to add to the scheduler
  * @param[in] interval_ms   Task interval for a repeating task or a delay for
  *                          single-shot task (mS).
- * @return    none.
+ *
+ * @return                  True if the interval was sucessfully updated.
+ *
+ *                          False if the interval could not be updated because
+ *                          it has not been previously configured or the task
+ *                          pointer was NULL.
  */
-void sched_task_update(sched_task_t *p_task, uint32_t interval_ms);
+bool sched_task_update(sched_task_t *p_task, uint32_t interval_ms);
 
 /**
  * Function for starting a scheduler task.
  *
- * Note that an task must have been previously configured with 
+ * Note that a task must have been previously configured with 
  * the sched_task_config() function.
  *
- * @return                  None.
+ * @return  True if the task was sucessfully started.
+ *
+ *          False if the task could not be started because it
+ *          has not previously been configured or the task 
+ *          pointer was NULL.
  */
-void sched_task_start(sched_task_t *p_task);
+bool sched_task_start(sched_task_t *p_task);
 
 /**
- * Function for stopping an active scheduler task.
+ * Function for stopping a scheduler task.
  *
  * The task's handler will finish execution if it is currently
- * running but the handler will not be ran again after the 
- * function is called.
- *
- * Note that a stopped task remains in the scheduler task que but
- * has its active flag cleared to disable it.  The repeating
- * flag is also cleared, A repeating task will need to be 
- * reconfigured before starting it again.
+ * running before the task is stopped.
  *
  * @param[in] p_task  Pointer to the task to stop.
- * @return    none.
+ * @return    True if the task was sucessfully stoppped.
+ *
+ *            False if the task could not be stopped because it
+ *            has not previously been configured or the task 
+ *            pointer was NULL.
  */
-void sched_task_stop(sched_task_t *p_task);
+bool sched_task_stop(sched_task_t *p_task);
 
 /**
- * Function for initializing the scheduler module.
- 
- * Note that if the scheduler has been previously started and 
- * then stopped, this function must not be called until the stop
- * completes as indicated by sched_start() returning.
+ * Function for starting the scheduler.  
  *
- */
-void sched_init(void);
-
-/**
- * Function for starting scheduler execution.  
- *
- * The function repeatably executes all scheduled tasks as they expire.
- * This function must be called from main, typically after all platform 
- * initialization has completed. The function does not return until 
- * scheduler has been stopped.
- *
- * The scheduler must have been previously initalized before 
- * calling this function.
+ * The function repeatably executes scheduled tasks as they expire.
+ * This function must be called from the main context, typically after 
+ * all platform initialization has completed. The function does not 
+ * return, once called, until the scheduler is stopped.
  *
  * @return    none.
  */
 void sched_start(void);
 
 /**
- * Function for stopping the scheduler module and clearing the scheduler's que.
+ * Function for stopping the scheduler module and clearing the 
+ * scheduler's que.
  *
- * Note that scheduler does not immediately stop.  The scheduler will finish
- * executing any tasks with expired timers before completing the stop. 
+ * Note the function calll does not immediately stop the scheduler.
+ * The scheduler finishes executing any tasks with expired timers 
+ * before completing the stop. 
  * 
  * @return    none.
  */
