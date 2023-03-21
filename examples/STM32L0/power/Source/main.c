@@ -74,6 +74,9 @@ int main(void) {
   // Initialize the LED GPIO
   gpio_init();
 
+  // Initialize the scheduler before configuring the tasks.
+  sched_init();
+
   // Configure and start the LED0 Task to be called every 250 mS.
   sched_task_config(&led0_task, led0_task_handler, 250, true);
   sched_task_start(&led0_task);

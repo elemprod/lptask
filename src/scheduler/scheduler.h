@@ -18,7 +18,7 @@
  *
  * An unbuffered scheduler task does not contain an internal buffer 
  * for user data. Data is added to unbuffered tasks by reference 
- * rather than by copy.  The is different than the operaton of 
+ * rather than by copy.  The is different than the operation of 
  * buffered task which copies and stores the user data to its
  * internal buffer.
  *
@@ -243,6 +243,16 @@ bool sched_task_start(sched_task_t *p_task);
 bool sched_task_stop(sched_task_t *p_task);
 
 /**
+ * Function for initializing the scheduler module.
+ 
+ * Note that if the scheduler was previously started and 
+ * then stopped, this function must not be called until
+ * the stop completes as indicated by sched_start() 
+ * returning.
+ */
+void sched_init(void);
+
+/**
  * Function for starting the scheduler.  
  *
  * The function repeatably executes scheduled tasks as they expire.
@@ -256,11 +266,11 @@ void sched_start(void);
 
 /**
  * Function for stopping the scheduler module and clearing the 
- * scheduler's que.
+ * scheduler's que. 
  *
- * Note the function calll does not immediately stop the scheduler.
+ * Note the function call does not immediately stop the scheduler.
  * The scheduler finishes executing any tasks with expired timers 
- * before completing the stop. 
+ * before completing the stop.
  * 
  * @return    none.
  */

@@ -466,21 +466,6 @@ void sched_init(void) {
 }
 
 void sched_start(void) {
-  /* It should only be posssible to start the scheduler from its
-   * stopped state assuming the scheduler is always started from
-   * the main context.
-   */
-  assert(scheduler.state == SCHED_STATE_STOPPED);
-
-  // Perform any platform specific initialization first.
-  scheduler_port_init();
-
-  // Clear the task references.
-  scheduler.p_head = NULL;
-  scheduler.p_tail = NULL;
-  scheduler.p_next = NULL;
-
-  scheduler.state = SCHED_STATE_ACTIVE;
 
   /* Repeatably execute any expired tasks in the schedulers que 
    * until the scheduler is stopped.
@@ -503,7 +488,7 @@ void sched_start(void) {
   sched_stop_finalize();
 }
 
-// Internal function for initializaing a scheduler task pool.
+// Internal function for initializing a scheduler task pool.
 static void sched_task_pool_init(sched_task_pool_t * const p_pool) {
 
   assert(p_pool != NULL);
