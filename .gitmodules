@@ -1,0 +1,3 @@
+[submodule "examples/POSIX/lib/crc"]
+	path = examples/POSIX/lib/crc
+	url = https://github.com/gityf/crc.git
