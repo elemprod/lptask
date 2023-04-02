@@ -28,7 +28,7 @@
  *
  * An unbuffered task can also be used for tasks which do 
  * not need to pass data to their handlers.  For example,
- * an LED blink taks may not need to store any data 
+ * an LED blink task may not need to store any data 
  * internally.  It can simple invert the LED GPIO output on
  * call.
  * 
@@ -66,7 +66,6 @@
       .repeat = false,                                        \
       .state = TASK_STATE_UNINIT,                             \
   }                                
-
 
 /**
  * Macro for defining a pool of buffered scheduler tasks.
@@ -138,7 +137,7 @@ sched_task_t * sched_task_alloc(sched_task_pool_t * const p_pool);
  * @param[in] repeat        True for a repeating tasks.
  *                          False for single shot tasks.
  *
- * @return                  True if the configuration suceeded.
+ * @return                  True if the configuration succeeded.
  *
  *                          False if the configuration failed because the 
  *                          task handler is currently executing, the task
@@ -167,7 +166,7 @@ bool sched_task_config(sched_task_t *p_task,
  *
  * Buffered Tasks:
  *
- * The user data at the supplied pointer addresss  is copied to 
+ * The user data at the supplied pointer address  is copied to 
  * the task's internal memory during sched_task_data() calls for 
  * buffered tasks.  A pointer to the task's internal
  * data buffer is then supplied to the handler along with the data_size
@@ -177,17 +176,17 @@ bool sched_task_config(sched_task_t *p_task,
  * supplied to the SCHED_TASK_DEF_BUFF() macro.
  * 
  * Note that a task must be stopped before it's data can be updated 
- * to avoid potential data accesss conflicts. Attempts to update a 
+ * to avoid potential data access conflicts. Attempts to update a 
  * task's data which is not currently stopped will return 0 indicating 
  * that the task data was not updated. 
  *
  * @param[in] p_task        Pointer to the task.
- * @param[in] p_data        Pointer to the user data to add to the tassk.
+ * @param[in] p_data        Pointer to the user data to add to the task.
  * @param[in] data_size     The length of the user data (bytes).  
  *
  * @return                  The size of the data copied into a buffered 
  *                          task or the data size value to be passed to 
- *                          the handler for an upbuffered task.  
+ *                          the handler for an unbuffered task.  
  *
  *                          0 if the task pointer was NULL, the task
  *                          has not previously been configured or the
@@ -219,7 +218,7 @@ bool sched_task_update(sched_task_t *p_task, uint32_t interval_ms);
  * Note that a task must have been previously configured with 
  * the sched_task_config() function.
  *
- * @return  True if the task was sucessfully started.
+ * @return  True if the task was successfully started.
  *
  *          False if the task could not be started because it
  *          has not previously been configured or the task 
@@ -234,7 +233,7 @@ bool sched_task_start(sched_task_t *p_task);
  * running before the task is stopped.
  *
  * @param[in] p_task  Pointer to the task to stop.
- * @return    True if the task was sucessfully stoppped.
+ * @return    True if the task was successfully stopped.
  *
  *            False if the task could not be stopped because it
  *            has not previously been configured or the task 

@@ -1,6 +1,5 @@
 /**
  * scheduler_types.h
- *
  */
 
 #ifndef SCHEDULER_TYPES_H__
@@ -11,26 +10,14 @@
 #include <stdlib.h>
 
 /**
- * Scheduler Task Handler Function Prototype.
- *
- * The handler function which is called at task interval
- * expiration.
- *
- * @param[in] p_data   Pointer to the task data.
- */
-typedef void (*sched_handler_t)(void *p_data, uint8_t data_size);
-
-/**
  * Scheduler Task State Type.
- *
  */
 typedef enum {
   TASK_STATE_UNINIT   = 0,  // The task has not been initialized yet.
   TASK_STATE_STOPPED,       // The task has been added to the que but isn't active.
   TASK_STATE_ACTIVE,        // The task is active.
   TASK_STATE_EXECUTING,     // The task handler is executing.
-  TASK_STATE_STOPPING,      // The task stop function was called while the handler was executing.
-                            // The task will stop once it's handler returns.
+  TASK_STATE_STOPPING,      // The task is in the proccess of stopping.
 } sched_task_state_t;
 
 /**
@@ -44,6 +31,11 @@ typedef enum {
  *
  * Note that the allocated flag and task state must be volatile since they 
  * can be modified from interrupt contexts during handler is execution.
+ * 
+ * Unbuffered task will have a buff_size of 0.
+ * data_size represents the length of the actual data stored in the task and
+ * should always be <= buff_size.
+ * 
  */
 typedef struct _sched_task {
 
@@ -52,12 +44,11 @@ typedef struct _sched_task {
 
   struct _sched_task *p_next;             // Pointer to the next task in the linked list
 
-  sched_handler_t handler;                // The task handler function.
+  void * p_handler;                       // Pointer to the task handler function (sched_handler_t).
 
-  uint8_t *p_data;                        // Pointer to the user task data.
+  uint8_t *p_data;                        // Pointer to the user data.
 
   uint8_t buff_size;                      // Size of the data buffer available for user data. (bytes)
-                                          // 0 for unbuffered tasks.
 
   uint8_t data_size;                      // Size of the user data stored in the task. (bytes)
 
@@ -68,9 +59,21 @@ typedef struct _sched_task {
 } sched_task_t;
 
 /**
- * Scheduler Buffered Task Pool configuration structure.
+ * Scheduler Task Handler Function Prototype.
  *
- * The scheduler task pool should be defined with the
+ * The handler function which is called at task interval
+ * expiration.
+ *
+ * @param[in] p_task      Pointer to the task.
+ * @param[in] p_data      Pointer to the task data.
+ * @param[in] data_size   Size of the task data.  (bytes) 
+ */
+typedef void (*sched_handler_t)(sched_task_t *p_task, void *p_data, uint8_t data_size);
+
+/**
+ * Buffered task pool configuration structure.
+ *
+ * The task pool should be defined with the
  * SCHED_TASK_POOL_DEF() macro.
  *
  */

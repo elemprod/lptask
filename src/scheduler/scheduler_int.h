@@ -16,16 +16,43 @@
 #include <assert.h>
 #include "scheduler.h"
 
+//TODO we should really convert as many of these macros as possible to static inline.
+
+// The maximum task interval time in mS.
+#define SCHED_MS_MAX (UINT32_MAX)
+
+// The number of mS in one second.
+#define SCHED_MS_SECOND     ((uint32_t) (1000))
+
+// The number of mS in one minute.
+#define SCHED_MS_MINUTE     ((uint32_t) (60 * SCHED_MS_SECOND))
+
+// The number of mS in one hour.
+#define SCHED_MS_HOUR       ((uint32_t) (60 * SCHED_MS_MINUTE)
+
+// The number of mS in one day.
+#define SCHED_MS_DAY        ((uint32_t) (24 * SCHED_MS_HOUR))
+
 /**
- * The maximum task interval time in mS. (~6.2 days)
+ * Macro for converting a days, hours, minutes, seconds and 
+ * mS value to mS for use as a scheduler task interval.
+ *
+ * @param[in] DAYS          The number of days.
+ * @param[in] HOURS         The number of days.
+ * @param[in] MINUTES       The number of minutes.
+ * @param[in] SECONDS       The number of seconds. 
+ * @param[in] MS            The number of mS. 
  */
-#define SCHED_MS_MAX 0x1FFFFFFF
+#define SCHED_MS(DAYS, HOURS, MINUTES, SECONDS, MS)                 \
+    ((uint32_t) ((DAYS * SCHED_MS_DAY) + (HOURS * SCHED_MS_HOUR) +  \
+    (MINUTES * SCHED_MS_MINUTE) + (SECONDS * SCHED_MS_SECOND) +     \
+    (MS)) % UINT32_MAX)
 
 /*
  * If SCHED_TASK_BUFF_CLEAR is defined to be != 0, the task 
  * data buffer will be cleared each time the task is allocated.  
  * The default implementation is to clear the buffer but the 
- * end user can overide this by defining SCHED_TASK_BUFF_CLEAR 
+ * end user can override this by defining SCHED_TASK_BUFF_CLEAR 
  * to be 0 if desired.  Clearing a large task data buffer can
  * be costly and may be unnecessary in some situations.
  */
@@ -100,11 +127,12 @@ bool sched_task_expired(sched_task_t *p_task);
 /**
  * Function for calculating the time until a task's timer expires.
  *
- * Note that NULL or Inactive tasks will return SCHED_MS_MAX.
+ * Note that NULL or Inactive tasks will return UINT32_MAX since
+ * they will never expire.
  *
  * @param[in] p_task  Pointer to the task.
  * @return            The time in mS until the task expires.
- *                    SCHED_MS_MAX if the task pointer is NULL or 
+ *                    UINT32_MAX if the task pointer is NULL or 
  *                    the task is inactive.
  */
 uint32_t sched_task_remaining_ms(sched_task_t *p_task);
@@ -131,5 +159,19 @@ uint32_t sched_task_elapsed_ms(sched_task_t *p_task);
  *            NULL if both tasks are NULL or both task are inactive.
  */
 sched_task_t *sched_task_compare(sched_task_t *p_task_a, sched_task_t *p_task_b);
+
+/**
+ * Function for getting the scheduler tasks state.
+ *
+ * @param[in] p_task  Pointer to the task.
+ * @return            The current task state.
+ */
+static inline sched_task_state_t sched_task_state(sched_task_t *p_task) {
+  if(p_task == NULL) {
+    return TASK_STATE_UNINIT;
+  } else {
+    return p_task->state;
+  }
+}
 
 #endif // SCHEDULER_INT_H__

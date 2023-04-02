@@ -54,11 +54,8 @@ void gpio_init() {
 // LED0 Toggle Scheduler Task
 SCHED_TASK_DEF(led0_task);
 
-//TODO remove
-SCHED_TASK_POOL_DEF(POOL_TEST, 4, 16);
-
 // LED0 Toggle Scheduler Handler
-static void led0_task_handler(void *p_data, uint8_t data_size) {
+static void led0_task_handler(sched_task_t *p_task, void *p_data, uint8_t data_size) {
   // Toggle the LED Output On / Off
   HAL_GPIO_TogglePin(LED0_PORT, LED0_PIN);
 }

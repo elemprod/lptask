@@ -135,7 +135,7 @@ bool sched_task_config(sched_task_t *p_task, sched_handler_t handler,
   }
 
   // Store the task handler.
-  p_task->handler = handler;
+  p_task->p_handler = handler;
 
   // Store the task interval limiting it to the max interval.
   p_task->interval_ms = (interval_ms & SCHED_MS_MAX);
@@ -422,8 +422,9 @@ void sched_execute_que(void) {
         p_current_task->state = TASK_STATE_STOPPING;
       }
 
-      // Call the task Handler.
-      p_current_task->handler(p_current_task->p_data, p_current_task->data_size);
+      // Call the Task Handler Function.
+      sched_handler_t handler = (sched_handler_t) p_current_task->p_handler;
+      handler(p_current_task, p_current_task->p_data, p_current_task->data_size);
 
       // Update the state after the handler returns.
       if(p_current_task->state == TASK_STATE_EXECUTING) {
@@ -520,6 +521,9 @@ static void sched_task_pool_init(sched_task_pool_t * const p_pool) {
     p_data_cur += p_pool->buff_size;
 
   } while(p_task_cur <= p_task_last);
+
+  p_pool->initialized = true;
+  
 }
 
 
@@ -529,7 +533,7 @@ sched_task_t * sched_task_alloc(sched_task_pool_t * const p_pool) {
     return NULL;
   }
 
-  // Initialize the pool of buffered tasks if neeeded.
+  // Initialize the pool of buffered tasks if needed.
   if(p_pool->initialized == false) {
     sched_task_pool_init(p_pool);
   }
@@ -542,8 +546,8 @@ sched_task_t * sched_task_alloc(sched_task_pool_t * const p_pool) {
   do {
     if(!p_task_cur->allocated) {
 
-      // Aquire the scheduler lock so the task can be allocated
-      // without interuption.
+      // Acquire the scheduler lock so the task can be allocated
+      // without interruption.
       scheduler_port_que_lock();
 
       // Check that the task is still unallocated
