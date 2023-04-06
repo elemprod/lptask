@@ -12,6 +12,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "scheduler_types.h"
+#include "scheduler_port.h"
+#include "scheduler_int.h"
 
 /**
  * Macro for defining an unbuffered scheduler task.
@@ -100,12 +102,12 @@
  * The pool serves as a simple mechanism for creating and tracking multiple
  * reusable tasks.
  * 
- * Once allocated, the task can be configured and accesssed in the same
+ * Once allocated, the task can be configured and accessed in the same
  * way a normal task would be used.  A task remains allocated until it is stopped 
- * either do to task expiration and subsquent handler return for a non-repeating 
- * task or it is stopped for a repeating task. Once the task stops, it returns 
- * to the task pool will be available for reuse at the next 
- * sched_task_alloc() call.
+ * either due to task expiration and subsequent handler return for a non-repeating 
+ * task or if it is stopped for a repeating task. Once the task stops, it returns 
+ * to the task pool and will be available for reuse at the next sched_task_alloc() 
+ * call.
  * 
  * 
  * @param[in] p_pool  Pointer to pool configuration structure.
@@ -114,6 +116,7 @@
  *                    count needs to be increased.
  */
 sched_task_t * sched_task_alloc(sched_task_pool_t * const p_pool);
+
 
 /**
  * Function for configuring or reconfiguring a scheduler task.
@@ -204,7 +207,7 @@ uint8_t sched_task_data(sched_task_t * p_task, void * p_data, uint8_t data_size)
  * @param[in] interval_ms   Task interval for a repeating task or a delay for
  *                          single-shot task (mS).
  *
- * @return                  True if the interval was sucessfully updated.
+ * @return                  True if the interval was successfully updated.
  *
  *                          False if the interval could not be updated because
  *                          it has not been previously configured or the task

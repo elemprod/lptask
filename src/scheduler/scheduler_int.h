@@ -15,6 +15,8 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "scheduler.h"
+#include "scheduler_types.h"
+
 
 //TODO we should really convert as many of these macros as possible to static inline.
 
@@ -174,4 +176,24 @@ static inline sched_task_state_t sched_task_state(sched_task_t *p_task) {
   }
 }
 
+/**
+ * Function for calculating the number of allocated tasks in a scheduler pool.
+ * 
+ * @param[in] p_pool  Pointer to pool configuration structure.
+ * @return            The number of tasks whihc are currently allocated.
+ */
+uint8_t sched_pool_allocated(sched_task_pool_t * const p_pool);
+
+/**
+ * Function for calculating the number of unallocated tasks in a scheduler pool.
+ * 
+ * @param[in] p_pool  Pointer to pool configuration structure.
+ * @return            The number of tasks whihc are currently unallocated.
+ */
+uint8_t sched_pool_unallocated(sched_task_pool_t * const p_pool) {
+  if(p_pool == NULL) {
+    return 0;
+  }
+  return p_pool->task_cnt - sched_pool_allocated(p_pool);
+}
 #endif // SCHEDULER_INT_H__

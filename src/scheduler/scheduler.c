@@ -108,7 +108,7 @@ bool sched_task_config(sched_task_t *p_task, sched_handler_t handler,
   }
 
   if ((p_task->state == TASK_STATE_EXECUTING) || (p_task->state == TASK_STATE_STOPPING)) {
-    // A task can not be configured while the handler is currently executing.
+    // A task can not be configured while its handler is currently executing.
     return false;
   } else if (p_task->state == TASK_STATE_UNINIT) {
     // Add the task to the scheduler's que if it hasn't been previously added.
@@ -127,7 +127,7 @@ bool sched_task_config(sched_task_t *p_task, sched_handler_t handler,
       assert(scheduler.p_tail != NULL);
       scheduler.p_tail->p_next = p_task;
     }
-    // Set the new task to the tail task.  This adds it to the end of the list.
+    // Set the new task to the tail task to add it to the end of the list.
     scheduler.p_tail = p_task;
 
     // Release the task que exclusive access.
@@ -138,7 +138,7 @@ bool sched_task_config(sched_task_t *p_task, sched_handler_t handler,
   p_task->p_handler = handler;
 
   // Store the task interval limiting it to the max interval.
-  p_task->interval_ms = (interval_ms & SCHED_MS_MAX);
+  p_task->interval_ms = (interval_ms % SCHED_MS_MAX);
 
   // Store the repeating status.
   p_task->repeat = repeat;
@@ -146,7 +146,7 @@ bool sched_task_config(sched_task_t *p_task, sched_handler_t handler,
   // Tasks are always in the stopped state after configuration. 
   p_task->state = TASK_STATE_STOPPED;
 
-  return false;
+  return true;
 }
 
 bool sched_task_start(sched_task_t *p_task) {
@@ -189,7 +189,7 @@ bool sched_task_update(sched_task_t *p_task, uint32_t interval_ms) {
     return false;
   }
   // Store the new interval limiting it to the max interval.
-  p_task->interval_ms = (interval_ms & SCHED_MS_MAX);
+  p_task->interval_ms = (interval_ms % SCHED_MS_MAX);
 
   // Start the task. 
   return sched_task_start(p_task);
@@ -205,9 +205,10 @@ uint8_t sched_task_data(sched_task_t * p_task, void * p_data, uint8_t data_size)
 
   // Store the data size.
   p_task->data_size = data_size;
+  printf("Task Buffer Size %i\n", p_task->buff_size);
 
   if(TASK_BUFFERED(p_task)) {
-
+    printf("Task Buffered");
     // Limit the data size to the task buffer size.
     if(p_task->data_size > p_task->buff_size) {
       p_task->data_size = p_task->buff_size;
@@ -217,7 +218,7 @@ uint8_t sched_task_data(sched_task_t * p_task, void * p_data, uint8_t data_size)
       p_task->data_size = 0;
     } else {
       // Copy the data into the task data buffer.
-      memcpy(p_task->p_data, p_data, data_size);
+      memcpy(p_task->p_data, p_data, p_task->data_size);
     }
   } else {
     // Just set the data pointer for an unbuffered task.
@@ -511,8 +512,8 @@ static void sched_task_pool_init(sched_task_pool_t * const p_pool) {
     // Set the task's data pointer to the buffer location.
     p_task_cur->p_data = p_data_cur;
 
-    // Set the task buffer size.
-    p_task_cur->data_size = p_pool->buff_size;
+    // Store the task's buffer size.
+    p_task_cur->buff_size = p_pool->buff_size;
 
     // Increment the task pointer
     p_task_cur ++;
