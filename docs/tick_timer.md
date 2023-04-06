@@ -4,11 +4,11 @@ The Scheduler mS tick timer is implemented as a unsigned integer counter which r
 
 The modular arithmetic behavior of the counter must therefore be considered when calculating the interval until task expiration and for checking whether a task has expired.  Fortunately it is straight forward to do so using the following formulas.
   
-The the Ticks since the Task was started can ve calculated with:  
+The counter ticks since the task was started can ve calculated as:  
  
 elapsed_ticks = (now_ticks - start_ticks)   
   
-The Task has expired if:
+A task is considered to be expired if:
 
 (now_ticks - start_tick) >= interval ticks  
                            

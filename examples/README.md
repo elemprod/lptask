@@ -56,7 +56,7 @@ The STM32LO example projects are provided for Segger Embedded Studio (SES).  Seg
 
 The project's are designed to be compiled and ran on a POSIX system (Linux, OSX, Raspberry Pi or Windows under Cygwin) and require the GCC toolchain to be installed.  The host system must have console access to monitor the results.  The projectsare mainly meant to be used for testing the scheduler library since any POSIX system would already have the functionality offered by the scheduler. 
 
-## POSIX Interval Test
+## Interval Test
 examples/POSIX/interval_test/
 
  The project tests the interval accuracy of scheduled tasks.
@@ -80,4 +80,38 @@ To save the results to a logging file use:
 
 ./build/interval_test | tee log.txt
 
+## Task Pool Test
+examples/POSIX/pool_test/
 
+The project tests creating pool of buffered tasks.
+Passing data to the allocated tasks.
+Task data integrity.
+
+### Project Setup
+
+Clone the CRC library from:
+
+https://github.com/gityf/crc.git
+
+to the POSIX folder:
+
+/examples/POSIX/external/crc
+
+### Usage
+
+./build/pool_test
+
+To save the results to a logging file use:
+
+./build/pool_test | tee log.txt
+
+
+## Task Access Protection.
+
+TODO
+
+The project tests the task access protection mechanism.
+
+Task access is checked for each of the possible states to ensure that task can or can't be accessed in the specified for each of the possible states.
+
+./build/access_test
