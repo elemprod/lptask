@@ -34,12 +34,14 @@
 // The number of Buffered Tasks
 #define TASK_COUNT 100
 
+// Test Result
+bool test_pass = true;
+
 // Forward Delcaration
 static sched_task_t *pool_task_alloc();
 
 // Define a pool of buffered task with storage space for the user data structure.
 SCHED_TASK_POOL_DEF(task_pool, sizeof(buff_test_data_t), 100);
-
 
 /* Pool Test Task Handler
  *
@@ -75,6 +77,7 @@ static void pool_task_handler(sched_task_t *p_task, void *p_data, uint8_t data_s
   // Stop the task once the handler has been called 10 times.
   if(p_buff_data->handler_count >= 10) {
     sched_task_stop(p_task);
+    return;
   }
   // CRC check of the previously stored data.
   if (!buff_crc_check(p_buff_data))
@@ -82,9 +85,10 @@ static void pool_task_handler(sched_task_t *p_task, void *p_data, uint8_t data_s
     p_buff_data->crc_fail_count++;
     printf("CRC Fail Cnt: %i\n", p_buff_data->crc_fail_count);
     fflush(stdout);
+    test_pass = false;
   }
 
-  // Generate a new set of random data
+  // Fill the buffer with random data
   buff_randomize(p_buff_data);
 
   // Update the CRC value.
@@ -166,7 +170,16 @@ int main()
   sched_start();
 
   // Test Complete
-  printf("Scheduler Test Complete.\n");
+  printf("Scheduler Pool Test Complete.\n\n");
+
+  if (test_pass)
+  {
+    printf("** TEST PASS **\n\n");
+  }
+  else
+  {
+    printf("** TEST FAIL **\n\n");
+  }
   fflush(stdout);
   return 0;
 }
@@ -183,3 +196,7 @@ void scheduler_port_deinit(void)
   printf("scheduler_port_deinit()\n");
   fflush(stdout);
 }
+
+
+// TODO  Create a repeating task to allocate and start new tasks until the pool is fully allocated
+//      Once the buffer is fully allocated, start another repeating tasks which checks if the buffer has no allocations and then stop the scheduler.

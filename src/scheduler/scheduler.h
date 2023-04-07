@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include "scheduler_types.h"
 #include "scheduler_port.h"
-#include "scheduler_int.h"
+#include "sched_helper.h"
 
 /**
  * Macro for defining an unbuffered scheduler task.

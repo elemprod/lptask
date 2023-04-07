@@ -79,7 +79,7 @@ static void log_task_stats() {
 }
 
 // Random Interval Task Schedule Handler.
-static void rand_task_handler(void *p_data, uint8_t data_size) {
+static void rand_task_handler(sched_task_t *p_task, void *p_data, uint8_t data_size) {
   
   // Update the task statistics
   task_time_update(&rand_task_time);
@@ -94,13 +94,13 @@ static void rand_task_handler(void *p_data, uint8_t data_size) {
   sched_task_update(&rand_task, interval);
 }
 
-static void sec_task_handler(void *p_data, uint8_t data_size) {
+static void sec_task_handler(sched_task_t *p_task, void *p_data, uint8_t data_size) {
   
   // Update the task statistics
   task_time_update(&sec_task_time);
   
 }
-static void min_task_handler(void *p_data, uint8_t data_size) {
+static void min_task_handler(sched_task_t *p_task, void *p_data, uint8_t data_size) {
   
   // Update the task statistics
   task_time_update(&min_task_time);
@@ -109,7 +109,7 @@ static void min_task_handler(void *p_data, uint8_t data_size) {
   fflush(stdout);
 }
 
-static void hour_task_handler(void *p_data, uint8_t data_size) {
+static void hour_task_handler(sched_task_t *p_task, void *p_data, uint8_t data_size) {
   
   // Update the task statistics
   task_time_update(&hour_task_time);
@@ -124,7 +124,7 @@ static void hour_task_handler(void *p_data, uint8_t data_size) {
   log_task_stats();
 }
 
-static void day_task_handler(void *p_data, uint8_t data_size) {
+static void day_task_handler(sched_task_t *p_task, void *p_data, uint8_t data_size) {
   
   // Update the task statistics
   task_time_update(&day_task_time);

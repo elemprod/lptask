@@ -1,12 +1,12 @@
 TARGET_EXEC ?= pool_test
 
 BUILD_DIR ?= ./build
-SRC_COMMON_DIR ?= ../common
-SRC_LIB_DIR ?= ../lib
+SRC_COMMON_DIR ?= ../../common
+SRC_EXTERNAL_DIR ?= ../../external
 SRC_DIR ?= ./src
-SCHED_DIR ?= ../../../src/scheduler
+SCHED_DIR ?= ../../../../src/scheduler
 
-INC_DIRS := $(shell find $(SRC_DIR) -type d) $(shell find $(SCHED_DIR) -type d) $(shell find $(SRC_COMMON_DIR) -type d) $(shell find $(SRC_LIB_DIR)/crc/crc/ -type d)
+INC_DIRS := $(shell find $(SRC_DIR) -type d) $(shell find $(SCHED_DIR) -type d) $(shell find $(SRC_COMMON_DIR) -type d) $(shell find $(SRC_EXTERNAL_DIR)/crc/crc/ -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 CFLAGS ?= $(INC_FLAGS) -MMD -MP
 
@@ -23,7 +23,7 @@ all:
 	# Build the Task Access Control Test Module
 	$(CC) $(CFLAGS) -c $(SRC_COMMON_DIR)/task_access_test.c -o $(BUILD_DIR)/task_access_test.o			
 	# Build the CRC16 Library
-	$(CC) $(CFLAGS) -c $(SRC_LIB_DIR)/crc/crc/crc16.c -o $(BUILD_DIR)/crc16.o
+	$(CC) $(CFLAGS) -c $(SRC_EXTERNAL_DIR)/crc/crc/crc16.c -o $(BUILD_DIR)/crc16.o
 	# Build the Application
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/main.c -o $(BUILD_DIR)/main.o
 	# Build the Executable

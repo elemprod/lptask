@@ -1,8 +1,6 @@
 #include <assert.h>
 #include <string.h>
 #include "scheduler.h"
-#include "scheduler_int.h"
-#include "scheduler_port.h"
 
 /**
  * Scheduler State Definitions
@@ -205,10 +203,8 @@ uint8_t sched_task_data(sched_task_t * p_task, void * p_data, uint8_t data_size)
 
   // Store the data size.
   p_task->data_size = data_size;
-  printf("Task Buffer Size %i\n", p_task->buff_size);
 
   if(TASK_BUFFERED(p_task)) {
-    printf("Task Buffered");
     // Limit the data size to the task buffer size.
     if(p_task->data_size > p_task->buff_size) {
       p_task->data_size = p_task->buff_size;
@@ -534,12 +530,12 @@ sched_task_t * sched_task_alloc(sched_task_pool_t * const p_pool) {
     return NULL;
   }
 
-  // Initialize the pool of buffered tasks if needed.
+  // Initialize the pool of buffered tasks if not previously initialized.
   if(p_pool->initialized == false) {
     sched_task_pool_init(p_pool);
   }
 
-  // Pointer's to the current and last tasks in the pool.
+  // Pointer to the current and last tasks in the pool.
   sched_task_t * p_task_cur = p_pool->p_tasks;
   sched_task_t * p_task_last = p_pool->p_tasks + p_pool->task_cnt;
 
@@ -586,6 +582,38 @@ sched_task_t * sched_task_alloc(sched_task_pool_t * const p_pool) {
 
   // No unallocated tasks were found.
   return NULL;
+}
+
+uint8_t sched_pool_allocated(sched_task_pool_t * const p_pool) {
+
+  if( (p_pool == NULL) || (p_pool->initialized == false) ) {
+    return 0;
+  }
+
+  // Count of the allocated pool tasks.
+  uint8_t alloc_count = 0;
+
+  // Pointer to the current and last tasks in the pool.
+  sched_task_t * p_task_cur = p_pool->p_tasks;
+  sched_task_t * p_task_last = p_pool->p_tasks + p_pool->task_cnt;
+
+  do {
+    if(!p_task_cur->allocated) {
+      alloc_count ++;
+    }
+    // Increment the task pointer
+    p_task_cur ++;
+
+  } while(p_task_cur <= p_task_last);
+
+  return alloc_count;
+}
+
+uint8_t sched_pool_free(sched_task_pool_t * const p_pool) {
+  if(p_pool == NULL) {
+    return 0;
+  }
+  return p_pool->task_cnt - sched_pool_allocated(p_pool);
 }
 
 /**

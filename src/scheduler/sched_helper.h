@@ -1,14 +1,14 @@
 /**
- * scheduler_int.h
+ * sched_helper.h
  *
- * Internal scheduler function declarations and macros which aren't 
- * typically ussed by end users.  The declaration's are placed here 
- * to reduce the complexity of the top level header while still 
- * giving end users access to them if needed.
+ * Scheduler helper function declarations and defines .  The 
+ * declaration's are placed in a  seperate header file to 
+ * reduce the complexity of the top header while still giving 
+ * end users access to them if needed.
  */
 
-#ifndef SCHEDULER_INT_H__
-#define SCHEDULER_INT_H__
+#ifndef SCHED_HELPER_H__
+#define SCHED_HELPER_H__
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -188,12 +188,8 @@ uint8_t sched_pool_allocated(sched_task_pool_t * const p_pool);
  * Function for calculating the number of unallocated tasks in a scheduler pool.
  * 
  * @param[in] p_pool  Pointer to pool configuration structure.
- * @return            The number of tasks whihc are currently unallocated.
+ * @return            The number of tasks which are currently unallocated.
  */
-uint8_t sched_pool_unallocated(sched_task_pool_t * const p_pool) {
-  if(p_pool == NULL) {
-    return 0;
-  }
-  return p_pool->task_cnt - sched_pool_allocated(p_pool);
-}
-#endif // SCHEDULER_INT_H__
+uint8_t sched_pool_free(sched_task_pool_t * const p_pool);
+
+#endif // SCHED_HELPER_H__
