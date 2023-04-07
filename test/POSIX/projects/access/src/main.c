@@ -1,19 +1,11 @@
 /**
  *  main.c
  *
- *  POSIX Task Pool Test
+ * POSIX Task Access Control Test
  *
- * The program tests the schedulers Task Pool Mechanism.
- *
- * Tasks are periodically allocated from the pool
- * Each task contains a randomized array of data and CRC
- * value for the data.
- *
- * The CRC is checked at each handler call to validate the stored
- * data.
- *
- * The buffer data is randomized and a new CRC calculated by the
- * handler periodically.
+ * The program tests the scheduler's task access control protection.
+ * The task is accessed in each of the possible task states to verify the
+ * operation follows the access control specification.
  */
 
 #include <stdio.h>
@@ -26,160 +18,312 @@
 #include <signal.h>
 #include <errno.h>
 
-
 #include "scheduler.h"
 #include "buff_test_data.h"
 #include "task_access_test.h"
 
-// The number of Buffered Tasks
-#define TASK_COUNT 100
-
-// Forward Delcaration
-static sched_task_t *pool_task_alloc();
-
-// Define a pool of buffered task with storage space for the user data structure.
-SCHED_TASK_POOL_DEF(task_pool, sizeof(buff_test_data_t), 100);
-
-
-/* Pool Test Task Handler
- *
- * Test's task access inside of the handler.
- * Test the integrity of the data stored inside of the task.
- * Generates new random data and updates the CRC.
+/*
+ * Access Control Test State
  */
-static void pool_task_handler(sched_task_t *p_task, void *p_data, uint8_t data_size)
+typedef enum
 {
-  printf("Pool Task Handler\n");
-  fflush(stdout);
+  TEST_STATE_UNTESTED = 0, // The test has been performed yet.
+  TEST_STATE_PASS,         // The test passed.
+  TEST_STATE_FAIL,         // The test failed.
+} test_state_t;
 
-  assert(p_data != NULL);
+/*
+ * Task data structure for storing the task access test results for
+ * each of the task states and the number of handler calls.
+ */
+typedef struct
+{
+  test_state_t uninit;    // TASK_STATE_UNINIT
+  test_state_t stopped;   // TASK_STATE_STOPPED
+  test_state_t active;    // TASK_STATE_ACTIVE
+  test_state_t executing; // TASK_STATE_EXECUTING
+  test_state_t stopping;  // TASK_STATE_STOPPING
+  uint32_t handler_cnt;   // Count of the number of handler calls.
+} test_result_data_t;
 
-  // The supplied data length should be match the test data structure.
-  assert(data_size == sizeof(buff_test_data_t));
+// Define a pair of buffered test tasks.
+SCHED_TASK_DEF_BUFF(test_task_a, UINT8_MAX);
+SCHED_TASK_DEF_BUFF(test_task_b, UINT8_MAX);
+
+// Task A Result Data.
+test_result_data_t task_results_a = {
+    .uninit = TEST_STATE_UNTESTED,
+    .stopped = TEST_STATE_UNTESTED,
+    .active = TEST_STATE_UNTESTED,
+    .executing = TEST_STATE_UNTESTED,
+    .stopping = TEST_STATE_UNTESTED,
+    .handler_cnt = 0};
+
+// Task B Result Data.
+test_result_data_t task_results_b = {
+    .uninit = TEST_STATE_UNTESTED,
+    .stopped = TEST_STATE_UNTESTED,
+    .active = TEST_STATE_UNTESTED,
+    .executing = TEST_STATE_UNTESTED,
+    .stopping = TEST_STATE_UNTESTED,
+    .handler_cnt = 0};
+
+/**
+ * Function for combining the test results for each state into
+ * a single result value.
+ */
+static test_state_t test_result_combined(test_result_data_t *p_result)
+{
+
+  assert(p_result != NULL);
+
+  if (p_result->handler_cnt == 0)
+  {
+    return TEST_STATE_UNTESTED;
+  }
+
+  if ((p_result->uninit == TEST_STATE_UNTESTED) ||
+      (p_result->stopped == TEST_STATE_UNTESTED) ||
+      (p_result->active == TEST_STATE_UNTESTED) ||
+      (p_result->executing == TEST_STATE_UNTESTED) ||
+      (p_result->stopping == TEST_STATE_UNTESTED))
+  {
+    return TEST_STATE_UNTESTED;
+  }
+
+  if ((p_result->uninit == TEST_STATE_FAIL) ||
+      (p_result->stopped == TEST_STATE_FAIL) ||
+      (p_result->active == TEST_STATE_FAIL) ||
+      (p_result->executing == TEST_STATE_FAIL) ||
+      (p_result->stopping == TEST_STATE_FAIL))
+  {
+    return TEST_STATE_FAIL;
+  }
+
+  return TEST_STATE_PASS;
+}
+
+/**
+ * Function for logging one test state.
+ */
+static void log_test_state(test_state_t state)
+{
+
+  if (state == TEST_STATE_UNTESTED)
+  {
+    printf("Untested\n");
+  }
+  else if (state == TEST_STATE_FAIL)
+  {
+    printf("Fail\n");
+  }
+  else if (state == TEST_STATE_PASS)
+  {
+    printf("Pass\n");
+  }
+  else
+  {
+    printf("ERROR:  Uknown State\n");
+  }
+}
+/**
+ * Function for logging a test result for each tested state.
+ */
+static void log_result(test_result_data_t *p_result)
+{
+
+  printf("State Uninit    : ");
+  log_test_state(p_result->uninit);
+  printf("State Stopped   : ");
+  log_test_state(p_result->stopped);
+  printf("State Active    : ");
+  log_test_state(p_result->active);
+  printf("State Executing : ");
+  log_test_state(p_result->executing);
+  printf("State Stopping  : ");
+  log_test_state(p_result->stopping);
+}
+
+/**
+ * Function for performming the task acess control test and saving the results
+ * to the task data structure.
+ */
+static void task_test(sched_task_t *p_task, test_result_data_t *p_result_data)
+{
+
+  test_state_t test_state;
+
+  // Test the task access control and save the test state.
+  if (task_access_test(p_task))
+  {
+    test_state = TEST_STATE_PASS;
+  }
+  else
+  {
+    test_state = TEST_STATE_FAIL;
+  }
+
+  // Save the test results to the data structure.
+  switch (p_task->state)
+  {
+  case TASK_STATE_UNINIT:
+    if (p_result_data->uninit != TEST_STATE_FAIL)
+    {
+      p_result_data->uninit = test_state;
+    }
+    break;
+
+  case TASK_STATE_STOPPED:
+    if (p_result_data->stopped != TEST_STATE_FAIL)
+    {
+      p_result_data->stopped = test_state;
+    }
+    break;
+
+  case TASK_STATE_ACTIVE:
+    if (p_result_data->active != TEST_STATE_FAIL)
+    {
+      p_result_data->active = test_state;
+    }
+    break;
+
+  case TASK_STATE_EXECUTING:
+    if (p_result_data->executing != TEST_STATE_FAIL)
+    {
+      p_result_data->executing = test_state;
+    }
+    break;
+
+  case TASK_STATE_STOPPING:
+    if (p_result_data->stopping != TEST_STATE_FAIL)
+    {
+      p_result_data->stopping = test_state;
+    }
+    break;
+
+  default:
+    printf("ERROR: Unknown State");
+  }
+}
+
+/*
+ * Test Task Handler
+ */
+static void task_handler(sched_task_t *p_task, void *p_data, uint8_t data_size)
+{
+
+  assert(p_task != NULL);
 
   // The task should be in the executing or stopping state here.
   sched_task_state_t task_state = sched_task_state(p_task);
   assert((task_state == TASK_STATE_EXECUTING) || (task_state == TASK_STATE_STOPPING));
 
-  // Test the task access inside of the handler.
-  bool task_access_result = task_access_test(p_task);
-  assert(task_access_result);
+  // Test the task access control of both tasks inside of the handler.
+  task_test(&test_task_a, &task_results_a);
+  task_test(&test_task_a, &task_results_b);
 
-  // Cast the supplied pointer to the pool data structure.
-  buff_test_data_t *p_buff_data = (buff_test_data_t *)p_data;
-
-  // Increment the handler call counter.
-  p_buff_data->handler_count++;
-  printf("Handler Call Cnt: %i\n", p_buff_data->handler_count);
-
-  // Stop the task once the handler has been called 10 times.
-  if(p_buff_data->handler_count >= 10) {
-    sched_task_stop(p_task);
+  if (p_task == &test_task_a)
+  {
+    task_results_a.handler_cnt++;
+    if (task_results_a.handler_cnt >= 8)
+    {
+      sched_task_stop(&test_task_a);
+    }
   }
-  // CRC check of the previously stored data.
-  if (!buff_crc_check(p_buff_data))
-  { 
-    p_buff_data->crc_fail_count++;
-    printf("CRC Fail Cnt: %i\n", p_buff_data->crc_fail_count);
+  else if (p_task == &test_task_b)
+  {
+    task_results_b.handler_cnt++;
+    if (task_results_b.handler_cnt >= 8)
+    {
+      sched_task_stop(&test_task_b);
+    }
+  }
+  else
+  {
+    printf("Unknown Task\n");
     fflush(stdout);
+    return;
   }
 
-  // Generate a new set of random data
-  buff_randomize(p_buff_data);
+  // Retest the task access control since the task may have been stopped.
+  task_test(&test_task_a, &task_results_a);
+  task_test(&test_task_a, &task_results_b);
 
-  // Update the CRC value.
-  buff_crc_calc(p_buff_data);
+  sched_task_state_t task_state_a = sched_task_state(&test_task_a);
+  sched_task_state_t task_state_b = sched_task_state(&test_task_a);
 
+  if ((task_state_a == TASK_STATE_STOPPED) || (task_state_a == TASK_STATE_STOPPING))
+  {
+    if ((task_state_b == TASK_STATE_STOPPED) || (task_state_b == TASK_STATE_STOPPING))
+    {
+      // Stop the scheduler if both tasks are stopping or stopped.
+      sched_stop();
+    }
+  }
   fflush(stdout);
 }
 
-/* Function for attempting to allocate a new buffered test task
- * from the task pool.
- *
- * return The allocated and configured test task or NULL if no
- *        more tasks are available from the pool.
- */
-static sched_task_t *pool_task_alloc()
-{
-  // Attempt to allocate a task.
-  sched_task_t *p_task = sched_task_alloc(&task_pool);
-
-  // Configure the task if one could be allocated.
-  if (p_task != NULL)
-  {
-    // Test the task access for the unconfigured task.
-    bool task_access_result = task_access_test(p_task);
-    assert(task_access_result);
-
-    // Generate a random task interval length.
-    uint32_t interval = (rand() % 1000) + 50;
-
-    // Configure the allocated task as a repeating task with the random interval.
-    bool result = sched_task_config(p_task, pool_task_handler, interval, true);
-    assert(result == true);
-
-    // Test the task access for the configured task.
-    task_access_result = task_access_test(p_task);
-    assert(task_access_result);
-
-    // Create a temporary buff test data structure to add to the the task.
-    buff_test_data_t buff_data;
-    buff_init(&buff_data);
-
-    // Copy the buff data to the task.
-    uint8_t bytes_copied = sched_task_data(p_task, &buff_data, sizeof(buff_data));
-
-    // Check if all of the data was copied to the task
-    assert(bytes_copied = sizeof(buff_data));
-
-    // Test the task access for the configured task after the data was added.
-    task_access_result = task_access_test(p_task);
-    assert(task_access_result);
-  }
-  return p_task;
-}
-
-
 int main()
 {
-  printf("\n*** Pooled Task Buffer Test Start ***\n\n");
+  printf("\n*** Scheduler Access Control Test Started ***\n\n");
   fflush(stdout);
 
   // Initialize the Scheduler
   sched_init();
 
-  // Seed the random number generator.
-  srand(time(NULL));
+  // Test the access control before configuring the tasks
+  task_test(&test_task_a, &task_results_a);
+  task_test(&test_task_a, &task_results_b);
 
-  sched_task_t *p_task = pool_task_alloc();
-  if (p_task == NULL)
-  {
-    printf("Task Could Not Allocated.\n");
-  }
-  else
-  {
-    // Start the new task
-    sched_task_start(p_task);
-  }
+  // Configure the tasks as repeating.
+  bool config_result = sched_task_config(&test_task_a, task_handler, 100, true);
+  assert(config_result == true);
+  config_result = sched_task_config(&test_task_b, task_handler, 125, true);
+  assert(config_result == true);
+
+  // Test the access control after configuring the tasks
+  task_test(&test_task_a, &task_results_a);
+  task_test(&test_task_a, &task_results_b);
+
+  // Store some data in the structure.
+  uint8_t dummy_data[] = {0x00, 0x01, 0x02, 0x03};
+  uint8_t bytes_stored = sched_task_data(&test_task_a, dummy_data, sizeof(dummy_data));
+  assert(bytes_stored == sizeof(dummy_data));
+  bytes_stored = sched_task_data(&test_task_b, dummy_data, sizeof(dummy_data));
+  assert(bytes_stored == sizeof(dummy_data));
+
+  // Test the access control again after setting the task data.
+  task_test(&test_task_a, &task_results_a);
+  task_test(&test_task_b, &task_results_b);
+
+  // Start the tasks
+  bool start_result = sched_task_start(&test_task_a);
+  assert(start_result == true);
+  start_result = sched_task_start(&test_task_b);
+  assert(start_result == true);
 
   // Start the Scheduler.
   sched_start();
 
   // Test Complete
-  printf("Scheduler Test Complete.\n");
+  printf("Scheduler Access Control Test Complete.\n");
+
+  printf("\nTask A Results:\n");
+  log_result(&task_results_a);
+
+  printf("\nTask B Results:\n");
+  log_result(&task_results_b);
+  printf("\n");
+
+  if ((test_result_combined(&task_results_a) == TEST_STATE_PASS) &
+      (test_result_combined(&task_results_b) == TEST_STATE_PASS))
+  {
+    printf("** TEST PASS **\n\n");
+  }
+  else
+  {
+    printf("** TEST FAIL **\n\n");
+  }
   fflush(stdout);
   return 0;
-}
-
-// Optional Scheduler Port Init / Deinit (for debugging)
-void scheduler_port_init(void)
-{
-  printf("scheduler_port_init()\n");
-  fflush(stdout);
-}
-
-void scheduler_port_deinit(void)
-{
-  printf("scheduler_port_deinit()\n");
-  fflush(stdout);
 }
