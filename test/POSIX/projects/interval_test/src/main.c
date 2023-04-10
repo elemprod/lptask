@@ -11,7 +11,7 @@
 #include <time.h>
 #include <unistd.h>
 #include "scheduler.h"
-#include "scheduler_port.h"
+#include "sched_port.h"
 #include "task_time.h"
 
 
@@ -222,12 +222,12 @@ int main()
 }
 
 // Optional Scheduler Port Init / Deinit (for debugging)
-void scheduler_port_init(void) {
-  printf("scheduler_port_init()\n");
+void sched_port_init(void) {
+  printf("sched_port_init()\n");
   fflush(stdout);
 }
 
-void scheduler_port_deinit(void) {
-  printf("scheduler_port_deinit()\n");
+void sched_port_deinit(void) {
+  printf("sched_port_deinit()\n");
   fflush(stdout);
 }

@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "scheduler.h"
-#include "scheduler_types.h"
+#include "sched_types.h"
 
 
 //TODO we should really convert as many of these macros as possible to static inline.
@@ -102,7 +102,7 @@
  *  @param[in] p_task   Pointer to the task.
  *  @return             True if the task is expired else False.
  */
-#define TASK_EXPIRED(p_task) ((scheduler_port_ms() - (p_task)->start_ms) >= (p_task)->interval_ms)
+#define TASK_EXPIRED(p_task) ((sched_port_ms() - (p_task)->start_ms) >= (p_task)->interval_ms)
 
 /**
  * Macro for safely checking if a task has expired.

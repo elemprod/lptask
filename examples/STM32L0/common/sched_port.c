@@ -1,5 +1,5 @@
 
-#include "scheduler_port.h"
+#include "sched_port.h"
 #include "pwr_mode.h"
 #include "stm32l0xx_hal.h"
 #include <stdio.h>
@@ -22,23 +22,23 @@
 // IRQ Priority Mask
 static uint32_t primask_bit;
 
-void scheduler_port_que_lock(void) {
+void sched_port_lock(void) {
   // Store the current IRQ Priority Mask
   primask_bit = __get_PRIMASK();
   // Temporarily Disable Global Interrupts
   __disable_irq();
 }
 
-void scheduler_port_que_free(void) {
+void sched_port_free(void) {
   // Restore previous IRQ Priority Mask
   __set_PRIMASK(primask_bit);
 }
 
-uint32_t scheduler_port_ms(void) {
+uint32_t sched_port_ms(void) {
   return (uint32_t)HAL_GetTick();
 }
 
-void scheduler_port_sleep(uint32_t interval_ms) {
+void sched_port_sleep(uint32_t interval_ms) {
 
 #ifndef SLEEP_METHOD
 #error "The sleep type must be defined"
@@ -79,7 +79,7 @@ void scheduler_port_sleep(uint32_t interval_ms) {
 #endif
 }
 
-void scheduler_port_init(void) {
+void sched_port_init(void) {
 
 // Log the Sleep Method during scheduler init if enabled.
 #if (SLEEP_METHOD == SLEEP_NONE)

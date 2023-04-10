@@ -185,15 +185,15 @@ int main()
 }
 
 // Optional Scheduler Port Init / Deinit (for debugging)
-void scheduler_port_init(void)
+void sched_port_init(void)
 {
-  printf("scheduler_port_init()\n");
+  printf("sched_port_init()\n");
   fflush(stdout);
 }
 
-void scheduler_port_deinit(void)
+void sched_port_deinit(void)
 {
-  printf("scheduler_port_deinit()\n");
+  printf("sched_port_deinit()\n");
   fflush(stdout);
 }
 

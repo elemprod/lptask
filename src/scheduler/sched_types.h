@@ -1,9 +1,9 @@
 /**
- * scheduler_types.h
+ * sched_types.h
  */
 
-#ifndef SCHEDULER_TYPES_H__
-#define SCHEDULER_TYPES_H__
+#ifndef SCHED_TYPES_H__
+#define SCHED_TYPES_H__
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -32,7 +32,7 @@ typedef enum {
  * Note that the allocated flag and task state must be volatile since they 
  * can be modified from interrupt contexts during handler is execution.
  * 
- * Unbuffered task will have a buff_size of 0.
+ * Unbuffered tasks will have a buff_size of 0.
  * data_size represents the length of the actual data stored in the task and
  * should always be <= buff_size.
  * 
@@ -97,4 +97,4 @@ typedef struct {
  */
 #define SCHED_TASK_LIMIT(value) (((value) > 1 ? (value) : 1) % UINT8_MAX)
 
-#endif // SCHEDULER_TYPES_H__
+#endif // SCHED_TYPES_H__

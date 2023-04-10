@@ -24,7 +24,7 @@ typedef enum {
  * The next expiring task is cached which avoids having to recalculate it
  * during each sched_execute() call which improves efficiency.
  *
- * The que must be locked prior to modifying any of these pointers.
+ * The scheduler  must be locked prior to modifying any of these pointers.
  */
 typedef struct
 {
@@ -47,7 +47,7 @@ static scheduler_t scheduler = {
 static void sched_clear_que() {
 
   // Get exclusive que access.
-  scheduler_port_que_lock();
+  sched_port_lock();
 
   // Walk through the task list starting at the head.
   sched_task_t *p_current_task = scheduler.p_head;
@@ -66,7 +66,7 @@ static void sched_clear_que() {
   scheduler.p_next = NULL;
 
   // Release the que lock.
-  scheduler_port_que_free();
+  sched_port_free();
 }
 
 /**
@@ -79,7 +79,7 @@ static void sched_stop_finalize(void) {
     sched_clear_que();
 
     // Perform any platform specific deinitialization last.
-    scheduler_port_deinit();
+    sched_port_deinit();
 
     scheduler.state = SCHED_STATE_STOPPED;
   }
@@ -115,7 +115,7 @@ bool sched_task_config(sched_task_t *p_task, sched_handler_t handler,
     p_task->p_next = NULL;
 
     // Take exclusive write access of scheduler's task que.
-    scheduler_port_que_lock();
+    sched_port_lock();
 
     if (scheduler.p_head == NULL) {
       // No other tasks exists in the list so the new task will be both the head & tail tasks.
@@ -129,7 +129,7 @@ bool sched_task_config(sched_task_t *p_task, sched_handler_t handler,
     scheduler.p_tail = p_task;
 
     // Release the task que exclusive access.
-    scheduler_port_que_free();
+    sched_port_free();
   }
 
   // Store the task handler.
@@ -170,7 +170,7 @@ bool sched_task_start(sched_task_t *p_task) {
   }
 
   // Store the start time as now.
-  p_task->start_ms = scheduler_port_ms();
+  p_task->start_ms = sched_port_ms();
   
   /* Set the cached next task to the newly started task if it expires 
    * sooner than the currently cached next task.
@@ -263,7 +263,7 @@ bool sched_task_stop(sched_task_t *p_task) {
 bool sched_task_expired(sched_task_t *p_task) {
 
   if(TASK_ACTIVE_SAFE(p_task)) {
-    return (scheduler_port_ms() - p_task->start_ms) >= p_task->interval_ms;
+    return (sched_port_ms() - p_task->start_ms) >= p_task->interval_ms;
   } else {
     return false;
   }
@@ -272,7 +272,7 @@ bool sched_task_expired(sched_task_t *p_task) {
 uint32_t sched_task_remaining_ms(sched_task_t *p_task) {
 
   if(TASK_ACTIVE_SAFE(p_task)) {
-    uint32_t elapsed_ms = scheduler_port_ms() - p_task->start_ms;
+    uint32_t elapsed_ms = sched_port_ms() - p_task->start_ms;
 
     if (elapsed_ms < p_task->interval_ms) {
       return p_task->interval_ms - elapsed_ms;
@@ -288,7 +288,7 @@ uint32_t sched_task_remaining_ms(sched_task_t *p_task) {
 uint32_t sched_task_elapsed_ms(sched_task_t *p_task) {
 
   if(TASK_ACTIVE_SAFE(p_task)) {
-    return scheduler_port_ms() - p_task->start_ms;
+    return sched_port_ms() - p_task->start_ms;
   } else {
     return 0;
   }
@@ -364,7 +364,7 @@ static void sched_next_task(void) {
  *
  * @return  none
  */
-void sched_execute_que(void) {
+static void sched_execute_que(void) {
 
   /* Check if the cached next task is both valid and unexpired
    * before executing the task que. This check enables the 
@@ -412,7 +412,7 @@ void sched_execute_que(void) {
         * time doesn't introduce error.  The start time only needs to be updated for
         * repeating tasks.
         */
-        p_current_task->start_ms = scheduler_port_ms();
+        p_current_task->start_ms = sched_port_ms();
 
       } else {
         // A non-repeating task will be in the stopping state while executing its handler.
@@ -452,7 +452,7 @@ void sched_init(void) {
   if (scheduler.state == SCHED_STATE_STOPPED) {
 
     // Perform any platform specific initialization first.
-    scheduler_port_init();
+    sched_port_init();
 
     // Clear the task references.
     scheduler.p_head = NULL;
@@ -478,7 +478,7 @@ void sched_start(void) {
 
     // Sleep until the next task expires using the platform specific sleep method.
     if (sleep_interval > 0) {
-      scheduler_port_sleep(sleep_interval);
+      sched_port_sleep(sleep_interval);
     }
   }
 
@@ -545,7 +545,7 @@ sched_task_t * sched_task_alloc(sched_task_pool_t * const p_pool) {
 
       // Acquire the scheduler lock so the task can be allocated
       // without interruption.
-      scheduler_port_que_lock();
+      sched_port_lock();
 
       // Check that the task is still unallocated
       if(p_task_cur->allocated) {
@@ -554,7 +554,7 @@ sched_task_t * sched_task_alloc(sched_task_pool_t * const p_pool) {
          * from a different context before the task could be 
          * allocated. Release the lock and continue the search.
          */
-        scheduler_port_que_free();
+        sched_port_free();
 
       } else {
       
@@ -562,7 +562,7 @@ sched_task_t * sched_task_alloc(sched_task_pool_t * const p_pool) {
         p_task_cur->allocated = true;
 
         // Release the lock
-        scheduler_port_que_free();
+        sched_port_free();
       
         // Clear the task's data buffer
   #if SCHED_TASK_BUFF_CLEAR != 0
@@ -619,14 +619,14 @@ uint8_t sched_pool_free(sched_task_pool_t * const p_pool) {
 /**
  * Weak & empty implementations of the optional port functions.
  */
-__attribute__((weak)) void scheduler_port_sleep(uint32_t interval_ms) {
+__attribute__((weak)) void sched_port_sleep(uint32_t interval_ms) {
   // Empty
 }
 
-__attribute__((weak)) void scheduler_port_init(void){
+__attribute__((weak)) void sched_port_init(void){
     // Empty
 };
 
-__attribute__((weak)) void scheduler_port_deinit(void){
+__attribute__((weak)) void sched_port_deinit(void){
     // Empty
 };

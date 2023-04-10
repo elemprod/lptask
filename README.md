@@ -76,4 +76,4 @@ sched_task_start(&my_task);
 
 ## Porting to a New Platform
  
-Several [example projects](./examples/README.md) are provided in the  `/examples/` folder for various hardware platforms.  If your processor doesn't match one of the example projects, you will need to implement the mandatory functions defined in [scheduler_port.h](./src/scheduler/scheduler_port.h).  See the [Platform Port](./docs/port.md) page for more detailed information on adding support for a new processor.
+Several [example projects](./examples/README.md) are provided in the  `/examples/` folder for various hardware platforms.  If your processor doesn't match one of the example projects, you will need to implement the mandatory functions defined in [sched_port.h](./src/scheduler/sched_port.h).  See the [Platform Port](./docs/port.md) page for more detailed information on adding support for a new processor.

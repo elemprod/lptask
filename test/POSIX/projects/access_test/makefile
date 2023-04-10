@@ -15,13 +15,13 @@ all:
 	# Build the Scheduler Library
 	$(CC) $(CFLAGS) -c $(SCHED_DIR)/scheduler.c -o $(BUILD_DIR)/scheduler.o
 	# Build the Platform Support
-	$(CC) $(CFLAGS) -c $(SRC_COMMON_DIR)/scheduler_port.c -o $(BUILD_DIR)/scheduler_port.o	
+	$(CC) $(CFLAGS) -c $(SRC_COMMON_DIR)/sched_port.c -o $(BUILD_DIR)/sched_port.o	
 	# Build the Task Access Control Test Module
 	$(CC) $(CFLAGS) -c $(SRC_COMMON_DIR)/task_access_test.c -o $(BUILD_DIR)/task_access_test.o			
 	# Build the Application
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/main.c -o $(BUILD_DIR)/main.o
 	# Build the Executable
-	$(CC) $(BUILD_DIR)/scheduler.o $(BUILD_DIR)/task_access_test.o $(BUILD_DIR)/main.o $(BUILD_DIR)/scheduler_port.o -o $(BUILD_DIR)/$(TARGET_EXEC) $(LDFLAGS) -lm
+	$(CC) $(BUILD_DIR)/scheduler.o $(BUILD_DIR)/task_access_test.o $(BUILD_DIR)/main.o $(BUILD_DIR)/sched_port.o -o $(BUILD_DIR)/$(TARGET_EXEC) $(LDFLAGS) -lm
 	
 .PHONY: clean
 

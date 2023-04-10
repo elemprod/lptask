@@ -11,8 +11,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "scheduler_types.h"
-#include "scheduler_port.h"
+#include "sched_types.h"
+#include "sched_port.h"
 #include "sched_helper.h"
 
 /**
@@ -99,7 +99,7 @@
 
 /**
  * Function for allocating a single buffered scheduler task from the task pool.
- * The pool serves as a simple mechanism for creating and tracking multiple
+ * The task pool serves as a simple mechanism for creating and tracking multiple
  * reusable tasks.
  * 
  * Once allocated, the task can be configured and accessed in the same
@@ -116,7 +116,6 @@
  *                    count needs to be increased.
  */
 sched_task_t * sched_task_alloc(sched_task_pool_t * const p_pool);
-
 
 /**
  * Function for configuring or reconfiguring a scheduler task.

@@ -15,7 +15,7 @@ all:
 	# Build the Scheduler Library
 	$(CC) $(CFLAGS) -c $(SCHED_DIR)/scheduler.c -o $(BUILD_DIR)/scheduler.o
 	# Build the Platform Support
-	$(CC) $(CFLAGS) -c $(SRC_COMMON_DIR)/scheduler_port.c -o $(BUILD_DIR)/scheduler_port.o
+	$(CC) $(CFLAGS) -c $(SRC_COMMON_DIR)/sched_port.c -o $(BUILD_DIR)/sched_port.o
 	# Build the Buffer Test Data Module
 	$(CC) $(CFLAGS) -c $(SRC_COMMON_DIR)/buff_test_data.c -o $(BUILD_DIR)/buff_test_data.o	
 	# Build the Task Time Data Module
@@ -27,7 +27,7 @@ all:
 	# Build the Application
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/main.c -o $(BUILD_DIR)/main.o
 	# Build the Executable
-	$(CC) $(BUILD_DIR)/scheduler.o $(BUILD_DIR)/crc16.o $(BUILD_DIR)/buff_test_data.o $(BUILD_DIR)/task_time.o $(BUILD_DIR)/task_access_test.o $(BUILD_DIR)/main.o $(BUILD_DIR)/scheduler_port.o -o $(BUILD_DIR)/$(TARGET_EXEC) $(LDFLAGS) -lm
+	$(CC) $(BUILD_DIR)/scheduler.o $(BUILD_DIR)/crc16.o $(BUILD_DIR)/buff_test_data.o $(BUILD_DIR)/task_time.o $(BUILD_DIR)/task_access_test.o $(BUILD_DIR)/main.o $(BUILD_DIR)/sched_port.o -o $(BUILD_DIR)/$(TARGET_EXEC) $(LDFLAGS) -lm
 	
 .PHONY: clean
 

@@ -6,26 +6,26 @@
  * for sample implementations.
  */
 
-#ifndef _SCHEDULER_PORT_H__
-#define _SCHEDULER_PORT_H__
+#ifndef SCHED_PORT_H__
+#define SCHED_PORT_H__
 
 #include <stdint.h>
 
  /**
   * Mandatory platform specific function for acquiring exclusive 
-  * access to the scheduler's task que.
+  * access to the scheduler's shared data structure.
   *
   * The lock prevents different sections of code from modifying 
   * the task que pointers at the same time which could lead to 
   * corruption of the que.
   */
-void scheduler_port_que_lock(void);
+void sched_port_lock(void);
 
 /**
   * Mandatory platform specific function for releasing exclusive 
-  * access to the scheduler's task que.
+  * access to the scheduler's shared data structure.
   */
-void scheduler_port_que_free(void);
+void sched_port_free(void);
 
  /**
   * Mandatory platform specific function for reading the current 
@@ -41,7 +41,7 @@ void scheduler_port_que_free(void);
   *
   * @return    The current timer value (mS).
   */
-uint32_t scheduler_port_ms(void);
+uint32_t sched_port_ms(void);
 
  /**
   * Optional platform specific sleep function. 
@@ -54,7 +54,7 @@ uint32_t scheduler_port_ms(void);
   *
   * @return    none
   */
-void scheduler_port_sleep(uint32_t interval_ms);
+void sched_port_sleep(uint32_t interval_ms);
 
  /**
   * Optional function for performing in any platform specific 
@@ -65,15 +65,15 @@ void scheduler_port_sleep(uint32_t interval_ms);
   *
   * @return    none
   */
-void scheduler_port_init(void);
+void sched_port_init(void);
 
  /**
   * Optional function for performing in any platform specific deinitialization 
-  * and tear down.  Any resources initialized in scheduler_port_init() should be 
+  * and tear down.  Any resources initialized in sched_port_init() should be 
   * deinitialized here.   
   *
   * @return    none
   */
-void scheduler_port_deinit(void);
+void sched_port_deinit(void);
 
-#endif // _SCHEDULER_PORT_H__
+#endif // SCHED_PORT_H__
