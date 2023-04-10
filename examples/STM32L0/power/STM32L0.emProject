@@ -47,8 +47,10 @@
       <file file_name="../common/pwr_mode.h" />
       <file file_name="$(SchedulerLibraryDir)/scheduler.c" />
       <file file_name="$(SchedulerLibraryDir)/scheduler.h" />
-      <file file_name="../common/scheduler_port.c" />
-      <file file_name="../../../src/scheduler/scheduler_port.h" />
+      <file file_name="../../../src/scheduler/sched_helper.h" />
+      <file file_name="../common/sched_port.c" />
+      <file file_name="../../../src/scheduler/sched_port.h" />
+      <file file_name="../../../src/scheduler/sched_types.h" />
     </folder>
     <folder Name="SDK">
       <file file_name="$(SDKDir)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal.c" />

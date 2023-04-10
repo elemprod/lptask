@@ -1,0 +1,3 @@
+[submodule "test/POSIX/external/crc"]
+	path = test/POSIX/external/crc
+	url = https://github.com/gityf/crc.git

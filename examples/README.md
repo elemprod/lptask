@@ -38,7 +38,7 @@ The average processor current was measured for each sleep method using a 7-1/2 D
 
 Utilizing the the Low Power Timer offers over a 50 times reduction in current for this particular example at the expense of an increase in interval jitter. 
 
-## Project Setup
+### Project Setup
 
 The STM32L0 Project requires that the STMicroelectronics supplied STM32CubeL0 SDK be cloned to the following folder:
 
@@ -48,35 +48,70 @@ The STM32CubeL0 SDK is available at:
 
 https://github.com/STMicroelectronics/STM32CubeL0.git
 
-## Build
+### Build
 
 The STM32LO example projects are provided for Segger Embedded Studio (SES).  Segger offers a free non-commercial license for SES. It should be relatively straight forward to setup the project with other compliers if desired.
 
-# POSIX Example Project
+# POSIX Example Project's
 
-examples/POSIX/test/
+The project's are designed to be compiled and ran on a POSIX system (Linux, OSX, Raspberry Pi or Windows under Cygwin) and require the GCC toolchain to be installed.  The host system must have console access to monitor the results.  The projectsare mainly meant to be used for testing the scheduler library since any POSIX system would already have the functionality offered by the scheduler. 
 
-The test project is designed to be compiled and ran on a POSIX system (Linux, OSX, Raspberry Pi or Windows under Cygwin).  The project requires the GCC toolchain.  The host system must have console access to monitor the test results.
+## Interval Test
+examples/POSIX/interval_test/
 
-The project is mainly meant to be used for testing the scheduler library since any POSIX system would already have the functionality offered by the scheduler.  The project has the following features: 
+ The project tests the interval accuracy of scheduled tasks.
 
   - Multiple repeating long running tasks are scheduled.
-  - The minimum, average and maximum interval time error is calculated for each task in its handler call.  The interval time error is the difference between the programmed and actual time interval between task handler calls.  Timer roll overs or other math errors in the scheduler would detectable by a large interval error.
+  - The minimum, average and maximum interval time error is calculated for each task in its handler call.  The interval time error is the difference between the programmed and actual time interval between task handler calls.
+  - Any T=timer roll over or other math errors in the scheduler would detectable by a large interval error.
   - A non-repeating task is included to test errors which might be introduced as a result of restarting the task inside the  handler.  The interval is set to a new random interval during each  handler call and the task restarted.
   - A task is included with an interval set to the maximum interval supported by the scheduler (6.2 days).
   - The test stops after 7 days and the results are reported to the console.
-  - A 2nd random interval task is included for testing stopping and starting the scheduler module.  It stops the scheduler in its handler.  The scheduler and all tasks are restarted once the scheduler stop has completed.
 
-##Build
+### Build
 
 Run the make command from a console inside the project directory to build the project.
 
-##Usage
+### Usage
 
-./build/sched_test
+./build/interval_test
 
 To save the results to a logging file use:
 
-./build/sched_test | tee log.txt
+./build/interval_test | tee log.txt
+
+## Task Pool Test
+examples/POSIX/pool_test/
+
+The project tests creating pool of buffered tasks.
+Passing data to the allocated tasks.
+Task data integrity.
+
+### Project Setup
+
+Clone the CRC library from:
+
+https://github.com/gityf/crc.git
+
+to the POSIX folder:
+
+/examples/POSIX/external/crc
+
+### Usage
+
+./build/pool_test
+
+To save the results to a logging file use:
+
+./build/pool_test | tee log.txt
 
 
+## Task Access Protection.
+
+TODO
+
+The project tests the task access protection mechanism.
+
+Task access is checked for each of the possible states to ensure that task can or can't be accessed in the specified for each of the possible states.
+
+./build/access_test
