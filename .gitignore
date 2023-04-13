@@ -49,3 +49,4 @@ log.txt
 examples/STM32L0/SDK
 *.jlink
 *.bkp
+.vscode
