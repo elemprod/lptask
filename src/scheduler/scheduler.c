@@ -1,3 +1,8 @@
+/**
+ * @file scheduler.c
+ * @author Ben Wirz
+ */ 
+
 #include <assert.h>
 #include <string.h>
 #include "scheduler.h"
@@ -5,36 +10,54 @@
 /***** Scheduler Module Internal Data *****/
 
 /**
- * @brief Scheduler State Definitions
+ * @brief Scheduler State Type
  */
 typedef enum {
-  SCHED_STATE_STOPPED = 0, // The scheduler is stopped.
-  SCHED_STATE_ACTIVE,      // The scheduler is running.
-  SCHED_STATE_STOPPING,    // The scheduler is in the process of stopping.
+  /// @brief The scheduler is stopped.
+  SCHED_STATE_STOPPED = 0,
+  /// @brief The scheduler is running.  
+  SCHED_STATE_ACTIVE,
+  /// @brief The scheduler is in the process of stopping.  
+  SCHED_STATE_STOPPING
 } sched_state_t;
 
 /**
- * @brief The scheduler modules's internal data structure.
+ * @brief The scheduler's internal data structure.
  *
- * The pointer to the head task gives the scheduler a starting point when
- * traversing the task linked list.
- *
- * The pointer to the tail task provides the scheduler with a reference to
- * the last  task in the linked list.  New tasks are always added to the end
- * of the list.
- *
- * The next expiring task is cached which avoids having to recalculate it
- * during each sched_execute() call which improves efficiency.
- *
- * The scheduler must be locked prior to modifying any of these pointers.
+ * @note The scheduler must be locked prior to modifying any of the task
+ * pointers.
  */
 typedef struct {
-  sched_task_t *p_head;         // Pointer to the head task in the task que.
-  sched_task_t *p_tail;         // Pointer to the tail task in the task que.
-  sched_task_t *p_next;         // Pointer to the next expiring task if known.
-  volatile sched_state_t state; // The module's current state.
+  /** 
+   * @brief Pointer to the head task in the task que.
+   * 
+   * The pointer to the head task gives the scheduler a starting point
+   * when traversing the task que.
+   */   
+  sched_task_t *p_head; 
+  /**   
+   * @brief Pointer to the tail task in the task que.
+   * 
+   * The pointer to the tail task provides the scheduler with a 
+   * reference to the last  task in the task que.  New tasks are always 
+   * added to the end of the que.
+   */  
+  sched_task_t *p_tail;
+  /**   
+   * @brief Pointer to the next expiring task if known else NULL.
+   * 
+   * The next expiring task is cached when possible which avoids having 
+   * to recalculate it during each sched_execute() call.
+   */  
+  sched_task_t *p_next;
+  /**   
+   * @brief The module's current state.
+   * 
+   * The state variable must be volatile since the scheduler could be stopped 
+   * from an interrupt context.
+   */ 
+  volatile sched_state_t state;
 } scheduler_t;
-
 
 // The scheduler module's internal data.
 static scheduler_t scheduler = {
@@ -45,23 +68,27 @@ static scheduler_t scheduler = {
 
 /***** Scheduler Configuration Defines *****/
 
-/*
- * If SCHED_TASK_BUFF_CLEAR is defined to be != 0, the task 
- * data buffer will be cleared each time the task is allocated.  
- * The default implementation is to not clear the buffer but the 
- * end user can override this by defining SCHED_TASK_BUFF_CLEAR 
- * to be 1 if desired.  Clearing a large task data buffer can
- * be costly and is often unnecessary but it can be useful for
- * debugging purposes.
+/**
+ * @brief Define to enable clearning the task data buffer.
+ * 
+ * If SCHED_TASK_BUFF_CLEAR is defined to be != 0, the task data buffer will 
+ * be cleared each time the task is allocated.  The default implementation 
+ * is to not clear the buffer but the end user can override this by defining
+ * SCHED_TASK_BUFF_CLEAR to be 1 if desired.  Clearing a large task data 
+ * buffer can be costly and is unnecessary for most applications since the
+ * buffer is overwritten when data is added.  Clearing the buffer can be 
+ * useful though for certain debugging purposes.
  */
 #ifndef SCHED_TASK_BUFF_CLEAR
-#define SCHED_TASK_BUFF_CLEAR 0
+#define SCHED_TASK_BUFF_CLEAR (0)
 #endif
 
-/* 
- * SCHED_MS_MAX defines the maximum task interval time in mS.
- * The default value of UINT32_MAX is suitable for most situations
- * but the user define a lower value should they desire.
+/**
+ * @brief Define for the maximum task interval time in mS. 
+ * 
+ * The define sets the maximum task interval time in mS.  The default value 
+ * of UINT32_MAX will be suitable for most applications but the end user 
+ * can define a lower value should they desire to limit the maximum interval.
  */ 
 #ifndef SCHED_MS_MAX
 #define SCHED_MS_MAX (UINT32_MAX)
@@ -72,7 +99,7 @@ static scheduler_t scheduler = {
 /**
  * @brief Macro for checking if a task is buffered.
  *
- * Note: The task pointer is not NULL checked
+ * @note The task pointer is not NULL checked
  *
  * @param[in] p_task   Pointer to the task.
  * @return             True if the task is buffered.
@@ -93,7 +120,7 @@ static scheduler_t scheduler = {
 /**
  * @brief Macro for checking if a task is active.
  *
- * Note: The task pointer is not NULL checked
+ * @note The task pointer is not NULL checked
  *
  * @param[in] p_task   Pointer to the task.
  * @return             True if the task is active else False.
@@ -113,8 +140,8 @@ static scheduler_t scheduler = {
 /**
  * @brief Macro for checking if a task has expired.
  *
- * Note: The task pointer is not NULL checked and the
- * task's Active status is also not checked.
+ * @note: The task pointer is not NULL checked and the task's Active status 
+ * is also not checked.
  *
  * @param[in] p_task   Pointer to the task.
  * @return             True if the task is expired else False.
@@ -130,7 +157,7 @@ static scheduler_t scheduler = {
  */
 #define TASK_EXPIRED_SAFE(p_task) (TASK_ACTIVE_SAFE(p_task) && TASK_EXPIRED(p_task))
 
-/***** External Scheduler Task Helper Functions *****/
+/***** External Task Helper Functions *****/
 
 bool sched_task_expired(sched_task_t *p_task) {
   
@@ -194,7 +221,7 @@ sched_task_t *sched_task_compare(sched_task_t *p_task_a, sched_task_t *p_task_b)
 /**
  * @brief Function for removing all tasks from the scheduler's que.
  * 
- * @return none
+ * @return void
  */
 static void sched_clear_que() {
 
@@ -227,7 +254,7 @@ static void sched_clear_que() {
  * Called once the scheduler finishes executing the expired tasks handlers
  * to complete a scheduler stop.
  * 
- * @return none
+ * @return void
  */
 static void sched_stop_finalize(void) {
   if (scheduler.state == SCHED_STATE_STOPPING) {
@@ -245,7 +272,7 @@ static void sched_stop_finalize(void) {
 /**
  * @brief Function for updating the cached next task.
  *
- * @return none
+ * @return void
  */
 static void sched_next_task(void) {
 
@@ -282,12 +309,12 @@ static void sched_next_task(void) {
 }
 
 /**
- * @brief Function for executing scheduled tasks in the que which have expired timers.
+ * @brief Function for executing tasks in the que with expired intervals.
  *
  * This function must be called from within the main loop. It will execute
  * all scheduled tasks having expired timers before returning.
  *
- * @return none
+ * @return void
  */
 static void sched_execute_que(void) {
 
@@ -309,14 +336,15 @@ static void sched_execute_que(void) {
    *  3. The next task pointer is compared to local copy that was 
    *  made to test if it was modified during the expiration check.
    * 
-   * This technique protects against a possible changes to the 
-   * cached next task without having to use the scheduler lock.
+   * This technique protects against the cached next task being modified
+   * from a different context without to utilize the scheduler lock.
    */
    sched_task_t * p_next_copy = scheduler.p_next;
    if ((p_next_copy != NULL) &&
       (p_next_copy->state == TASK_STATE_ACTIVE) &&
       !TASK_EXPIRED(p_next_copy) &&
-      (p_next_copy == scheduler.p_next)) {
+      (p_next_copy == scheduler.p_next)) 
+  {
     //  Return if the cached next task is valid but not expired yet.      
     return;
   }
@@ -330,7 +358,9 @@ static void sched_execute_que(void) {
     if ((p_current_task->state == TASK_STATE_ACTIVE) && TASK_EXPIRED(p_current_task)) {
 
       if(p_current_task->repeat) {
-        // A repeating task is in the executing state inside of its handler.
+        /* A repeating task will be in the executing state while inside of
+         * its handler. 
+         */ 
         p_current_task->state = TASK_STATE_EXECUTING;
 
        /* Update the start time before calling the handler so the handler's 
@@ -346,7 +376,7 @@ static void sched_execute_que(void) {
         p_current_task->state = TASK_STATE_STOPPING;
       }
 
-      // Call the Task Handler Function.
+      // Call the task's handler function.
       sched_handler_t handler = (sched_handler_t) p_current_task->p_handler;
       handler(p_current_task, p_current_task->p_data, p_current_task->data_size);
 
@@ -358,7 +388,7 @@ static void sched_execute_que(void) {
         assert(p_current_task->state == TASK_STATE_STOPPING);
         // Stopping tasks move to the stopped state.
         p_current_task->state = TASK_STATE_STOPPED;
-        // The task is no longer allocated once stopped.
+        // A task is no longer allocated once stopped.
         p_current_task->allocated = false;
       }
     }

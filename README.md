@@ -48,7 +48,13 @@ int main() {
 }
 ```
 
-## Task Types
+## Task Handler
+
+Each task must have a task handler function defined.  The hander function is be used to perform the task's work and is called from the main context once the task's interval has expired.  The handler must follow the `sched_handler_t` function prototype. 
+
+A reference to the task itself is supplied to the handler so that the task can updated inside the handler function if needed.  For example, a repeating task might be stopped after a certain condition is met.  
+
+## Unbuffered vs Buffered Tasks
 
 The scheduler supports both buffered and unbuffered task types. Buffered tasks have their own internal data memory for storing user data.  Data is added to buffered task by copying it the task's internal data buffer.
 
@@ -61,21 +67,53 @@ Unbuffered tasks don't have an internal data buffer.  Data is added to an unbuff
 | Data Lifetime         | The user data must still be valid at later handler call.  | Since the user data is copied to the internal task buffer, the data only needs to be valid when it is added to the task. |
 | Task Definition      | SCHED_TASK_DEF()        | SCHED_TASK_DEF_BUFF() or allocated from a Task Pool|
 
-
-## Task Handler
-
-Each task must have a task handler function defined.  The hander function is be used to perform the task's work and is called from the main context once the task's interval has expired.  The handler must follow the `sched_handler_t` function prototype. 
+An unbuffered scheduler task should be defined with the `SCHED_TASK_DEF()` macro. 
 
 ```c
-/*
- * Custom data struture for passing data received from a UART 
- * interrupt service routine to the main context for handling. 
- */
+// Unbuffered Task Definition
+SCHED_TASK_DEF(my_task);
+```
+
+A buffered task is defined with the `SCHED_TASK_DEF_BUFF()` macro which includes the size of the tasks internal buffer.
+
+```c
+// Buffered Task Definition
+SCHED_TASK_DEF_BUFF(my_buff_task, sizeof(task_data_t));
+```
+ 
+## Configuring & Starting Tasks
+
+Once defined, buffered and unbuffered tasks are accessed in the same way.  Each task needs to be configured with the `sched_task_config()` function before starting it with `sched_task_start()` function. 
+
+```c
+// Configure the task to repeat every 100 mS.
+sched_task_config(&my_task, my_task_handler, 100, true);
+
+// Add the task to the schedulers task que.
+sched_task_start(&my_task);
+```
+
+## Buffered Task Pools
+
+The task pool is a collection of reusable buffered tasks which can be dynamiclly allocated at runtime.  An allocated task is removed from the task pool.  Once allocated, the task can accessed in the same way as a regular buffered task would be.  The task remains allocated until it is stopped at which point it returns to the available pool automatically and can be allocated agains for other purposes.
+
+A task pool is defined with the `SCHED_TASK_POOL_DEF()` macro.   The macro includes parameters defining the internal buffer size to reserve for each task and the number of tasks the pool have.  Each  task in a particular pool has the same internal buffer size.
+
+A task is allocated from the pool with the `sched_task_alloc()` function which returns a pointer to the allocated task or `NULL` if not task are available.
+
+### Buffered Task Pool Example
+
+The example code below shows a typical task pool use case.   The scheduler is used to move data received by the processor's UART out of the receive interrupt context and into the main context for later processing.   The received data is copied to a newly allocated task during each ISR call.   
+```c
+
+ // Custom data struture for storing UART data.
 typedef struct {
   uint8_t data[32];       // Data received
   uint8_t len;            // Length of the data
-  bool pending            // Is there more data coming?
 } uart_data_t;
+
+// Buffered task pool for the UART data.
+SCHED_TASK_POOL_DEF(uart_pool, sizeof(uart_data_t), 4);
 
 // Custom task handler function.
 static void uart_data_handler(sched_task_t *p_task, void *p_data, uint8_t data_size) {
@@ -86,38 +124,24 @@ static void uart_data_handler(sched_task_t *p_task, void *p_data, uint8_t data_s
     // Cast the task data pointer to the custom stucture.
     uart_data_t * p_uart_data = (uart_data_t *) p_data;
 
-    // Perform the task's work.
-    // p_uart_data->pending ...
+    // Process the received UART data.
+    p_uart_data->data 
 }
+
+// UART receive interrupt subroutine
+static void uart_rx_isr(uint8_t data, uint8_t len) {
+
+    // Allocate a task
+
+    // Add the UART Data
+
+    // Start the task.
+
+}
+
+
 ```
 
-A reference to the task itself is supplied to the handler so that the task can updated inside the handler function if needed.  For example, a repeating task might be stopped after a certain condition is met.   
-
-### Defining & Configuring an Unbuffered Task
-
-A an unbuffered scheduler task should be defined with the `SCHED_TASK_DEF()` macro. 
-
-```c
-// Unbuffered Task Definition
-SCHED_TASK_DEF(my_task);
-```
-Each task needs to be configured with the `sched_task_config()` function before starting it with `sched_task_start()`. 
-
-```c
-// Configure the task to repeat every 100 mS.
-sched_task_config(&my_task, my_task_handler, NULL, 100, true);
-
-// Add the task to the schedulers task que.
-sched_task_start(&my_task);
-```
-
-## Defining & Configuring a Buffered Task
-
-TODO
-
-## Task Pools
-
-TODO
 
 
 ## Porting to a New Platform

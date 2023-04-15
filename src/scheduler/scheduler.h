@@ -1,7 +1,8 @@
 /**
- * scheduler.h
- *
- * The scheduler module provides a simple method for scheduling tasks 
+ * @file scheduler.h
+ * @author Ben Wirz
+ * 
+ * @brief The scheduler module provides a simple method for scheduling tasks 
  * to be executed at a later time. 
  */
 
@@ -70,11 +71,14 @@
 /**
  * @brief Macro for defining a pool of buffered scheduler tasks.
  *
- * A buffered scheduler task and an internal data buffer are defined. The 
- * buffer is used to pass a copy of the user supplied data to the task handler.
+ * In addition to defining the pool structure, an array of buffered scheduler 
+ * tasks and their internal data buffers are defined. The internal buffer is 
+ * used to pass a copy of the user supplied data to the task handlers.
  *
  * All tasks in the pool have the same length data buffer. The buffer length 
- * should be set to the maximum data size which will be stored in the task.
+ * should be set to the maximum data size which any task will need to store.  
+ * The length of the data stored at each sched_task_data() function call can 
+ * be variable provided it is less than the defined buffer size.
  *
  * @param[in] POOL_ID       Unique name for the pool of tasks.
  * @param[in] BUFF_SIZE     The maximum buffer size available for each task.
@@ -82,16 +86,16 @@
  * @param[in] TASK_CNT      The number of tasks available in the pool.
  *                          0 to UINT8_MAX (tasks)
  */
-#define SCHED_TASK_POOL_DEF(POOL_ID, BUFF_SIZE, TASK_CNT)                   \
-  static uint8_t POOL_ID##_BUFF[SCHED_TASK_LIMIT(TASK_CNT) *                \
-    SCHED_BUFF_LIMIT(BUFF_SIZE)];                                           \
-  static sched_task_t POOL_ID##_TASKS[SCHED_TASK_LIMIT(TASK_CNT)];          \
-  static sched_task_pool_t POOL_ID = {                                      \
-    .p_data = POOL_ID##_BUFF,                                               \
-    .p_tasks = POOL_ID##_TASKS,                                             \
-    .buff_size = SCHED_BUFF_LIMIT(BUFF_SIZE),                               \
-    .task_cnt = SCHED_TASK_LIMIT(TASK_CNT),                                 \
-    .initialized = false                                                    \
+#define SCHED_TASK_POOL_DEF(POOL_ID, BUFF_SIZE, TASK_CNT)           \
+  static uint8_t POOL_ID##_BUFF[SCHED_TASK_LIMIT(TASK_CNT) *        \
+    SCHED_BUFF_LIMIT(BUFF_SIZE)];                                   \
+  static sched_task_t POOL_ID##_TASKS[SCHED_TASK_LIMIT(TASK_CNT)];  \
+  static sched_task_pool_t POOL_ID = {                              \
+    .p_data = POOL_ID##_BUFF,                                       \
+    .p_tasks = POOL_ID##_TASKS,                                     \
+    .buff_size = SCHED_BUFF_LIMIT(BUFF_SIZE),                       \
+    .task_cnt = SCHED_TASK_LIMIT(TASK_CNT),                         \
+    .initialized = false                                            \
   }
 
 /**
@@ -106,7 +110,6 @@
  * non-repeating task or if it is stopped for a repeating task. Once the task
  * stops, it returns to the task pool and will be available for reuse at the 
  * next sched_task_alloc() call.
- *
  *
  * @param[in] p_pool  Pointer to pool configuration structure.
  * 
@@ -137,9 +140,10 @@ sched_task_t *sched_task_alloc(sched_task_pool_t *const p_pool);
  * @param[in] repeat        True for a repeating tasks or False for single 
  *                          shot tasks.
  *
- * @return True if the configuration succeeded else False if the configuration 
- *         failed because the task handler is currently executing, the task
- *         pointer was NULL or the task handler was NULL.
+ * @retval True if the configuration succeeded.
+ * @retval False if the configuration failed because the task handler is 
+ *         currently executing, the task pointer was NULL or the task handler 
+ *         was NULL.
  */
 bool sched_task_config(sched_task_t *p_task,
     sched_handler_t handler,
@@ -202,9 +206,9 @@ uint8_t sched_task_data(sched_task_t * p_task, void * p_data, uint8_t data_size)
  * @param[in] interval_ms   Task interval for a repeating task or a delay for
  *                          single-shot task (mS).
  *
- * @return True if the interval was successfully updated or False if the 
- *         interval could not be updated because it has not been previously 
- *         configured or the task pointer was NULL.
+ * @retval True if the interval was successfully updated.
+ * @retval False if the interval could not be updated because it has not 
+ *         been previously configured or the task pointer was NULL.
  */
 bool sched_task_update(sched_task_t *p_task, uint32_t interval_ms);
 
@@ -230,9 +234,9 @@ bool sched_task_start(sched_task_t *p_task);
  *
  * @param[in] p_task  Pointer to the task to stop.
  * 
- * @return True if the task was successfully stopped else False if the task 
- *         could not be stopped because it has not previously been configured 
- *         or the task pointer was NULL.
+ * @retval True if the task was successfully stopped.
+ * @retval False if the task could not be stopped because it has not previously 
+ *         been configured or the task pointer was NULL.
  */
 bool sched_task_stop(sched_task_t *p_task);
 
@@ -243,7 +247,7 @@ bool sched_task_stop(sched_task_t *p_task);
  * function should not be called until the stop completes as indicated by 
  * the sched_start() function returning.
  * 
- * @return none.
+ * @return void
  */
 void sched_init(void);
 
@@ -255,7 +259,7 @@ void sched_init(void);
  * all platform initialization has completed. The function does not 
  * return, once called, until the scheduler is stopped.
  *
- * @return none.
+ * @return void
  */
 void sched_start(void);
 
@@ -266,7 +270,7 @@ void sched_start(void);
  * will finish executing any tasks with expired timers before completing the 
  * stop.
  * 
- * @return none.
+ * @return void
  */
 void sched_stop(void);
 

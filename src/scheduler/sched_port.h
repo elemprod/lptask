@@ -1,9 +1,12 @@
-/*
- * Platform Specific Scheduler Support Functions
- *
- * These functions must be implemented by the user to utilize
- * the scheduler module.  See the library's example directory
- * for sample implementations.
+/**
+ * @file sched_port.h
+ * @author Ben Wirz
+ * @brief Platform specific scheduler support functions.
+ * 
+ * The library's example folder contains sample implementations.
+ * 
+ * @note The functions marked as mandatory must be implemented by the user in 
+ * order to utilize the scheduler module.  
  */
 
 #ifndef SCHED_PORT_H__
@@ -19,7 +22,7 @@
  * the task que pointers at the same time which could lead to
  * corruption of the que.
  *
- * @return none.
+ * @return void
  */
 void sched_port_lock(void);
 

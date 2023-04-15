@@ -1,10 +1,12 @@
 /**
- * sched_helper.h
- *
- * Scheduler helper function declarations and defines.  The declaration's are 
- * placed in a seperate header file to reduce the complexity of the top level 
- * header while still giving the end users access to them as needed.
- */
+ * @file sched_helper.h
+ * @author Ben Wirz
+ * @brief Helper functions declarations and defines for the scheduler module.
+ * 
+ * The declaration's are placed in a seperate header file to reduce the 
+ * complexity of the top level header while still giving the end users 
+ * access to them as needed.
+ */ 
 
 #ifndef SCHED_HELPER_H__
 #define SCHED_HELPER_H__
