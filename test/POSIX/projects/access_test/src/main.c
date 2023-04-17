@@ -47,8 +47,8 @@ typedef struct
 } test_result_data_t;
 
 // Define a pair of buffered test tasks.
-SCHED_TASK_DEF_BUFF(test_task_a, UINT8_MAX);
-SCHED_TASK_DEF_BUFF(test_task_b, UINT8_MAX);
+SCHED_TASK_BUFF_DEF(test_task_a, UINT8_MAX);
+SCHED_TASK_BUFF_DEF(test_task_b, UINT8_MAX);
 
 // Task A Result Data.
 test_result_data_t task_results_a = {

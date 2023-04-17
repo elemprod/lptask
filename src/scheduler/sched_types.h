@@ -27,9 +27,9 @@ typedef enum {
   /**
    * @brief The task is in the proccess of stopping.
    * 
-   * The task enters the stopping state if the task stop function is called
-   * while the task is executing its handler.  The task will move to the 
-   * stopped state once it's handler completes.
+   * The task enters the TASK_STATE_STOPPING state if the sched_task_stop() 
+   * function is called while the task is executing its handler.  The task will
+   *  move to the TASK_STATE_STOPPED state once it's handler completes.
    */ 
   TASK_STATE_STOPPING
 } sched_task_state_t;
@@ -38,12 +38,12 @@ typedef enum {
  * @brief The data structure for a single scheduler task.
  *
  * The task data structure should be defined with the SCHED_TASK_DEF() or 
- * the SCHED_BUFF_TASK_DEF() macros or allocated from a task pool.  Scheduler 
- * tasks should only be accessed using the supplied scheduler functions.
+ * the SCHED_TASK_BUFF_DEF() macros or allocated with the sched_task_alloc() 
+ * function from a task pool.  the scheduler task structure should only be 
+ * accessed using the supplied scheduler functions.
  * 
- * The allocated flag and task state must both be volatile since they 
- * can be modified from an interrupt contexts during the task's handler 
- * execution.
+   * @note The allocated flag and state variables must be volatile since they 
+   * can be modified from an different contexts during task's handler execution.
  */
 typedef struct _sched_task {
 

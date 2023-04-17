@@ -65,7 +65,7 @@ Unbuffered tasks don't have an internal data buffer.  Data is added to an unbuff
 | Internal Buffer Size  | 0 Bytes                 | 1 to 255 Bytes      |
 | Data Storage          | Stored by Reference     | Stored by Copy       |
 | Data Lifetime         | The user data must still be valid at later handler call.  | Since the user data is copied to the internal task buffer, the data only needs to be valid when it is added to the task. |
-| Task Definition      | SCHED_TASK_DEF()        | SCHED_TASK_DEF_BUFF() or allocated from a Task Pool|
+| Task Definition      | SCHED_TASK_DEF()        | SCHED_TASK_BUFF_DEF() or allocated from a Task Pool|
 
 An unbuffered scheduler task should be defined with the `SCHED_TASK_DEF()` macro. 
 
@@ -74,11 +74,11 @@ An unbuffered scheduler task should be defined with the `SCHED_TASK_DEF()` macro
 SCHED_TASK_DEF(my_task);
 ```
 
-A buffered task is defined with the `SCHED_TASK_DEF_BUFF()` macro which includes the size of the tasks internal buffer.
+A buffered task is defined with the `SCHED_TASK_BUFF_DEF()` macro which includes the size of the tasks internal buffer.
 
 ```c
 // Buffered Task Definition
-SCHED_TASK_DEF_BUFF(my_buff_task, sizeof(task_data_t));
+SCHED_TASK_BUFF_DEF(my_buff_task, sizeof(task_data_t));
 ```
  
 ## Configuring & Starting Tasks
