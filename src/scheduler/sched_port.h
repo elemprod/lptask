@@ -18,7 +18,7 @@
  * @brief Mandatory platform specific function for acquiring exclusive
  * access to the scheduler's shared data structure.
  *
- * The lock prevents different sections of code from modifying
+ * The lock prevents different contexts of code from modifying
  * the task que pointers at the same time which could lead to
  * corruption of the que.
  *
@@ -37,11 +37,9 @@ void sched_port_free(void);
  * value of the mS timer to be utilized by the scheduler for task
  * timing.
  *
- * The timer counter must be monatomic, it must increment once for each mS of 
+ * The timer counter must be monatomic, it should increment once for each mS of 
  * real time after initialization with no discontinuities or jumps.  It is 
- * expected to roll back to 0 after the UINT32_MAX value.  Once the scheduler
- * has been started, the counter should only be modified by to the normal mS 
- * increment behaviour.
+ * expected to roll back to 0 after the UINT32_MAX value.  
  *
  * @return The current timer value (mS).
  */
