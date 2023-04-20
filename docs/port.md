@@ -41,8 +41,6 @@ The function is called by the scheduler during its stop sequence to perform in a
 
 The sleep function can be used to configure the platform for its lowest power consumption mode.  A variety of different sleep techniques can be implemented depending on the sleep hardware supported by the platform.   When porting to a new platform, it may be helpful to delay  implementation of the sleep function until the rest of the port has been completed since it is optional. 
 
-
-
 Several simple sleep implementations are presented below but they not represent the lowest power option available.
 
 * The simplest sleep implementation for sched_port_sleep() is no implementation since the function is optional.  If no user implementation is supplied, the scheduler will busy wait between tasks.  This implementation offers no power savings but this may be an entirely acceptable solution for initial testing or for systems which aren't concerned with power consumption.

@@ -105,6 +105,7 @@ static void min_task_handler(sched_task_t *p_task, void *p_data, uint8_t data_si
   // Update the task statistics
   task_time_update(&min_task_time);
 
+  log_task_stats();
   // Update the Console with an Log Messages Once per Minute
   fflush(stdout);
 }

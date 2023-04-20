@@ -61,7 +61,7 @@ static void pool_task_handler(sched_task_t *p_task, void *p_data, uint8_t data_s
 
   // The task should be in the executing or stopping state here.
   sched_task_state_t task_state = sched_task_state(p_task);
-  assert((task_state == TASK_STATE_EXECUTING) || (task_state == TASK_STATE_STOPPING));
+  assert((task_state == SCHED_TASK_EXECUTING) || (task_state == SCHED_TASK_STOPPING));
 
   // Test the task access inside of the handler.
   bool task_access_result = task_access_test(p_task);

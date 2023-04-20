@@ -38,11 +38,11 @@ typedef enum
  */
 typedef struct
 {
-  test_state_t uninit;    // TASK_STATE_UNINIT
-  test_state_t stopped;   // TASK_STATE_STOPPED
-  test_state_t active;    // TASK_STATE_ACTIVE
-  test_state_t executing; // TASK_STATE_EXECUTING
-  test_state_t stopping;  // TASK_STATE_STOPPING
+  test_state_t uninit;    // SCHED_TASK_UNINIT
+  test_state_t stopped;   // SCHED_TASK_STOPPED
+  test_state_t active;    // SCHED_TASK_ACTIVE
+  test_state_t executing; // SCHED_TASK_EXECUTING
+  test_state_t stopping;  // SCHED_TASK_STOPPING
   uint32_t handler_cnt;   // Count of the number of handler calls.
 } test_result_data_t;
 
@@ -166,35 +166,35 @@ static void task_test(sched_task_t *p_task, test_result_data_t *p_result_data)
   // Save the test results to the data structure.
   switch (p_task->state)
   {
-  case TASK_STATE_UNINIT:
+  case SCHED_TASK_UNINIT:
     if (p_result_data->uninit != TEST_STATE_FAIL)
     {
       p_result_data->uninit = test_state;
     }
     break;
 
-  case TASK_STATE_STOPPED:
+  case SCHED_TASK_STOPPED:
     if (p_result_data->stopped != TEST_STATE_FAIL)
     {
       p_result_data->stopped = test_state;
     }
     break;
 
-  case TASK_STATE_ACTIVE:
+  case SCHED_TASK_ACTIVE:
     if (p_result_data->active != TEST_STATE_FAIL)
     {
       p_result_data->active = test_state;
     }
     break;
 
-  case TASK_STATE_EXECUTING:
+  case SCHED_TASK_EXECUTING:
     if (p_result_data->executing != TEST_STATE_FAIL)
     {
       p_result_data->executing = test_state;
     }
     break;
 
-  case TASK_STATE_STOPPING:
+  case SCHED_TASK_STOPPING:
     if (p_result_data->stopping != TEST_STATE_FAIL)
     {
       p_result_data->stopping = test_state;
@@ -216,7 +216,7 @@ static void task_handler(sched_task_t *p_task, void *p_data, uint8_t data_size)
 
   // The task should be in the executing or stopping state here.
   sched_task_state_t task_state = sched_task_state(p_task);
-  assert((task_state == TASK_STATE_EXECUTING) || (task_state == TASK_STATE_STOPPING));
+  assert((task_state == SCHED_TASK_EXECUTING) || (task_state == SCHED_TASK_STOPPING));
 
   // Test the task access control of both tasks inside of the handler.
   task_test(&test_task_a, &task_results_a);
@@ -252,9 +252,9 @@ static void task_handler(sched_task_t *p_task, void *p_data, uint8_t data_size)
   sched_task_state_t task_state_a = sched_task_state(&test_task_a);
   sched_task_state_t task_state_b = sched_task_state(&test_task_a);
 
-  if ((task_state_a == TASK_STATE_STOPPED) || (task_state_a == TASK_STATE_STOPPING))
+  if ((task_state_a == SCHED_TASK_STOPPED) || (task_state_a == SCHED_TASK_STOPPING))
   {
-    if ((task_state_b == TASK_STATE_STOPPED) || (task_state_b == TASK_STATE_STOPPING))
+    if ((task_state_b == SCHED_TASK_STOPPED) || (task_state_b == SCHED_TASK_STOPPING))
     {
       // Stop the scheduler if both tasks are stopping or stopped.
       sched_stop();

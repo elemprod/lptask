@@ -33,6 +33,9 @@
  * store any data internally.  It can simple invert the LED GPIO output during
  * the handler call.
  * 
+ * @note Since this macro allocates a task, it should only be invoked once 
+ * per task. 
+ * 
  * @param[in] TASK_ID  Unique task name.
  */
 #define SCHED_TASK_DEF(TASK_ID)       \
@@ -42,7 +45,7 @@
       .data_size = 0,                 \
       .repeat = false,                \
       .allocated = false,             \
-      .state = TASK_STATE_UNINIT,     \
+      .state = SCHED_TASK_UNINIT,     \
   } 
 
 /**
@@ -54,6 +57,9 @@
  * The buffer size is configurable on per task basis and should be set the 
  * maximum data size which will be stored in the task.
  *
+ * @note Since this macro allocates a task and its data buffer, it should only 
+ * be invoked once per task. 
+ * 
  * @param[in] TASK_ID     Unique task name.
  * @param[in] BUFF_SIZE   The maximum buffer size available to store task data.
  *                        1 to 255 (bytes)
@@ -65,7 +71,7 @@
       .buff_size = SCHED_BUFF_LIMIT(BUFF_SIZE),               \
       .data_size = 0,                                         \
       .repeat = false,                                        \
-      .state = TASK_STATE_UNINIT,                             \
+      .state = SCHED_TASK_UNINIT,                             \
   }                                
 
 /**
@@ -80,8 +86,11 @@
  * The length of the data stored at each sched_task_data() function call can 
  * be variable provided it is less than the defined buffer size.
  *
+ * @note Since this macro allocates an array of tasks, a data buffer and a task
+ * pool definition structure, it should only be invoked once per task pool.
+ *  
  * @param[in] POOL_ID       Unique name for the pool of tasks.
- * @param[in] BUFF_SIZE     The maximum buffer size available to store task data.
+ * @param[in] BUFF_SIZE     The maximum buffer size available for task data.
  *                          1 to 255 (bytes)
  * @param[in] TASK_CNT      The number of tasks available in the pool.
  *                          1 to 255 (tasks)
@@ -104,14 +113,14 @@
  * A task pool serves as a simple mechanism for creating and tracking
  * multiple reusable scheduler tasks.   
  * 
- * Once allocated, the task can be configured and accessed in the same way a
- * normal task would be used.  A task remains allocated until it is stopped
+ * Once allocated, a task can be configured and accessed in the same way a
+ * normal buffered task would be.  A task remains allocated until it is stopped
  * either due to task expiration and subsequent handler return for a
  * non-repeating task or if it is stopped for a repeating task. Once the task
  * stops, it returns to the task pool and will be available for reuse at the 
  * next sched_task_alloc() call.
  *
- * @param[in] p_pool  Pointer to pool configuration structure.
+ * @param[in] p_pool  Pointer to task pool structure.
  * 
  * @retval A pointer to the allocated task.
  * @retval NULL if no free tasks are available typically indicating that 
@@ -122,7 +131,7 @@ sched_task_t *sched_task_alloc(sched_task_pool_t *const p_pool);
 /**
  * @brief Function for configuring or reconfiguring a scheduler task.
  *
- * The task will be stopped after calling sched_task_config() and it must be 
+ * The task will be stopped after calling sched_task_config() and must be 
  * started with with the sched_task_start() function before it becomes active.
  *
  * The task interval for a repeating task is the desired time in mS between 

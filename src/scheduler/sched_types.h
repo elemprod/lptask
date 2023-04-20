@@ -17,21 +17,21 @@
  */
 typedef enum {
   /// @brief The task has not been initialized yet.
-  TASK_STATE_UNINIT = 0,
+  SCHED_TASK_UNINIT = 0,
   /// @brief The task has been initialized but is inactive.
-  TASK_STATE_STOPPED,
+  SCHED_TASK_STOPPED,
   /// @brief The task is active
-  TASK_STATE_ACTIVE,
+  SCHED_TASK_ACTIVE,
   /// @brief The task handler is executing.
-  TASK_STATE_EXECUTING,
+  SCHED_TASK_EXECUTING,
   /**
    * @brief The task is in the proccess of stopping.
    * 
-   * The task enters the TASK_STATE_STOPPING state if the sched_task_stop() 
+   * The task enters the SCHED_TASK_STOPPING state if the sched_task_stop() 
    * function is called while the task is executing its handler.  The task will
-   *  move to the TASK_STATE_STOPPED state once it's handler completes.
+   *  move to the SCHED_TASK_STOPPED state once it's handler completes.
    */ 
-  TASK_STATE_STOPPING
+  SCHED_TASK_STOPPING
 } sched_task_state_t;
 
 /**

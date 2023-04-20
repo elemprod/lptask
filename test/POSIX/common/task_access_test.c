@@ -19,7 +19,7 @@ typedef struct
   bool data;     // Can data be added?
 } task_state_access_t;
 
-// Access control definition for the TASK_STATE_UNINIT state.
+// Access control definition for the SCHED_TASK_UNINIT state.
 const task_state_access_t TASK_UNINIT_ACCESS = {
     .config = true,
     .start = false,
@@ -27,7 +27,7 @@ const task_state_access_t TASK_UNINIT_ACCESS = {
     .interval = false,
     .data = false};
 
-// Access control definition for the TASK_STATE_STOPPED state.
+// Access control definition for the SCHED_TASK_STOPPED state.
 const task_state_access_t TASK_STOPPED_ACCESS = {
     .config = true,
     .start = true,
@@ -35,7 +35,7 @@ const task_state_access_t TASK_STOPPED_ACCESS = {
     .interval = true,
     .data = true};
 
-// Access control definition for the TASK_STATE_ACTIVE state.
+// Access control definition for the SCHED_TASK_ACTIVE state.
 const task_state_access_t TASK_ACTIVE_ACCESS = {
     .config = true,
     .start = true,
@@ -43,7 +43,7 @@ const task_state_access_t TASK_ACTIVE_ACCESS = {
     .interval = true,
     .data = false};
 
-// Access control definition for the TASK_STATE_EXECUTING state.
+// Access control definition for the SCHED_TASK_EXECUTING state.
 const task_state_access_t TASK_EXECUTING_ACCESS = {
     .config = false,
     .start = true,
@@ -51,7 +51,7 @@ const task_state_access_t TASK_EXECUTING_ACCESS = {
     .interval = true,
     .data = false};
 
-// Access control definition for the TASK_STATE_STOPPING state.
+// Access control definition for the SCHED_TASK_STOPPING state.
 const task_state_access_t TASK_STOPPING_ACCESS = {
     .config = false,
     .start = true,
@@ -73,19 +73,19 @@ static const task_state_access_t *task_state_access(sched_task_t *p_task)
   switch (p_task->state)
   {
 
-  case TASK_STATE_UNINIT:
+  case SCHED_TASK_UNINIT:
     return &TASK_UNINIT_ACCESS;
 
-  case TASK_STATE_STOPPED:
+  case SCHED_TASK_STOPPED:
     return &TASK_STOPPED_ACCESS;
 
-  case TASK_STATE_ACTIVE:
+  case SCHED_TASK_ACTIVE:
     return &TASK_ACTIVE_ACCESS;
 
-  case TASK_STATE_EXECUTING:
+  case SCHED_TASK_EXECUTING:
     return &TASK_EXECUTING_ACCESS;
 
-  case TASK_STATE_STOPPING:
+  case SCHED_TASK_STOPPING:
     return &TASK_STOPPING_ACCESS;
   }
 
@@ -169,7 +169,7 @@ bool task_access_test(sched_task_t *p_task)
    * task's which have been initialized to avoid polluting the scheduler
    * que with test tasks.
    */
-  if (p_task_copy->state != TASK_STATE_UNINIT)
+  if (p_task_copy->state != SCHED_TASK_UNINIT)
   {
     bool config_result = sched_task_config(p_task_copy, test_task_handler, 10, true);
 

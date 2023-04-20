@@ -73,8 +73,8 @@ static inline bool sched_task_active(sched_task_t *p_task) {
   if(p_task == NULL) {
     return false;
   } else {
-    return (p_task->state == TASK_STATE_ACTIVE) || 
-          (p_task->state == TASK_STATE_EXECUTING);
+    return (p_task->state == SCHED_TASK_ACTIVE) || 
+          (p_task->state == SCHED_TASK_EXECUTING);
   }
 }
 
@@ -152,11 +152,11 @@ uint8_t sched_pool_free(sched_task_pool_t * const p_pool);
  *
  * @param[in] p_task  Pointer to the task.
  * @return            The current task state or 
- *                    TASK_STATE_UNINIT if the task pointer is NULL.
+ *                    SCHED_TASK_UNINIT if the task pointer is NULL.
  */
 static inline sched_task_state_t sched_task_state(sched_task_t *p_task) {
   if(p_task == NULL) {
-    return TASK_STATE_UNINIT;
+    return SCHED_TASK_UNINIT;
   } else {
     return p_task->state;
   }
