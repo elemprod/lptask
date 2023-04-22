@@ -680,7 +680,7 @@ bool sched_task_update(sched_task_t *p_task, uint32_t interval_ms) {
 }
 
 
-uint8_t sched_task_data(sched_task_t * p_task, void * p_data, uint8_t data_size) {
+uint8_t sched_task_data(sched_task_t * p_task, const void * p_data, uint8_t data_size) {
 
    // Data can only be set for stopped tasks.
   if((p_task == NULL) || (p_task->state != SCHED_TASK_STOPPED)) {
@@ -700,11 +700,11 @@ uint8_t sched_task_data(sched_task_t * p_task, void * p_data, uint8_t data_size)
       p_task->data_size = 0;
     } else {
       // Copy the data into the task data buffer.
-      memcpy(p_task->p_data, p_data, p_task->data_size);
+      memcpy(p_task->p_data, (uint8_t *) p_data, p_task->data_size);
     }
   } else {
     // Just set the data pointer for an unbuffered task.
-    p_task->p_data = p_data;
+    p_task->p_data = (uint8_t *) p_data;
   }
 
   // Return the data size.
@@ -745,7 +745,6 @@ bool sched_task_stop(sched_task_t *p_task) {
    */
   return true;
 }
-
 
 /***** External Scheduler Task Pool Functions *****/
 

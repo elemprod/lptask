@@ -200,7 +200,7 @@ bool sched_task_config(sched_task_t *p_task,
  *         being NULL, the task being unconfigured or if the task was 
  *         active when the function was called.
  */
-uint8_t sched_task_data(sched_task_t * p_task, void * p_data, uint8_t data_size);
+uint8_t sched_task_data(sched_task_t * p_task, const void * p_data, uint8_t data_size);
 
 /**
  * @brief Function for updating a task with a new interval and starting it.
