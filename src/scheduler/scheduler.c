@@ -167,7 +167,7 @@ static scheduler_t scheduler = {
  * @param[in] now_ms  The current time in mS.
  * @return The time since the task was started.
  */
-static inline uint32_t task_time_elapsed_ms(sched_task_t *p_task, uint32_t now_time_ms) {
+static inline uint32_t task_time_elapsed_ms(const sched_task_t *p_task, uint32_t now_time_ms) {
   return now_time_ms - p_task->start_ms;
 }
 
@@ -181,7 +181,7 @@ static inline uint32_t task_time_elapsed_ms(sched_task_t *p_task, uint32_t now_t
  * @param[in] now_time_ms   The current time in mS.
  * @return  The time until the task expires or 0 if it is already expired.
  */
-static inline bool task_time_expired(sched_task_t *p_task, uint32_t now_time_ms) {
+static inline bool task_time_expired(const sched_task_t *p_task, uint32_t now_time_ms) {
   return (now_time_ms - p_task->start_ms) >= p_task->interval_ms;
 }
 
@@ -195,7 +195,7 @@ static inline bool task_time_expired(sched_task_t *p_task, uint32_t now_time_ms)
  * @param[in] now_time_ms   The current time in mS.
  * @return  The time until the task expires or 0 if it is already expired.
  */
-static inline uint32_t task_time_remaining_ms(sched_task_t *p_task, uint32_t now_time_ms) {
+static inline uint32_t task_time_remaining_ms(const sched_task_t *p_task, uint32_t now_time_ms) {
   uint32_t elapsed_ms = now_time_ms - p_task->start_ms;
   if (p_task->interval_ms > elapsed_ms) {
     return p_task->interval_ms - elapsed_ms;
@@ -206,7 +206,7 @@ static inline uint32_t task_time_remaining_ms(sched_task_t *p_task, uint32_t now
 
 /***** External Task Helper Functions *****/
 
-bool sched_task_expired(sched_task_t *p_task) {
+bool sched_task_expired(const sched_task_t *p_task) {
   
   if(TASK_ACTIVE_SAFE(p_task)) {
     return (sched_port_ms() - p_task->start_ms) >= p_task->interval_ms;
@@ -215,7 +215,7 @@ bool sched_task_expired(sched_task_t *p_task) {
   }
 }
 
-uint32_t sched_task_remaining_ms(sched_task_t *p_task) {
+uint32_t sched_task_remaining_ms(const sched_task_t *p_task) {
 
   if(TASK_ACTIVE_SAFE(p_task)) {
     uint32_t elapsed_ms = sched_port_ms() - p_task->start_ms;
@@ -231,7 +231,7 @@ uint32_t sched_task_remaining_ms(sched_task_t *p_task) {
   }
 }
 
-uint32_t sched_task_elapsed_ms(sched_task_t *p_task) {
+uint32_t sched_task_elapsed_ms(const sched_task_t *p_task) {
 
   if(TASK_ACTIVE_SAFE(p_task)) {
     return sched_port_ms() - p_task->start_ms;
@@ -240,23 +240,23 @@ uint32_t sched_task_elapsed_ms(sched_task_t *p_task) {
   }
 }
 
-sched_task_t *sched_task_compare(sched_task_t *p_task_a, sched_task_t *p_task_b) {
+sched_task_t *sched_task_compare(const sched_task_t *p_task_a, const sched_task_t *p_task_b) {
 
   if (TASK_ACTIVE_SAFE(p_task_a)) {
     if(TASK_ACTIVE_SAFE(p_task_b)) {
       // Both tasks are active, compare the remaining time.
       if (sched_task_remaining_ms(p_task_a) <= sched_task_remaining_ms(p_task_b)) {
-        return p_task_a;
+        return (sched_task_t *) p_task_a;
       } else {
-        return p_task_b;
+        return (sched_task_t *) p_task_b;
       }
     } else {
       // Only Task A is active.
-      return p_task_a;
+      return (sched_task_t *) p_task_a;
     }
   } else if(TASK_ACTIVE_SAFE(p_task_b)) {
       // Only Task B is active
-      return p_task_b;
+      return (sched_task_t *) p_task_b;
   } else {
     // Neither task is active.
     return NULL;
@@ -750,7 +750,7 @@ bool sched_task_stop(sched_task_t *p_task) {
 /***** External Scheduler Task Pool Functions *****/
 
 // Internal function for initializing a scheduler task pool.
-static void sched_task_pool_init(sched_task_pool_t * const p_pool) {
+static void sched_task_pool_init(sched_task_pool_t * p_pool) {
 
   assert(p_pool != NULL);
   assert(p_pool->p_data != NULL);
@@ -786,7 +786,7 @@ static void sched_task_pool_init(sched_task_pool_t * const p_pool) {
   
 }
 
-sched_task_t * sched_task_alloc(sched_task_pool_t * const p_pool) {
+sched_task_t * sched_task_alloc(sched_task_pool_t * p_pool) {
 
   if(p_pool == NULL) {
     return NULL;
@@ -847,7 +847,7 @@ sched_task_t * sched_task_alloc(sched_task_pool_t * const p_pool) {
   return NULL;
 }
 
-uint8_t sched_pool_allocated(sched_task_pool_t * const p_pool) {
+uint8_t sched_pool_allocated(const sched_task_pool_t * p_pool) {
 
   if( (p_pool == NULL) || (p_pool->initialized == false) ) {
     return 0;
@@ -872,7 +872,7 @@ uint8_t sched_pool_allocated(sched_task_pool_t * const p_pool) {
   return alloc_count;
 }
 
-uint8_t sched_pool_free(sched_task_pool_t * const p_pool) {
+uint8_t sched_pool_free(const sched_task_pool_t * p_pool) {
   if(p_pool == NULL) {
     return 0;
   }

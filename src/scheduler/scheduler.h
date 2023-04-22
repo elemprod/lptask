@@ -120,13 +120,13 @@
  * stops, it returns to the task pool and will be available for reuse at the 
  * next sched_task_alloc() call.
  *
- * @param[in] p_pool  Pointer to task pool structure.
+ * @param[in] p_pool  Pointer to the task pool structure.
  * 
  * @retval A pointer to the allocated task.
  * @retval NULL if no free tasks are available typically indicating that 
  *         the pool's task count needs to be increased.
  */
-sched_task_t *sched_task_alloc(sched_task_pool_t *const p_pool);
+sched_task_t *sched_task_alloc(sched_task_pool_t * p_pool);
 
 /**
  * @brief Function for configuring or reconfiguring a scheduler task.

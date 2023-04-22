@@ -53,7 +53,7 @@ static inline uint32_t sched_ms(uint8_t days, uint8_t hours, uint8_t mins, uint8
  * @return True if the task is buffered else False if the task is unbuffered 
  * or the task pointer is NULL.
  */
-static inline bool sched_task_buffered(sched_task_t *p_task) {
+static inline bool sched_task_buffered(const sched_task_t *p_task) {
   if(p_task == NULL) {
     return false;
   } else {
@@ -69,7 +69,7 @@ static inline bool sched_task_buffered(sched_task_t *p_task) {
  *  @return True if the task is in the active or executing state else False 
  *          if the task is inactive or the task pointer is NULL.
  */
-static inline bool sched_task_active(sched_task_t *p_task) {
+static inline bool sched_task_active(const sched_task_t *p_task) {
   if(p_task == NULL) {
     return false;
   } else {
@@ -89,7 +89,7 @@ static inline bool sched_task_active(sched_task_t *p_task) {
  * @return  True if task's timer has expired else False if the task pointer
  * was NULL or the task is unexpired.
  */
-bool sched_task_expired(sched_task_t *p_task);
+bool sched_task_expired(const sched_task_t *p_task);
 
 /**
  * @brief Function for calculating the time until a task's timer expires.
@@ -102,7 +102,7 @@ bool sched_task_expired(sched_task_t *p_task);
  * @retval The time in mS until the task expires.
  * @retval UINT32_MAX if the task pointer is NULL or the task is inactive.
  */
-uint32_t sched_task_remaining_ms(sched_task_t *p_task);
+uint32_t sched_task_remaining_ms(const sched_task_t *p_task);
 
 /**
  * @brief Function for calculating the time since a task's timer was started.
@@ -115,7 +115,7 @@ uint32_t sched_task_remaining_ms(sched_task_t *p_task);
  * @retval The time in mS since the task was started.
  * @retval 0 if task pointer is NULL or the task is inactive.
  */
-uint32_t sched_task_elapsed_ms(sched_task_t *p_task);
+uint32_t sched_task_elapsed_ms(const sched_task_t *p_task);
 
 /**
  * @brief Function for comparing the expiration time of two tasks and returning
@@ -127,7 +127,7 @@ uint32_t sched_task_elapsed_ms(sched_task_t *p_task);
  * @retval A pointer to the task which expires sooner.
  * @retval NULL if both task pointers are NULL or both tasks are inactive.
  */
-sched_task_t *sched_task_compare(sched_task_t *p_task_a, sched_task_t *p_task_b);
+sched_task_t *sched_task_compare(const sched_task_t *p_task_a, const sched_task_t *p_task_b);
 
 /**
  * @brief Function for calculating the number of allocated tasks for a scheduler
@@ -136,7 +136,7 @@ sched_task_t *sched_task_compare(sched_task_t *p_task_a, sched_task_t *p_task_b)
  * @param[in] p_pool  Pointer to pool configuration structure.
  * @return            The number of tasks which are currently allocated.
  */
-uint8_t sched_pool_allocated(sched_task_pool_t * const p_pool);
+uint8_t sched_pool_allocated(const sched_task_pool_t * p_pool);
 
 /**
  * @brief Function for calculating the number of unallocated tasks for a 
@@ -145,7 +145,7 @@ uint8_t sched_pool_allocated(sched_task_pool_t * const p_pool);
  * @param[in] p_pool  Pointer to pool configuration structure.
  * @return            The number of tasks which are currently unallocated.
  */
-uint8_t sched_pool_free(sched_task_pool_t * const p_pool);
+uint8_t sched_pool_free(const sched_task_pool_t * p_pool);
 
 /**
  * @brief Function for getting a scheduler task's state.
@@ -154,7 +154,7 @@ uint8_t sched_pool_free(sched_task_pool_t * const p_pool);
  * @return            The current task state or 
  *                    SCHED_TASK_UNINIT if the task pointer is NULL.
  */
-static inline sched_task_state_t sched_task_state(sched_task_t *p_task) {
+static inline sched_task_state_t sched_task_state(const sched_task_t *p_task) {
   if(p_task == NULL) {
     return SCHED_TASK_UNINIT;
   } else {
