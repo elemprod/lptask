@@ -1,15 +1,12 @@
 # Embedded Scheduler
 
- The C language cooperative scheduler module provides an easy-to-use mechanism for scheduling tasks to be executed in the future without the complexity or overhead of an operating system.  Once scheduled, a task's handler is executed from the main context once its interval timer expires.  
- 
- Task handlers are executed in a cooperative / non-preemptive way once a task's handler expires. 
-
+ The C language cooperative / non-preemptive scheduler module provides an easy-to-use mechanism for scheduling tasks to be executed in the future without the complexity or overhead of an operating system.  Once scheduled, a task's handler is executed from the main context once its interval timer expires.  
 
 ## Major Features
 
 The scheduler offers the following features:
 
-* The scheduler's design has been optimized for low power embedded applications.
+* The scheduler's design has been optimized for low power embedded applications.  Every design decision was made with an eye towards reducing the processors power consumption.
 * The platform specific port function make is easy for developers to take advantage of any sleep, timer and other power reduction mechanisms provided by a particular processor.
 * The core scheduler only module consumes ~1,000 bytes of ROM making it well suited for embedded platforms.
 * All scheduler and task memory is statically allocated, providing a fixed compile time memory footprint. 
@@ -22,19 +19,19 @@ The scheduler offers the following features:
                                                             
 The cooperative scheduler does not provide all of the same features which a preemptive OS typically does.  The major differences include:
 
-* Expired tasks are are executed in the order in which they are added to the scheduler's que.  No task prioritization functionality is provided.  
+* Expired tasks are executed in the order in which they are added to the scheduler's que.  No task prioritization functionality is provided.  
 * A task's handler executes until completion, once the task expires, in a cooperative manner.  A task handler can only be suspended by a interrupt or exception events and not by another scheduler task.
 * It's typical to have several milliseconds of jitter in task execution intervals for a system with multiple active tasks queued at the same time.  This jitter is nearly always acceptable for UI tasks, such as blinking an LED, debouncing a switch or timing the length of music note.
 * Tasks which require finer grain control or more deterministic behavior should be implemented with a dedicated  hardware timer.  For example, an application might implement a real-time motion control loop with a 50 Hz hardware timer and perform UI tasks with the scheduler. 
                                                         
-Most embedded systems only require hard real time performance for a small subset of their tasks and often don't require hard real performance at all.  These systems can live within a cooperative scheduler's constraints, saving the overhead and complexity required by a typical RTOS.  
+Most embedded systems only require hard real time performance for a small subset of their tasks and often don't require hard real time performance at all.  These systems can live within a cooperative scheduler's constraints, saving the overhead and complexity required by a typical RTOS and ultimately reducing the overall system power consumption. 
 
 ## Cooperative Scheduler Use Cases
 
 The scheduler can be used in almost any simple to medium complexity embedded systems but it really shines for applications which have some of the following characteristics:
 
 * Power reduction is a high priority.
-* The selected platform has the hardware required to to pause program execution and sleep in a low power state during inactivity.
+* The selected platform has the hardware required to pause program execution and sleep in a low power state during inactivity.
 * The application has a low-duty cycle and is anticipated to be sleeping the majority of the time. 
 * RAM and ROM resources are limited.
 
