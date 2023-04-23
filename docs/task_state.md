@@ -9,44 +9,44 @@ Each task tracks its current state with a state variable.  The state tracking is
 
 Each task can be in one of the following states at any given time:
 
-* SCHED_TASK_UNINIT: The task has not be initialized yet.  The state is primarily used to track if the task has been added to the Scheduler's task que.  Once the configuration function has been called, a task does not return to this state until the scheduler is stopped.
+* SCHED_TASK_UNINIT: The task has not be initialized yet.  The state is primarily used to track if the task has been added to the scheduler's task que.  Once the configuration function has been called, a task does not return to this state until the scheduler is stopped.
 
-* SCHED_TASK_STOPPED: The task has been added to the task que but the tasks is not currently active.  The task moves to the active state once the start function is called.
+* SCHED_TASK_STOPPED: The task has been added to the task que but the task is not currently active.  The task moves to the active state once the start function is called.
 
-* SCHED_TASK_ACTIVE: The task has been started.  The task's handler function will be called once it's timer interval expires but the handler is not currently executing.
+* SCHED_TASK_ACTIVE: The task has been started.  The task's handler function will be called once its timer interval expires but the task handler is not currently executing.
 
-* SCHED_TASK_EXECUTING: The task timer has expired and it's handler function is currently executing.  
+* SCHED_TASK_EXECUTING: The task timer has expired and its handler function is currently executing.  
 
 * SCHED_TASK_STOPPING: The task's handler is currently executing and the task will be stopped once the handler returns.  A non-repeating task will be placed into this state while its handler is executing.  A repeating task will enter this state if the stop function is called during its handler execution.
 
 ## Interrupts
 
-A non-preemptive cooperative task scheduler significantly reduces the challenge of implementing task access control versus a more complex preemptive multitasking system.  Only a one task handler will ever be active at any given time. Once started, each task handler runs until completion and the task handler's execution can only be suspended due to an interrupt or other exception event.  The flow charts below shows the scheduler's program flow for interrupt events during the different scheduler states.
+A non-preemptive cooperative task scheduler significantly reduces the challenge of implementing task access control versus a more complex preemptive multitasking system.  Only one task handler will ever be active at any given time. Once started, each task handler runs until completion and the task handler's execution can only be suspended due to an interrupt or other exception event.  The flow charts below shows the scheduler's program flow for interrupt events during the different scheduler states.
 
 ### Interrupt from Sleep
 <img src="./img/sleep_int.svg" align="left" hspace="15" vspace="15" alt="Sleep Interrupt">
 
-The diagram shows the processor being woken from sleep by an interrupt event.  Once the ISR associated with the interrupt completes, the scheduler checks the cached next expiring task for expiration.  If no tasks are expired, the scheduler puts the processor back to sleep.
+The diagram shows the processor being woken from sleep by an interrupt event.  Once the ISR associated with the interrupt completes, the scheduler checks the cached next-expiring task for expiration.  After handling any expired tasks, the scheduler puts the processor back to sleep.
 <br clear="left"/>
 
 ### Interrupt Inside a Task Handler
 <img src="./img/handler_int.svg" align="left" hspace="15" vspace="15" alt="Handler Interrupt">
 
-The diagram shows an interrupt or exception event happening during task handler execution.  The ISR can not modify the data for a task which is current executing its scheduler without risk of corrupting with the handler's operation. 
+The diagram shows an interrupt or exception event happening during task handler execution.  The ISR can not modify the data for a task which is currently executing its scheduler without risk of corrupting the handler's operation. 
 
 <br clear="left"/>
 
 ### Nested Interrupts
 <img src="./img/handler_int_nested.svg" align="left" hspace="15" vspace="15" alt="Handler Interrupt Nested">
 
-The flow chart shows a second interrupt event happening while the processor is executing an ISR as a result of previous interrupt. This can only happen on a platform which supports nested preemptive interrupts which many modern processors do.  A nested interrupt has the same access restrictions are single interrupt.
+The flow chart shows a second interrupt event happening while the processor is already executing an ISR as a result of previous interrupt. This can only happen on a platform which supports nested preemptive interrupts which many modern processors do.  A nested interrupt has the same access restrictions as a single interrupt.
 <br clear="left"/>
 
-Note that an interrupt is just one of the several types of exceptions which a particular platform may support.   A variety of different hardware events including memory access, timer expiration, reset and hardware interrupts can be generate exceptions.  Each exception type typically has it's own handler which is triggered once the exception event happens.  In the case of interrupts, the exception handler is known as an ISR (Interrupt Service Routine).  The flow charts above only shows interrupt events impeding the task handler flow but any exception types can do the same.    Interrupts are shown here because  ISR's are generally user level code and exception handlers are generally system level code. Scheduler tasks would typically only be accessed inside an ISR and not in a system level exception handler. 
+Note that an interrupt is just one of the several types of exceptions which a particular platform may support.   A variety of different hardware events including memory access, timer expiration, reset and hardware interrupts can generate exceptions.  Each exception type typically has its own handler which is triggered after the exception event happens.  In the case of interrupts, the exception handler is known as an ISR (Interrupt Service Routine).  The flow charts above only show interrupt events impeding the task handler flow but any exception types can do the same.    Interrupts are shown here because ISR's are generally user level code and exception handlers are generally system level code. Scheduler tasks would typically only be accessed inside an ISR and not in a system level exception handler. 
 
 ## Access Control by State
 
-Access to a task is limited by the task's current state as summarized in the table below.  Although only one task's handler ever runs at any given time, an interrupt can both suspend a task handler's execution and also wake the processor from sleep.  The access protection mechanism prevents the task from being modified in way which might corrupt the task or its data.   
+Access to a task is limited by the task's current state as summarized in the table below.  Although only one task's handler ever runs at any given time, an interrupt can both suspend a task handler's execution and also wake the processor from sleep.  The access protection mechanism prevents the task from being modified in a way which might corrupt the task or its data.   
 
 | Task State           |Task Config | Task Start | Task Stop | Task Interval Update | Task Data Update |
 | :----                |   :----:   |   :----:   |  :----:   |     :----:           |    :----:        |
@@ -59,11 +59,11 @@ Access to a task is limited by the task's current state as summarized in the tab
 
 ## Access Control Rationale
 
-The list describes reasoning for the access control restrictions for each state.
+The following list describes reasoning for the access control restrictions for each state.
 
 * SCHED_TASK_UNINIT:
-    * A task must be initialized prior to use, only the config function is available in this state.
-    * All other function calls on uninitialized tasks fail.
+    * A task must be initialized prior to use.  Only the config function is available in this state.
+    * Any other function calls on uninitialized tasks will fail.
 
 * SCHED_TASK_STOPPED:  
     * No access protection is required while the task is stopped.
@@ -72,7 +72,7 @@ The list describes reasoning for the access control restrictions for each state.
 * SCHED_TASK_ACTIVE:  
 
     * Calls to the interval set function, on a currently active task, stop the task prior to updating it.    
-    * Starting a task that's already in the SCHED_TASK_ACTIVE state update the task's start time but have no other effect since the task is already active.
+    * Starting a task that's already in the SCHED_TASK_ACTIVE state updates the task's start time but have no other effect since the task is already active.
     
 * SCHED_TASK_EXECUTING & SCHED_TASK_STOPPING:  
     * The executing and stopping states require the most access control restrictions.  
