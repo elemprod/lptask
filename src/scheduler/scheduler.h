@@ -143,6 +143,7 @@ sched_task_t *sched_task_alloc(sched_task_pool_t * p_pool);
  * The scheduler must be initialized prior to calling the function and the 
  * task's handler must not currently executing when the function is called.
  *
+ * 
  * @param[in] p_task        Pointer to the task.
  * @param[in] handler       Task handler function.
  * @param[in] interval_ms   The task interval (mS)
@@ -183,7 +184,7 @@ bool sched_task_config(sched_task_t *p_task,
  * limited to be less than or equal to the task's buffer size which was was
  * supplied to the SCHED_TASK_BUFF_DEF() macro.
  * 
- * A task must be stopped before it's data can be updated to avoid potential 
+ * A task must be stopped before its data can be updated to avoid potential 
  * data access conflicts. Attempts to update a task's data which is not 
  * currently stopped will return 0 indicating that the task data was not 
  * updated. 
@@ -221,8 +222,11 @@ bool sched_task_update(sched_task_t *p_task, uint32_t interval_ms);
 /**
  * @brief Function for starting a scheduler task.
  *
- * Note that a task must have been previously configured with the 
+ * A task must have been previously configured with the 
  * sched_task_config() function.
+ * 
+ * @note Repeatably restarting a task inside its own handler with an 
+ * interval of 0 mS may starve the other tasks of CPU time.
  *
  * @param[in] p_task  Pointer to the task to add to the scheduler
  * 

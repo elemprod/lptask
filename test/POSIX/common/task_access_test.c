@@ -61,7 +61,7 @@ const task_state_access_t TASK_STOPPING_ACCESS = {
 
 /**
  * Function for getting the access control structure for a task
- * based on it's state.
+ * based on the state.
  *
  * @param[in] p_task  Pointer to the task
  * @return            Pointer to the access contorl structure definition.

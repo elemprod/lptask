@@ -158,6 +158,36 @@ static scheduler_t scheduler = {
 #define TASK_EXPIRED_SAFE(p_task) (TASK_ACTIVE_SAFE(p_task) && TASK_EXPIRED(p_task))
 
 /**
+ * @brief Internal function for setting a task's interval.
+ * 
+ * The tasks repeating status should be set prior to making the function call.
+ * 
+ * @note: The task pointer is not NULL checked.
+ * 
+ * @param[in] p_task    Pointer to the task.
+ * @param[in] interval  The new interval to store.
+ * @return void
+ */
+static inline void task_interval_set(sched_task_t *p_task, uint32_t interval_ms) {
+
+ if(p_task->repeat && (interval_ms == 0)) { 
+    // Repeating tasks must have an interval > 0.   
+    p_task->interval_ms = 1;
+  } else {
+#if (SCHED_MS_MAX < UINT32_MAX)
+    // Limit the interval to the max interval.
+    if(interval_ms > SCHED_MS_MAX) {
+      p_task->interval_ms = SCHED_MS_MAX;
+    } else {
+      p_task->interval_ms = interval_ms;
+    }
+#else
+    p_task->interval_ms = interval_ms;
+#endif
+  }
+}
+
+/**
  * @brief Internal function for checking the time since a task was started.
  * 
  * @note: The task pointer is not NULL checked and the task is assumed to be
@@ -188,8 +218,8 @@ static inline bool task_time_expired(const sched_task_t *p_task, uint32_t now_ti
 /**
  * @brief Internal function for calculating the time until a task expires.
  * 
- * @note: The task is assumed to be active.
- * @note: The task pointer is not NULL checked.
+ * @note: The task is assumed to be active and the task pointer is not NULL 
+ * checked.
  * 
  * @param[in] p_task        Pointer to the task.
  * @param[in] now_time_ms   The current time in mS.
@@ -266,7 +296,7 @@ sched_task_t *sched_task_compare(const sched_task_t *p_task_a, const sched_task_
 /***** Internal Scheduler Functions *****/
 
 /**
- * @brief Function for removing all tasks from the scheduler's que.
+ * @brief Internal function for removing all tasks from the scheduler's que.
  * 
  * @return void
  */
@@ -296,7 +326,7 @@ static void sched_clear_que() {
 }
 
 /**
- * @brief Function for completing a scheduler stop.
+ * @brief Internal function for completing a scheduler stop.
  * 
  * Called once the scheduler finishes executing the expired tasks handlers
  * to complete a scheduler stop.
@@ -309,270 +339,158 @@ static void sched_stop_finalize(void) {
     // Clear the que.
     sched_clear_que();
 
-    // Perform any platform specific deinitialization last.
+    // Perform any platform-specific deinitialization last.
     sched_port_deinit();
 
     scheduler.state = SCHED_STATE_STOPPED;
   }
 }
-
-
-
-
-#if 0
-
 /**
- * @brief Internal function for finding the first active task in the task list.
+ * @brief Internal function for executing an expired task's handler function.
+ * 
+ * Note that the task is not checked to be active or for expiration.
  *
- * @return void
- */
-static void sched_next_task(void) {
+ * @return None
+ */ 
+static void task_execute_handler(sched_task_t *p_task) {
 
-  // Pointer to the next expiring task.
-  sched_task_t *p_expiring_task = NULL;
+  assert(p_task != NULL);
+  if(p_task->repeat) {
+    /* A repeating task will be in the executing state while inside of
+      * its handler. 
+      */ 
+    p_task->state = SCHED_TASK_EXECUTING;
 
-  /* Walk through each task in the linked list starting at the 
-   * head task and ending at the tail task.
-   */
-  sched_task_t *p_current_task = scheduler.p_head;
+    /* Update the start time before calling the handler so the handler's 
+    * execution time doesn't introduce error.  The start time only needs 
+    * to be updated for repeating tasks.
+    */
+    p_task->start_ms = sched_port_ms();
 
-  while (p_current_task != NULL) {
-    /* Only need to test for active state and not the executing state here 
-     * since no tasks will be executing when the function is called.
-     */
-    if (p_current_task->state == SCHED_TASK_ACTIVE) {
-      if (p_expiring_task == NULL) {
-        // No expiring task was previously set so the current task is the next expiring task.
-        p_expiring_task = p_current_task;
-      } else if (sched_task_remaining_ms(p_expiring_task) > sched_task_remaining_ms(p_current_task)) {
-        p_expiring_task = p_current_task;
-      }
-    }
-
-    // Move to the next task in the list
-    p_current_task = p_current_task->p_next;
+  } else {
+    /* A non-repeating task will be in the stopping state while executing 
+      * its handler.
+      */
+    p_task->state = SCHED_TASK_STOPPING;
   }
 
-  // Update the cached expiring task.
-  scheduler.p_next = p_expiring_task;
+  // Call the task's handler function.
+  sched_handler_t handler = (sched_handler_t) p_task->p_handler;
+  assert(handler != NULL);
+  handler(p_task, p_task->p_data, p_task->data_size);
+
+  // Update the task state after the handler finishes.
+  if(p_task->state == SCHED_TASK_EXECUTING) {
+    // Executing tasks move back to the active state.
+    p_task->state = SCHED_TASK_ACTIVE;
+  } else {
+    assert(p_task->state == SCHED_TASK_STOPPING);
+    // Stopping tasks move to the stopped state.
+    p_task->state = SCHED_TASK_STOPPED;
+    // A task is no longer allocated once its stopped.
+    p_task->allocated = false;
+  }  
 }
 
-#else
-
 /**
- * @brief Internal function for finding the first active task in the task list.
+ * @brief Internal function for executing tasks with expired intervals.
+ *
+ * The function first checks the cached next task for expiration.  If it is
+ * unexpired, the function immediately returns which avoids having to search
+ * the entire list for each call.
  * 
- * @retval The first active task that was found.
- * @retval NULL if no active tasks were found.
+ * If no cached next task has been set, each task in the list is checked for
+ * expiration and the next expiring task is stored for future use.
+ * 
+ * @note The function should only be called from the main context  when no
+ * task handlers are active.
+ *
+ * @return The time until expiration of the next expiring task in mS or 
+ *         SCHED_MS_MAX if no active tasks were found.
  */
-static sched_task_t * sched_active_task(void) {
+static uint32_t sched_execute_que(void) {
 
-  /* Start searching for first active task at the head task and end at the 
-   * tail task if no active tasks are found.
+  // Get the current time.
+  uint32_t now_time_ms = sched_port_ms();
+
+  // The next task's time until expiration.
+  uint32_t next_task_ms = SCHED_MS_MAX;
+
+  /* Make a copy of the next expiring task's pointer to guard against it 
+   * being externally modified during the expiration check.
    */
+  sched_task_t * p_next_task = scheduler.p_next;
+  
+  // Check if the next task has been set.
+  if(p_next_task != NULL) {
+
+    // The next task should be active here.
+    assert(p_next_task->state == SCHED_TASK_ACTIVE);
+
+    // Calculate the task's time until expiration.
+    next_task_ms = task_time_remaining_ms(p_next_task, now_time_ms);  
+
+    if(next_task_ms == 0) {
+      // The cached next task has expired, execute the task handler.
+      task_execute_handler(p_next_task);
+    } else if(p_next_task == scheduler.p_next) {
+      /* The next task has not expired yet and the schedulers cached next task 
+       * has not been modified from a different context so return the time
+       * remaining until expiration.
+       */
+      return next_task_ms;
+    }
+    // The next task was either serviced or is no longer valid so clear it.
+    p_next_task = NULL;
+    next_task_ms = SCHED_MS_MAX;
+  } 
+
+  // Start searching for the next expiring task at the start of the linked list.
   sched_task_t *p_search_task = scheduler.p_head;
 
   while (p_search_task != NULL) {
-    if(p_search_task->state == SCHED_TASK_ACTIVE) {
-      return p_search_task;
-    }
-    // Move to the next task in the list.
-    p_search_task = p_search_task->p_next;
-  }
-  // No active tasks were found.
-  return NULL;
-}
 
-/**
- * @brief Internal function for updating the cached next expiring task.
- *
- * The function checks each task in the task for the next expiring task.
- * If an an expired task is found, the expired task is considred to be next 
- * expiring task and the function returns immediately.
- * 
- * The current time is locally cached so the the sched_port_ms() function 
- * only has to be called once.  
- * 
- * @note The function should only be called from the main context while 
- * outside of a task handler since it assumes that no tasks are in the 
- * executing state.
- *
- * @return void
- */
-static void sched_next_task(void)
-{
-  /* Search for the first active task in the task list and set it to be 
-   * the next expiring task.
-   */
-  sched_task_t *p_next_task = sched_active_task();
+    // Filter on active tasks.
+    if (p_search_task->state == SCHED_TASK_ACTIVE) {
 
-  // Store the current time.
-  uint32_t now_time_ms = sched_port_ms();
+      // Calculate the search task's remaining time.
+      uint32_t search_task_ms = task_time_remaining_ms(p_search_task, now_time_ms);
+    
+      if (search_task_ms == 0) {        
+        /* Execute the search task's handler if the task is expired. 
+         * Note that we don't move to the next task in the list for case so 
+         * that the search task is retested for expiration after its handler 
+         * returns.  This has the risk that an an always expiring task 
+         * could potentially starve the other tasks of CPU time.
+        */  
+        task_execute_handler(p_search_task);
+      } else {
 
-  /* The time remaining for the next expiring task is stored so that it
-   * does not have to be recalculated at each task comparision.
-  */
-  uint32_t next_task_ms = task_time_remaining_ms(p_next_task, now_time_ms);  
-
-  /* If no active tasks were found or the first active task is expired, 
-   * stop the search.
-   */
-  if ((p_next_task != NULL) && (next_task_ms > 0)) {
-
-    /* Start searching for the next expiring task at the next task after 
-     * first active task which was previously found.  End the search at the 
-     * last task in the linked list.
-     * 
-     * The search task is the the task from que which is currently being 
-     * compared to the previously found expiring task.
-    */
-    sched_task_t *p_search_task = p_next_task->p_next;
-
-    while (p_search_task != NULL) {
-      // Filter on active tasks.
-      if (p_search_task->state == SCHED_TASK_ACTIVE) {
-        // Calculate the search task's remaining time.
-        uint32_t search_task_ms = task_time_remaining_ms(p_search_task, now_time_ms);
-
-        /* If the current task expires before the previously found next
+        /* If the search task expires before the previously found
          * expiring task, it becomes the new next task.
-        */
-        if (search_task_ms < next_task_ms) {
-          if (search_task_ms == 0) {
-            // The search task has already expired, it must be the next task.
-            scheduler.p_next = p_search_task;
-            return;
-          }
+         */  
+        if(search_task_ms < next_task_ms) {
           p_next_task = p_search_task;
           next_task_ms = search_task_ms;
         }
+
+        // Move to the next task in the list
+        p_search_task = p_search_task->p_next;
       }
+
+    } else {
       // Move to the next task in the list
       p_search_task = p_search_task->p_next;
     }
-  }
 
-  // Update the cached expiring task.
-  scheduler.p_next = p_next_task;
-}
-#endif
-
-
-/**
- * @brief Function for executing tasks in the que with expired intervals.
- *
- * This function must be called from within the main loop. It executes
- * all scheduled tasks having expired timers before returning.
- *
- * @return void
- */
-static void sched_execute_que(void) {
-
-  // Store the current time to reduce calls to the port time funciton.
-  uint32_t now_time_ms = sched_port_ms();
-
-  /* Check if the cached next task is both valid and unexpired
-   * before executing the task que. This check enables the 
-   * scheduler to avoid testing every task in the que 
-   * for for expiration if the next expiring task is already 
-   * known.
-   *
-   * The pointer ot the next task has to be accessed carefully.
-   * An ISR could be called during the task expiration
-   * check. The ISR might invalidate the cached next task 
-   * which could lead to unpredictable results.  The scheduler 
-   * protects against this possibility by using the following 
-   * steps:
-   * 
-   *  1. The next task pointer is copied.
-   *  2. The active and expiration check is performed on the copy.  
-   *  3. The next task pointer is compared to local copy that was 
-   *  made to test if it was modified during the expiration check.
-   * 
-   * This technique protects against the cached next task being modified
-   * from a different context without having to utilize the scheduler lock.
-   */
-
-  // TODO move this check into a static inline function.
-
-   sched_task_t * p_next_copy = scheduler.p_next;
-   if ((p_next_copy != NULL) &&
-      (p_next_copy->state == SCHED_TASK_ACTIVE) &&
-      !task_time_expired(p_next_copy, now_time_ms) &&
-      (p_next_copy == scheduler.p_next)) 
-  {
-    //  Return if a cached next task exists but has not expired yet.      
-    return;
   }
   
-/* TODO we wind up looping through the task que twice with this implementation.   
- * Its may be more efficient to immediately execute the next expiring task if
- * one has been previously stored.  
- * 
- * Once executed, we can perform a new search for the next expiring task.  If
- * the next task hasn't expired yet, we can sleep otherwise we can execute its 
- * handler and then repeat the search until we find a task that isn't expired. 
- * This is likely  better for an application with tasks that don't frequently 
- * expire at the same time.  It may not be better for a system with a lot of 
- * task.
- * 
- * We may want to make the search method configurable.  
- */ 
-  // Loop through each task in the linked list starting with the head task
-  sched_task_t *p_current_task = scheduler.p_head;
+  // The next task time should always be > 0.
+  assert(next_task_ms > 0);
 
-  while (p_current_task != NULL) {
-
-    // Filter on active tasks with expired timers.
-    if ((p_current_task->state == SCHED_TASK_ACTIVE) && 
-        task_time_expired(p_current_task, now_time_ms)) {
-
-      if(p_current_task->repeat) {
-        /* A repeating task will be in the executing state while inside of
-         * its handler. 
-         */ 
-        p_current_task->state = SCHED_TASK_EXECUTING;
-
-       /* Update the start time before calling the handler so the handler's 
-        * execution time doesn't introduce error.  The start time only needs 
-        * to be updated for repeating tasks.
-        */
-        p_current_task->start_ms = sched_port_ms();
-
-      } else {
-        /* A non-repeating task will be in the stopping state while executing 
-         * its handler.
-         */
-        p_current_task->state = SCHED_TASK_STOPPING;
-      }
-
-      // Call the task's handler function.
-      sched_handler_t handler = (sched_handler_t) p_current_task->p_handler;
-      assert(handler != NULL);
-      handler(p_current_task, p_current_task->p_data, p_current_task->data_size);
-
-      // Update the state once the handler returns.
-      if(p_current_task->state == SCHED_TASK_EXECUTING) {
-        // Executing tasks move back to the active state.
-        p_current_task->state = SCHED_TASK_ACTIVE;
-      } else {
-        assert(p_current_task->state == SCHED_TASK_STOPPING);
-        // Stopping tasks move to the stopped state.
-        p_current_task->state = SCHED_TASK_STOPPED;
-        // A task is no longer allocated once stopped.
-        p_current_task->allocated = false;
-      }
-    }
-
-    // Move to the next task in the list
-    p_current_task = p_current_task->p_next;
-  }
-
-  /* The cached next expiring task should always refreshed here since the 
-   * previous expiring task was serviced.
-   */
-  sched_next_task();
-
+  // Update the cached expiring task for future use.
+  scheduler.p_next = p_next_task;
+  return next_task_ms;
 }
 
 
@@ -591,7 +509,7 @@ bool sched_task_config(sched_task_t *p_task, sched_handler_t handler,
     return false;
   } else if (p_task->state == SCHED_TASK_UNINIT) {
     /* Add the task to the scheduler's que if it hasn't been previously added.
-     * The new task will be the last one in the list so it's next task will 
+     * The new task will be the last one in the list so its next task will 
      * always be NULL.
      */ 
     p_task->p_next = NULL;
@@ -621,11 +539,11 @@ bool sched_task_config(sched_task_t *p_task, sched_handler_t handler,
   // Store the task handler.
   p_task->p_handler = handler;
 
-  // Store the task interval limiting it to the max interval.
-  p_task->interval_ms = (interval_ms % SCHED_MS_MAX);
-
   // Store the repeating status.
   p_task->repeat = repeat;
+
+  // Store the task interval.
+  task_interval_set(p_task, interval_ms);
 
   // Tasks will always be in the stopped state after configuration. 
   p_task->state = SCHED_TASK_STOPPED;
@@ -647,9 +565,9 @@ bool sched_task_start(sched_task_t *p_task) {
     // Set the task to active if it is currently stopped.
     p_task->state = SCHED_TASK_ACTIVE;
   } else if(p_task->state == SCHED_TASK_STOPPING) {
-    /* Set the task to executing if is currently stopping.
-     * This could happen if the task is started inside an
-     * ISR while executing it's handler or if the task is
+    /* Set the task to executing if it is currently stopping.
+     * This can happen if the task is started inside an
+     * ISR while executing its handler or if the task is
      * restarted inside its handler.
      */
     p_task->state = SCHED_TASK_EXECUTING;
@@ -658,7 +576,7 @@ bool sched_task_start(sched_task_t *p_task) {
   // Store the start time as now.
   p_task->start_ms = sched_port_ms();
   
-  /* Set the cached next task to the newly started task if it expires 
+  /* Update the cached next task to the newly started task if it expires 
    * sooner than the currently cached next task.
    */
   scheduler.p_next =  sched_task_compare(scheduler.p_next, p_task);
@@ -672,13 +590,12 @@ bool sched_task_update(sched_task_t *p_task, uint32_t interval_ms) {
   if(p_task == NULL) {
     return false;
   }
-  // Store the new interval limiting it to the max interval.
-  p_task->interval_ms = (interval_ms % SCHED_MS_MAX);
+  // Store the new interval.
+  task_interval_set(p_task, interval_ms);
 
   // Start the task. 
   return sched_task_start(p_task);
 }
-
 
 uint8_t sched_task_data(sched_task_t * p_task, const void * p_data, uint8_t data_size) {
 
@@ -739,10 +656,11 @@ bool sched_task_stop(sched_task_t *p_task) {
     p_task->state = SCHED_TASK_STOPPING;
   }
 
-  /* It's not necessary to clear the cached next task here
-   * since the cached next task's state is checked to be active
-   * before it is executed.  
-   */
+  // Clear the cached next task if it is the stopped task.
+  if(scheduler.p_next == p_task) {
+    scheduler.p_next = NULL;
+  }
+
   return true;
 }
 
@@ -885,7 +803,7 @@ void sched_init(void) {
   // Start the scheduler if not currently running.
   if (scheduler.state == SCHED_STATE_STOPPED) {
 
-    // Perform any platform specific initialization first.
+    // Perform any platform-specific initialization first.
     sched_port_init();
 
     // Clear the task references.
@@ -899,21 +817,16 @@ void sched_init(void) {
 
 void sched_start(void) {
 
-  /* Repeatably execute any expired tasks in the schedulers que 
+  /* Repeatably execute any expired tasks in the scheduler's task list 
    * until the scheduler is stopped.
    */
   while (scheduler.state == SCHED_STATE_ACTIVE) {
 
     // Execute any tasks in the que with expired timers.
-    sched_execute_que();
-
-    // Calculate the time interval until the next expiring task.
-    uint32_t sleep_interval = sched_task_remaining_ms(scheduler.p_next);
-
-    // Sleep until the next task expires using the platform specific sleep method.
-    if (sleep_interval > 0) {
-      sched_port_sleep(sleep_interval);
-    }
+    uint32_t next_task_ms = sched_execute_que();
+    assert(next_task_ms > 0);
+    // Sleep until the next task expires using the platform-specific sleep method.
+    sched_port_sleep(next_task_ms);
   }
 
   // Finish stopping the scheduler before returning.

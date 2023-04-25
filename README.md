@@ -7,7 +7,7 @@
 The scheduler offers the following features:
 
 * The scheduler's design has been optimized for low power embedded applications.  Every design decision was made with an eye towards reducing the processors power consumption.
-* The platform specific port function make is easy for developers to take advantage of any sleep, timer and other power reduction mechanisms provided by a particular processor.
+* The platform-specific port function make is easy for developers to take advantage of any sleep, timer and other power reduction mechanisms provided by a particular processor.
 * The core scheduler only module consumes ~1,000 bytes of ROM making it well suited for embedded platforms.
 * All scheduler and task memory is statically allocated, providing a fixed compile time memory footprint. 
 * Each unbuffered scheduler task only requires 20 bytes of RAM on a typical 32-bit processor.

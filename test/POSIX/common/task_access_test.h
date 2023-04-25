@@ -17,7 +17,7 @@
 
 /**
  * Function for testing the task access control mechanism on
- * a task's based on it's current state.
+ * a task's based on its current state.
  *
  * @param[in] p_task  Pointer to the task to test.
  *

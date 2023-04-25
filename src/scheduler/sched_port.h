@@ -15,7 +15,7 @@
 #include <stdint.h>
 
 /**
- * @brief Mandatory platform specific function for acquiring exclusive
+ * @brief Mandatory platform-specific function for acquiring exclusive
  * access to the scheduler's shared data structure.
  *
  * The lock prevents different contexts of code from modifying
@@ -27,13 +27,13 @@
 void sched_port_lock(void);
 
 /**
- * @brief Mandatory platform specific function for releasing exclusive
+ * @brief Mandatory platform-specific function for releasing exclusive
  * access to the scheduler's shared data structure.
  */
 void sched_port_free(void);
 
 /**
- * @brief Mandatory platform specific function for reading the current
+ * @brief Mandatory platform-specific function for reading the current
  * value of the mS timer to be utilized by the scheduler for task
  * timing.
  *
@@ -46,7 +46,7 @@ void sched_port_free(void);
 uint32_t sched_port_ms(void);
 
 /**
- * @brief Optional platform specific sleep function.
+ * @brief Optional platform-specific sleep function.
  *
  * If no user implementation is supplied, the scheduler will
  * simply busy wait between tasks.
@@ -59,7 +59,7 @@ uint32_t sched_port_ms(void);
 void sched_port_sleep(uint32_t interval_ms);
 
 /**
- * @brief Optional function for performing in any platform specific
+ * @brief Optional function for performing in any platform-specific
  * initialization required for scheduler operation.
  *
  * The mS timer should be setup and enabled here if not previously
@@ -70,7 +70,7 @@ void sched_port_sleep(uint32_t interval_ms);
 void sched_port_init(void);
 
 /**
- * @brief Optional function for performing in any platform specific
+ * @brief Optional function for performing in any platform-specific
  * deinitialization and tear down.  Any resources initialized in
  * sched_port_init() should be deinitialized here.
  *

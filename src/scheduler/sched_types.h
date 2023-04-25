@@ -29,7 +29,7 @@ typedef enum {
    * 
    * The task enters the SCHED_TASK_STOPPING state if the sched_task_stop() 
    * function is called while the task is executing its handler.  The task will
-   *  move to the SCHED_TASK_STOPPED state once it's handler completes.
+   *  move to the SCHED_TASK_STOPPED state once its handler completes.
    */ 
   SCHED_TASK_STOPPING
 } sched_task_state_t;

@@ -65,7 +65,7 @@ static void ls_clk_enable(bool enable) {
   HAL_RCC_GetOscConfig(&rcc_osc_current);
 
   if (enable) {
-    // Configure LSI / LSE Clock if it's in wrong state
+    // Configure LSI / LSE Clock if its in wrong state
     if (rcc_osc_current.LSIState == RCC_LSI_ON ||
         rcc_osc_current.LSEState == RCC_LSE_OFF ||
         rcc_osc_current.LSEState == RCC_LSE_BYPASS) {

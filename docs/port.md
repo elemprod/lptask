@@ -22,7 +22,7 @@ Some sleep strategies may stop the counter during the platform sleep function ca
 
 # Optional Platform Port Functions
 
-Several additional functions can be implemented by the user to further customize scheduler operation and handle an platform specific requirements.  These functions are defined as weak inside of the scheduler module and therefore do not require user definition if they are not utilized.
+Several additional functions can be implemented by the user to further customize scheduler operation and handle an platform-specific requirements.  These functions are defined as weak inside of the scheduler module and therefore do not require user definition if they are not utilized.
 
 ## Port Initializer Function
 
