@@ -169,4 +169,4 @@ Several [example projects](./examples/README.md) are provided in the  `/examples
 
 ### License
 
-This project is licensed under the terms of the [MIT license](./LICENSE).
+This project is licensed under the terms of the [MIT license](./LICENSE.md).
