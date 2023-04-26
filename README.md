@@ -166,3 +166,7 @@ Several [example projects](./examples/README.md) are provided in the  `/examples
 [Task State & Access Control](./docs/task_state.md)
 
 [Project Style Guide](./docs/style_guide.md)
+
+### License
+
+This project is licensed under the terms of the [MIT license](./LICENSE).
