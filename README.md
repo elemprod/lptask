@@ -1,6 +1,6 @@
-# Embedded Scheduler
+#lptask - Low Power Task Scheduler
 
- The C language cooperative / non-preemptive scheduler module provides an easy-to-use mechanism for scheduling tasks to be executed in the future without the complexity or overhead of an operating system.  Once scheduled, a task's handler is executed from the main context once its interval timer expires.  
+ The C language cooperative / non-preemptive task scheduler module provides an easy-to-use mechanism for scheduling tasks to be executed in the future without the complexity or overhead of an operating system.  Once scheduled, a task's handler is executed from the main context once its interval timer expires.  
 
 ## Major Features
 
