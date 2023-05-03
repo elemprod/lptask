@@ -5,8 +5,8 @@
  * Each of the access control restrictions is tested and the results are
  * compared against the defined behaviour.
  *
- * A copy of the task is made and the checks are performed on the taks
- * copyto avoid any risk of corrupting the orginal task.
+ * A copy of the task is made and the checks are performed on the task
+ * copy to avoid any risk of corrupting the original task.
  */
 
 #ifndef TASK_ACCESS_TEST_H__

@@ -138,7 +138,7 @@ static sched_task_t *task_local_copy(sched_task_t *p_task)
   memcpy(&task_copy, p_task, sizeof(sched_task_t));
   memcpy(task_copy_buff, p_task->p_data, p_task->buff_size);
 
-  // Update local task data pointer to the local buffer.
+  // Update the local task data pointer to the local buffer.
   task_copy.p_data = task_copy_buff;
 
   return &task_copy;
@@ -152,7 +152,7 @@ bool task_access_test(sched_task_t *p_task)
   if (p_task == NULL)
   {
     printf("Fail: Null Task");
-    // Can't perfom the tests on a NULL task.
+    // Can't perform the tests on a NULL task.
     return false;
   }
 
@@ -160,8 +160,8 @@ bool task_access_test(sched_task_t *p_task)
   task_state_access_t *p_task_access = (task_state_access_t *)task_state_access(p_task);
 
   /* Create a local copy of the task & data structure to perform
-   * the test.  Testing the copy rather than the orginal avoid's
-   * the risk of potentialluy corrupting the orginal task.
+   * the test ib.  Testing the copy rather than the original avoid's
+   * the risk of potentially corrupting the original task.
    */
   sched_task_t *p_task_copy = task_local_copy(p_task);
 
@@ -180,7 +180,7 @@ bool task_access_test(sched_task_t *p_task)
     }
   }
 
-  // Atempt to start the task.
+  // Attempt to start the task.
   p_task_copy = task_local_copy(p_task);
   bool start_result = sched_task_start(p_task_copy);
   if (start_result != p_task_access->start)
@@ -189,7 +189,7 @@ bool task_access_test(sched_task_t *p_task)
     test_pass = false;
   }
 
-  // Atempt to stop the task.
+  // Attempt to stop the task.
   p_task_copy = task_local_copy(p_task);
   bool stop_result = sched_task_stop(p_task_copy);
   if (stop_result != p_task_access->stop)

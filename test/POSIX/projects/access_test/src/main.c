@@ -4,7 +4,7 @@
  * POSIX Task Access Control Test
  *
  * The program tests the scheduler's task access control protection.
- * The task is accessed in each of the possible task states to verify the
+ * Task are accessed while in each of the possible task states to verify the
  * operation follows the access control specification.
  */
 
@@ -21,6 +21,26 @@
 #include "scheduler.h"
 #include "buff_test_data.h"
 #include "task_access_test.h"
+
+// Enable Debugging?
+const bool DEBUG = false;
+
+// Informational Logging - Only print if debug is true.
+#define log_info(fmt, ...)              \
+  do {                                  \
+      if (DEBUG) {                      \
+        printf(fmt, ## __VA_ARGS__);    \
+        fflush(stdout);                 \
+      }                                 \
+  } while (0)
+
+
+// Error Logging - Always Print
+#define log_error(fmt, ...)             \
+  do {                                  \
+    printf(fmt, ## __VA_ARGS__);        \
+    fflush(stdout);                     \
+  } while (0)
 
 /*
  * Access Control Test State
@@ -111,41 +131,41 @@ static void log_test_state(test_state_t state)
 
   if (state == TEST_STATE_UNTESTED)
   {
-    printf("Untested\n");
+    log_info("Untested\n");
   }
   else if (state == TEST_STATE_FAIL)
   {
-    printf("Fail\n");
+    log_info("Fail\n");
   }
   else if (state == TEST_STATE_PASS)
   {
-    printf("Pass\n");
+    log_info("Pass\n");
   }
   else
   {
-    printf("ERROR:  Uknown State\n");
+    log_info("ERROR:  Unknown State\n");
   }
 }
 /**
  * Function for logging a test result for each tested state.
  */
-static void log_result(test_result_data_t *p_result)
+static void log_test_result(test_result_data_t *p_result)
 {
 
-  printf("State Uninit    : ");
+  log_info("State Uninit    : ");
   log_test_state(p_result->uninit);
-  printf("State Stopped   : ");
+  log_info("State Stopped   : ");
   log_test_state(p_result->stopped);
-  printf("State Active    : ");
+  log_info("State Active    : ");
   log_test_state(p_result->active);
-  printf("State Executing : ");
+  log_info("State Executing : ");
   log_test_state(p_result->executing);
-  printf("State Stopping  : ");
+  log_info("State Stopping  : ");
   log_test_state(p_result->stopping);
 }
 
 /**
- * Function for performming the task acess control test and saving the results
+ * Function for performing the task access control test and saving the results
  * to the task data structure.
  */
 static void task_test(sched_task_t *p_task, test_result_data_t *p_result_data)
@@ -202,7 +222,7 @@ static void task_test(sched_task_t *p_task, test_result_data_t *p_result_data)
     break;
 
   default:
-    printf("ERROR: Unknown State");
+    log_error("ERROR: Unknown State");
   }
 }
 
@@ -240,8 +260,7 @@ static void task_handler(sched_task_t *p_task, void *p_data, uint8_t data_size)
   }
   else
   {
-    printf("Unknown Task\n");
-    fflush(stdout);
+    log_error("Unknown Task\n");
     return;
   }
 
@@ -260,13 +279,12 @@ static void task_handler(sched_task_t *p_task, void *p_data, uint8_t data_size)
       sched_stop();
     }
   }
-  fflush(stdout);
 }
 
 int main()
 {
-  printf("\n*** Scheduler Access Control Test Started ***\n\n");
-  fflush(stdout);
+  log_info("\n*** Scheduler Access Control Test Started ***\n\n");
+  
 
   // Initialize the Scheduler
   sched_init();
@@ -302,28 +320,29 @@ int main()
   start_result = sched_task_start(&test_task_b);
   assert(start_result == true);
 
-  // Start the Scheduler.
+  // Start the Scheduler (Returns after Tests)
   sched_start();
 
   // Test Complete
-  printf("Scheduler Access Control Test Complete.\n");
+  log_info("Scheduler Access Control Test Complete.\n");
 
-  printf("\nTask A Results:\n");
-  log_result(&task_results_a);
+  log_info("\nTask A Results:\n");
+  log_test_result(&task_results_a);
 
-  printf("\nTask B Results:\n");
-  log_result(&task_results_b);
-  printf("\n");
+  log_info("\nTask B Results:\n");
+  log_test_result(&task_results_b);
+  log_info("\n");
 
   if ((test_result_combined(&task_results_a) == TEST_STATE_PASS) &
       (test_result_combined(&task_results_b) == TEST_STATE_PASS))
   {
-    printf("** TEST PASS **\n\n");
+    log_info("** TEST PASS **\n\n");
+    return 0;
   }
   else
   {
-    printf("** TEST FAIL **\n\n");
+    log_error("** TEST FAIL **\n\n");
+    return 1;    
   }
-  fflush(stdout);
-  return 0;
+
 }

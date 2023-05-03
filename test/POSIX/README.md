@@ -1,24 +1,42 @@
+# Scheduler Testing
 
-# POSIX Test Project's
+A series of projects have been created to test the scheduler library.  The test
+can be ran individually or as a group using a shell script.  
 
-Each of project's are designed to be compiled and ran on a POSIX system (Linux, OSX, Raspberry Pi or Windows under Cygwin) and require the GCC toolchain to be installed.  The host system must have console access to monitor the results.  The projects are meant to be used for testing the scheduler library since any POSIX system would already have similar functionality built in. 
+Each of project's is designed to be compiled and ran on a POSIX system (Linux, 
+OSX, Raspberry Pi or Windows under Cygwin) and require the GCC toolchain to be 
+installed.  The host system must have console access to monitor the results. 
 
-# Setup
+Each of the test programs return 0 if all of the test's pass and or 1 if any 
+of the tests fail.  This approach was chosen to make it easy to batch run the 
+tests from a shell script.  
 
-Clone the CRC library from:
+The test projects are meant to be used for testing the scheduler library 
+since any POSIX system would already have similar functionality to the scheduler 
+built in. 
 
+
+# Testing Setup
+
+The external CRC library is setup as git submodule.  You may need to clone it
+if it doesn't already exist.
+
+Source: 
 https://github.com/gityf/crc.git
 
-to the POSIX folder:
-
+Location:
 /test/POSIX/external/crc
 
+
 # Projects
+
 ## Task State Access Test
 test/POSIX/projects/access_test/
 
-The project tests the [Task State](../../docs/task_state.md) access protection mechanism.  
-The access protection is verified for each of the possible task states.
+The project tests the [Task State](../../docs/task_state.md) access protection 
+mechanism.  The access protection is verified for each of the possible task 
+states.
+
 
 ### Usage
 

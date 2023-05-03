@@ -1,19 +1,18 @@
-#lptask - Low Power Task Scheduler
+# Low Power Task Scheduler
 
- The C language cooperative / non-preemptive task scheduler module provides an easy-to-use mechanism for scheduling tasks to be executed in the future without the complexity or overhead of an operating system.  Once scheduled, a task's handler is executed from the main context once its interval timer expires.  
+ LPTASK is a cooperative / non-preemptive task scheduler library which provides an easy-to-use mechanism for scheduling tasks to be executed in the future without the complexity or overhead of an operating system.  Once scheduled, a task's handler is executed from the main context once its interval timer expires.  
 
 ## Major Features
 
 The scheduler offers the following features:
 
-* The scheduler's design has been optimized for low power embedded applications.  Every design decision was made with an eye towards reducing the processors power consumption.
+* The scheduler's design has been optimized for low power embedded applications.  Every design decision was made with the goal of performing the required work  and putting the the processors back to sleep as efficiently as possible.
 * The platform-specific port function make is easy for developers to take advantage of any sleep, timer and other power reduction mechanisms provided by a particular processor.
 * The core scheduler only module consumes ~1,000 bytes of ROM making it well suited for embedded platforms.
 * All scheduler and task memory is statically allocated, providing a fixed compile time memory footprint. 
 * Each unbuffered scheduler task only requires 20 bytes of RAM on a typical 32-bit processor.
 * The scheduler is simple to learn and easy to use.  Configuring and starting a new task only requires a few lines of code.  
 * The scheduler encourages the practice of writing lightweight interrupt handlers which can improve the system responsiveness and stability of an embedded application.  Work from interrupt handlers can easily be moved into the main context with minimal overhead.
-
 
 ## Comparison to Preemptive OS
                                                             
@@ -26,13 +25,13 @@ The cooperative scheduler does not provide all of the same features which a pree
                                                         
 Most embedded systems only require hard real time performance for a small subset of their tasks and often don't require hard real time performance at all.  These systems can live within a cooperative scheduler's constraints, saving the overhead and complexity required by a typical RTOS and ultimately reducing the overall system power consumption. 
 
-## Cooperative Scheduler Use Cases
+## Use Cases
 
-The scheduler can be used in almost any simple to medium complexity embedded systems but it really shines for applications which have some of the following characteristics:
+The LPTASK scheduler library can be used in almost any simple to medium complexity embedded systems but it really shines in applications which have some of the following characteristics:
 
-* Power reduction is a high priority.
+* Power reduction is a high priority which is often the case for battery powered devices.
+* The application is low low-duty cycle, the processor is anticipated to be sleeping the majority of the time. 
 * The selected platform has the hardware required to pause program execution and sleep in a low power state during inactivity.
-* The application has a low-duty cycle and is anticipated to be sleeping the majority of the time. 
 * RAM and ROM resources are limited.
 
 <img src="./docs/img/scheduler_app.svg" align="center" hspace="15" vspace="15" alt="Typical Scheduler Application">
