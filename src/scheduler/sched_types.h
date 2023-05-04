@@ -111,11 +111,11 @@ typedef void (*sched_handler_t)(sched_task_t *p_task, void *p_data, uint8_t data
  * A task pool should be defined with the SCHED_TASK_POOL_DEF() macro.
  */
 typedef struct {
-  /// @brief Pointer to the pool data buffer.
+  /// @brief Pointer to the shared pool data buffer.
   uint8_t *p_data;
   /// @brief Pointer to the array of tasks in the pool.   
   sched_task_t *p_tasks;
-  /// @brief Size of the taks data buffer. (bytes)  
+  /// @brief Size of the task data buffer. (bytes)  
   uint8_t buff_size;
   /// @brief The number of tasks in the pool.  
   uint8_t task_cnt;
@@ -123,22 +123,38 @@ typedef struct {
   bool initialized : 1;
 } sched_task_pool_t;
 
+
 /**
- * @brief Macro for limiting a buffer size parameter.
+ * @brief Macro for selecting the smaller of two numbers.
+ * 
+ * @param[in] a The first number to compare.
+ * @param[in] b The second number to compare. 
+ */
+#define SCHED_MIN(a,b) (((a)<(b))?(a):(b))
+
+/**
+ * @brief Macro for selecting the larger of two numbers.
+ * 
+ * @param[in] a The first number to compare.
+ * @param[in] b The second number to compare. 
+ */
+#define SCHED_MAX(a,b) (((a)>(b))?(a):(b))
+
+/**
+ * @brief Macro for limiting a buffer size parameter to a valid value.
  * 
  * Buffer sizes are limited to be greater than 0 and less than UINT8_MAX.
  * 
  * @param[in] value The buffer size value to limit.
  */
-#define SCHED_BUFF_LIMIT(value) (((value) > 1 ? (value) : 1) % UINT8_MAX)
+#define SCHED_BUFF_LIMIT(value) ((uint8_t) SCHED_MIN(SCHED_MAX(value, 1), UINT8_MAX))
 
 /**
- * @brief Macro for limiting a task count parameter.
- * 
- * Task counts are limited to be greater than 0 and less than UINT8_MAX.
+ * @brief Macro for limiting a task count parameter to a valid value.
  *
  * @param[in] value The task count value to limit.
  */
-#define SCHED_TASK_LIMIT(value) (((value) > 1 ? (value) : 1) % UINT8_MAX)
+#define SCHED_TASK_LIMIT(value) ((uint8_t) SCHED_MIN(SCHED_MAX(value, 1), UINT8_MAX))
+
 
 #endif // SCHED_TYPES_H__
