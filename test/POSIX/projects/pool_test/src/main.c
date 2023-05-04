@@ -53,7 +53,8 @@ const bool DEBUG = false;
 
 
 // The number of Buffered Tasks
-#define TASK_COUNT 100
+#define TASK_COUNT (UINT8_MAX)
+//define TASK_COUNT 125
 
 // Test Result
 bool test_pass = true;
@@ -71,7 +72,7 @@ static void test_pass_set(bool pass) {
 static sched_task_t *pool_task_alloc();
 
 // Define a pool of buffered task with storage space for the user data structure.
-SCHED_TASK_POOL_DEF(task_pool, sizeof(buff_test_data_t), 100);
+SCHED_TASK_POOL_DEF(task_pool, sizeof(buff_test_data_t), TASK_COUNT);
 
 // Define a Pool Starter task to allocate and start all of the pool tasks.
 SCHED_TASK_DEF(pool_starter_task);
@@ -128,8 +129,9 @@ static void pool_task_handler(sched_task_t *p_task, void *p_data, uint8_t data_s
     // Perform a CRC check of the previously stored data.
     if (!buff_crc_check(p_buff_data)) { 
       p_buff_data->crc_fail_count++;
-      log_error("CRC Fail Cnt: %i\n", p_buff_data->crc_fail_count);
+      log_error("CRC Failed!\n");
       test_pass_set(false);
+      sched_stop();
     }  
 
     // Fill the buffer with random data
@@ -159,7 +161,7 @@ static sched_task_t *pool_task_alloc() {
     assert(task_access_result);
 
     // Generate a random task interval length.
-    uint32_t interval = (rand() % 1000) + 50;
+    uint32_t interval = (rand() % 2000) + 100;
 
     // Configure the allocated task as a repeating task with the random interval.
     bool result = sched_task_config(p_task, pool_task_handler, interval, true);
@@ -203,8 +205,6 @@ static void pool_starter_handler(sched_task_t *p_task, void *p_data, uint8_t dat
     if(pool_tasks_started < TASK_COUNT) {
       log_error("Only %u of %u pool tasks could be allocated.\n", pool_tasks_started, TASK_COUNT);
       test_pass_set(false);
-    } else {
-      log_info("Pool Task's Started: %u.\n", pool_tasks_started);
     }
     
     // Stop the starter task since all of the pool has been allocated.
@@ -216,21 +216,38 @@ static void pool_starter_handler(sched_task_t *p_task, void *p_data, uint8_t dat
     bool success =  sched_task_start(p_pool_task);
     assert(success);
     pool_tasks_started ++;
+
+    // Check the allocation progress every 25 tasks.
+    if((pool_tasks_started % 25) == 0) {
+      uint8_t allocated_tasks = sched_pool_allocated(&task_pool);
+      uint8_t free_tasks = sched_pool_free(&task_pool);
+
+      if(allocated_tasks + free_tasks != TASK_COUNT) {
+        test_pass_set(false);
+        log_error("Error: Allocated %u + Free %u != Total Tasks %u.\n", allocated_tasks, free_tasks, TASK_COUNT);
+        log_error("Pool Task Cnt %u\n", task_pool.task_cnt);
+      } else {
+        log_info("Allocated: %u, Free: %u.\n", allocated_tasks, free_tasks);
+      }
+    }
+
   }
 
 }
 
 int main() {
-  log_info("\n*** Pooled Task Buffer Test Start ***\n\n");
-
+  log_info("\n*** Pooled Task Test Start ***\n\n");
   // Initialize the Scheduler
   sched_init();
 
   // Seed the random number generator.
   srand(time(NULL));
 
-  // Configure the pool starter task.
-  bool success = sched_task_config(&pool_starter_task, pool_starter_handler, 10, true);
+  /* Configure the pool starter task.  
+   * Note that start task needs to run faster than the pool tasks expire in 
+   * order to fully allocate the pool.
+   */
+  bool success = sched_task_config(&pool_starter_task, pool_starter_handler, 5, true);
   assert(success);
   success = sched_task_start(&pool_starter_task);
   assert(success); 
@@ -242,7 +259,7 @@ int main() {
     log_info("Scheduler Pool Test: Pass\n");
     return 0;
   } else {
-    log_info("Scheduler Pool Test: FAIL\n");
+    log_error("Scheduler Pool Test: FAIL\n");
     return 1;
   }
 
