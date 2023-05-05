@@ -131,17 +131,16 @@ sched_task_t *sched_task_alloc(sched_task_pool_t * p_pool);
 /**
  * @brief Function for configuring or reconfiguring a scheduler task.
  *
- * The task will be stopped after calling sched_task_config() and must be 
- * started with with the sched_task_start() function before it becomes active.
+ * The configuration function can only be used tasks which have stopped.
+ * The function can be used to reconfigure a previously configured task but the
+ * task stop must complete before doing so.
+ * 
+ * The scheduler must be initialized prior to configuring a task.
  *
  * The task interval for a repeating task is the desired time in mS between 
  * task handler calls.   The interval for non-repeating task is the time
  * delay from now until the task handler is called. An interval of 0 will 
  * result in handler being called as soon as possible.
- *
- * The function can also be used to reconfigure a previously configured task.
- * The scheduler must be initialized prior to calling the function and the 
- * task's handler must not currently executing when the function is called.
  *
  * 
  * @param[in] p_task        Pointer to the task.
@@ -151,9 +150,9 @@ sched_task_t *sched_task_alloc(sched_task_pool_t * p_pool);
  *                          shot tasks.
  *
  * @retval True if the configuration succeeded.
- * @retval False if the configuration failed because the task handler is 
- *         currently executing, the task pointer was NULL or the task handler 
- *         was NULL.
+ * @retval False if the configuration failed because the task's has not been
+ *         stopped, the task pointer was NULL, the task handler was NULL or 
+ *         the scheduler has not been initialized.
  */
 bool sched_task_config(sched_task_t *p_task,
     sched_handler_t handler,

@@ -145,8 +145,8 @@ sched_task_start(&my_task);
 Access to the task functions are restricted by the following rules:
 
 1. A task must be configured with the `sched_task_config()` function before it can be accessed with any of the other task functions.
-2. Once configured and started, a task can only be reconfigured with the `sched_task_config()` after it has stopped.  
-3. The task data can only be set with the `sched_task_data()` function when the task is stopped.  
+2. Once configured and started, a task can only be reconfigured with the `sched_task_config()` once it has stopped.  
+3. The task data can only be set with the `sched_task_data()` function if the task is stopped.  
 
 Note that the value of the data stored inside a buffered task can be updated inside of its task handler using the data pointer supplied to the handler.  For example, a repeating task might utilize a data structure to track its current state.  A task which produces a series of LED patterns might store the current LED pattern index in its task buffer.  The handler could cycle through the LED patterns at each call. The task data values should typically only be modified inside the task handler since modifying a data value in a different context might lead to access conflicts.
 

@@ -336,12 +336,12 @@ int main()
   if ((test_result_combined(&task_results_a) == TEST_STATE_PASS) &
       (test_result_combined(&task_results_b) == TEST_STATE_PASS))
   {
-    log_info("** TEST PASS **\n\n");
+    log_info("\n** TEST PASS **\n\n");
     return 0;
   }
   else
   {
-    log_error("** TEST FAIL **\n\n");
+    log_error("\n** TEST FAIL **\n\n");
     return 1;    
   }
 

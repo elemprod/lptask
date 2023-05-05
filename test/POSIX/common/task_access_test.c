@@ -8,7 +8,7 @@
 
 /**
  * Data structure defining what functions are available
- * for a particular task in a particular state.
+ * for a task in a particular state.
  */
 typedef struct
 {
@@ -37,7 +37,7 @@ const task_state_access_t TASK_STOPPED_ACCESS = {
 
 // Access control definition for the SCHED_TASK_ACTIVE state.
 const task_state_access_t TASK_ACTIVE_ACCESS = {
-    .config = true,
+    .config = false,
     .start = true,
     .stop = true,
     .interval = true,
@@ -89,7 +89,7 @@ static const task_state_access_t *task_state_access(sched_task_t *p_task)
     return &TASK_STOPPING_ACCESS;
   }
 
-  printf("Unknown State");
+  printf("ERROR: Unknown State\n");
   return &TASK_UNINIT_ACCESS;
 }
 
@@ -175,7 +175,7 @@ bool task_access_test(sched_task_t *p_task)
 
     if (config_result != p_task_access->config)
     {
-      printf("Fail: Configuration Test");
+      printf("Fail: Configuration Test\n");
       test_pass = false;
     }
   }
@@ -185,7 +185,7 @@ bool task_access_test(sched_task_t *p_task)
   bool start_result = sched_task_start(p_task_copy);
   if (start_result != p_task_access->start)
   {
-    printf("Fail: Start Test");
+    printf("Fail: Start Test\n");
     test_pass = false;
   }
 
@@ -194,7 +194,7 @@ bool task_access_test(sched_task_t *p_task)
   bool stop_result = sched_task_stop(p_task_copy);
   if (stop_result != p_task_access->stop)
   {
-    printf("Fail: Stop Test");
+    printf("Fail: Stop Test\n");
     test_pass = false;
   }
 
@@ -203,7 +203,7 @@ bool task_access_test(sched_task_t *p_task)
   bool interval_result = sched_task_update(p_task_copy, 1000);
   if (interval_result != p_task_access->interval)
   {
-    printf("Fail: Interval Update Test");
+    printf("Fail: Interval Update Test\n");
     test_pass = false;
   }
 
@@ -214,7 +214,7 @@ bool task_access_test(sched_task_t *p_task)
     bool data_add_result = test_data_add(p_task_copy);
     if (data_add_result != p_task_access->data)
     {
-      printf("Fail: Data Add Test");
+      printf("Fail: Data Add Test\n");
       test_pass = false;
     }
   }
