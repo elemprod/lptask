@@ -50,11 +50,11 @@ Access to a task is limited by the task's current state as summarized in the tab
 
 | Task State           |Task Config | Task Start | Task Stop | Task Interval Update | Task Data Update |
 | :----                |   :----:   |   :----:   |  :----:   |     :----:           |    :----:        |
-| SCHED_TASK_UNINIT    | &#x26AB;   |            |           |                      |                  | 
-| SCHED_TASK_STOPPED   | &#x26AB;   | &#x26AB;   | &#x26AB;  | &#x26AB;             | &#x26AB;         | 
-| SCHED_TASK_ACTIVE    |            | &#x26AB;   | &#x26AB;  | &#x26AB;             |                  | 
-| SCHED_TASK_EXECUTING |            | &#x26AB;   | &#x26AB;  | &#x26AB;             |                  | 
-| SCHED_TASK_STOPPING  |            | &#x26AB;   | &#x26AB;  | &#x26AB;             |                  | 
+| SCHED_TASK_UNINIT    | &#9726;    |            |           |                      |                  | 
+| SCHED_TASK_STOPPED   | &#9726;    | &#9726;    | &#9726;   | &#9726;              | &#9726;          | 
+| SCHED_TASK_ACTIVE    |            | &#9726;    | &#9726;   | &#9726;              |                  | 
+| SCHED_TASK_EXECUTING |            | &#9726;    | &#9726;   | &#9726;              |                  | 
+| SCHED_TASK_STOPPING  |            | &#9726;    | &#9726;   | &#9726;              |                  | 
 
 
 ## Access Control Rationale
