@@ -164,6 +164,8 @@ Several [example projects](./examples/README.md) are provided in the  `/examples
 
 [Task State & Access Control](./docs/task_state.md)
 
+[Build Configuration](./docs/build_config.md)
+
 [Project Style Guide](./docs/style_guide.md)
 
 ### License
