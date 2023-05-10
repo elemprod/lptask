@@ -333,7 +333,7 @@ int main()
   log_test_result(&task_results_b);
   log_info("\n");
 
-  if ((test_result_combined(&task_results_a) == TEST_STATE_PASS) &
+  if ((test_result_combined(&task_results_a) == TEST_STATE_PASS) &&
       (test_result_combined(&task_results_b) == TEST_STATE_PASS))
   {
     log_info("\n** TEST PASS **\n\n");

@@ -35,7 +35,7 @@ void buff_randomize(buff_test_data_t *p_data)
   p_data->buff.data_len = data_len;
 
   // Fill the data array with random data
-  for (uint32_t index; index < data_len; index++)
+  for (uint32_t index = 0; index < data_len; index++)
   {
     p_data->buff.data[index] = (uint8_t)(rand() % UINT8_MAX);
   }

@@ -132,14 +132,13 @@ static void pool_task_handler(sched_task_t *p_task, void *p_data, uint8_t data_s
       log_error("CRC Failed!\n");
       test_pass_set(false);
       sched_stop();
-    }  
+    }  else {
+      // Fill the buffer with random data
+      buff_randomize(p_buff_data);
 
-    // Fill the buffer with random data
-    buff_randomize(p_buff_data);
-
-    // Update the CRC value.
-    buff_crc_calc(p_buff_data);
-
+      // Update the CRC value.
+      buff_crc_calc(p_buff_data);
+    }
   }
 }
 
@@ -205,6 +204,7 @@ static void pool_starter_handler(sched_task_t *p_task, void *p_data, uint8_t dat
     if(pool_tasks_started < TASK_COUNT) {
       log_error("Only %u of %u pool tasks could be allocated.\n", pool_tasks_started, TASK_COUNT);
       test_pass_set(false);
+      sched_stop();
     }
     
     // Stop the starter task since all of the pool has been allocated.

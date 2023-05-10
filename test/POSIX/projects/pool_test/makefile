@@ -8,7 +8,8 @@ SCHED_DIR ?= ../../../../src/scheduler
 
 INC_DIRS := $(shell find $(SRC_DIR) -type d) $(shell find $(SCHED_DIR) -type d) $(shell find $(SRC_COMMON_DIR) -type d) $(shell find $(SRC_EXTERNAL_DIR)/crc/crc/ -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
-CFLAGS ?= $(INC_FLAGS) -MMD -MP
+override CFLAGS += $(INC_FLAGS) -MMD -MP -Wall -Wno-unused-function
+
 
 all:
 	mkdir -p $(BUILD_DIR)

@@ -31,7 +31,7 @@ uint32_t sched_port_ms(void) {
   // Convert the current time to mS
   int64_t time_ms = (time.tv_sec * 1000) + lround(time.tv_nsec/1e6);
   // Limit the returned value.
-  return time_ms % UINT32_MAX;
+  return (uint32_t) time_ms % UINT32_MAX;
 }
 
 #if 0
