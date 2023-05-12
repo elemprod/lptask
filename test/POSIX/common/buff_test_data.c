@@ -9,25 +9,25 @@
 #include "crc16.h"
 #include "buff_test_data.h"
 
-void buff_crc_calc(buff_test_data_t *p_data)
+void buff_crc_calc(buff_test_data_t * const p_data)
 {
   assert(p_data != NULL);
-  p_data->buff_crc = crc16((const char *)&p_data->buff, sizeof(buffer_t));
+  p_data->buff_crc = crc16((const char *) &p_data->buff, sizeof(buffer_t));
 }
 
-bool buff_crc_check(buff_test_data_t *p_data)
+bool buff_crc_check(const buff_test_data_t * const p_data)
 {
   assert(p_data != NULL);
-  uint16_t crc_calc = crc16((const char *)&p_data->buff, sizeof(buffer_t));
+  uint16_t crc_calc = crc16((const char *) &p_data->buff, sizeof(buffer_t));
   return (crc_calc == p_data->buff_crc);
 }
 
-void buff_randomize(buff_test_data_t *p_data)
+void buff_randomize(buff_test_data_t * const p_data)
 {
   assert(p_data != NULL);
 
   // Zero the data array.
-  memset(p_data->buff.data, 0x00, BUFF_DATA_LEN);
+  memset(p_data->buff.data, 0x00, sizeof(p_data->buff.data));
 
   // Generate a random length for the data array.
   uint32_t data_len = (rand() % (BUFF_DATA_LEN - 1)) + 1;
@@ -37,11 +37,11 @@ void buff_randomize(buff_test_data_t *p_data)
   // Fill the data array with random data
   for (uint32_t index = 0; index < data_len; index++)
   {
-    p_data->buff.data[index] = (uint8_t)(rand() % UINT8_MAX);
+    p_data->buff.data[index] = (uint8_t)(rand() & 0xFF);
   }
 }
 
-void buff_init(buff_test_data_t *p_data)
+void buff_init(buff_test_data_t * const p_data)
 {
   assert(p_data != NULL);
 
