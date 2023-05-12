@@ -21,8 +21,6 @@
  * The lock prevents different contexts of code from modifying
  * the task que pointers at the same time which could lead to
  * corruption of the que.
- *
- * @return void
  */
 void sched_port_lock(void);
 
@@ -53,8 +51,6 @@ uint32_t sched_port_ms(void);
  *
  * @param[in] interval_ms  The requested sleep interval (mS)
  *                         0 to SCHED_MS_MAX (mS)
- *
- * @return    none
  */
 void sched_port_sleep(uint32_t interval_ms);
 
@@ -64,8 +60,6 @@ void sched_port_sleep(uint32_t interval_ms);
  *
  * The mS timer should be setup and enabled here if not previously
  * enabled.
- *
- * @return    none
  */
 void sched_port_init(void);
 
@@ -73,8 +67,6 @@ void sched_port_init(void);
  * @brief Optional function for performing in any platform-specific
  * deinitialization and tear down.  Any resources initialized in
  * sched_port_init() should be deinitialized here.
- *
- * @return    none
  */
 void sched_port_deinit(void);
 

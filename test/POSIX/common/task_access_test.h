@@ -24,6 +24,6 @@
  * @return            True if the task's passed each of
  *                    the access control tests else false.
  */
-bool task_access_test(sched_task_t *p_task);
+bool task_access_test(const sched_task_t * const p_task);
 
 #endif // TASK_ACCESS_TEST_H__

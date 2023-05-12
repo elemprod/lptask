@@ -66,27 +66,25 @@ const task_state_access_t TASK_STOPPING_ACCESS = {
  * @param[in] p_task  Pointer to the task
  * @return            Pointer to the access contorl structure definition.
  */
-static const task_state_access_t *task_state_access(sched_task_t *p_task)
+static const task_state_access_t *task_state_access(const sched_task_t * const p_task)
 {
   assert(p_task != NULL);
 
-  switch (p_task->state)
-  {
+  switch (p_task->state) {
+    case SCHED_TASK_UNINIT:
+      return &TASK_UNINIT_ACCESS;
 
-  case SCHED_TASK_UNINIT:
-    return &TASK_UNINIT_ACCESS;
+    case SCHED_TASK_STOPPED:
+      return &TASK_STOPPED_ACCESS;
 
-  case SCHED_TASK_STOPPED:
-    return &TASK_STOPPED_ACCESS;
+    case SCHED_TASK_ACTIVE:
+      return &TASK_ACTIVE_ACCESS;
 
-  case SCHED_TASK_ACTIVE:
-    return &TASK_ACTIVE_ACCESS;
+    case SCHED_TASK_EXECUTING:
+      return &TASK_EXECUTING_ACCESS;
 
-  case SCHED_TASK_EXECUTING:
-    return &TASK_EXECUTING_ACCESS;
-
-  case SCHED_TASK_STOPPING:
-    return &TASK_STOPPING_ACCESS;
+    case SCHED_TASK_STOPPING:
+      return &TASK_STOPPING_ACCESS;
   }
 
   printf("ERROR: Unknown State\n");
@@ -101,7 +99,7 @@ static const task_state_access_t *task_state_access(sched_task_t *p_task)
  * @return            True if data could be added to the task else false.
  *
  */
-static bool test_data_add(sched_task_t *p_task)
+static bool test_data_add(sched_task_t * const p_task)
 {
   assert(p_task != NULL);
 
@@ -127,7 +125,7 @@ static void test_task_handler(sched_task_t *p_task, void *p_data, uint8_t data_s
  * @return            Pointer to the local copy of the task.
  *
  */
-static sched_task_t *task_local_copy(sched_task_t *p_task)
+static sched_task_t *task_local_copy(const sched_task_t * const p_task)
 {
 
   // Create a local data structure and buffer.
@@ -144,7 +142,7 @@ static sched_task_t *task_local_copy(sched_task_t *p_task)
   return &task_copy;
 }
 
-bool task_access_test(sched_task_t *p_task)
+bool task_access_test(const sched_task_t * const p_task)
 {
   // Did the task pass all of the access control tests?
   bool test_pass = true;
@@ -157,7 +155,7 @@ bool task_access_test(sched_task_t *p_task)
   }
 
   // Get the access control structure based on the task's current state
-  task_state_access_t *p_task_access = (task_state_access_t *)task_state_access(p_task);
+  const task_state_access_t *p_task_access = (task_state_access_t *)task_state_access(p_task);
 
   /* Create a local copy of the task & data structure to perform
    * the test ib.  Testing the copy rather than the original avoid's

@@ -19,7 +19,7 @@
   *  Test Tasks:
   *
   *  Random Interval Task
-  *    A one-shot task which uses a new random inveral time for every task
+  *    A one-shot task which uses a new random interval time for every task
   *    handler call.
   *
   *  Second, Minute, Hour & Day Interval Task's
@@ -190,7 +190,7 @@ static void test_tasks_start() {
   sched_task_start(&day_task);
 }
 
-int main()
+int main(void)
 {
   printf("\n*** Scheduler Test Started ***\n\n");
     printf("Platform Information:\n");

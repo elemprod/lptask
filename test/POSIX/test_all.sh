@@ -12,8 +12,6 @@ access_test() {
     printf "Task Acccess Test ($1): ${RED}FAIL${NOCOLOR}\n"
   fi
 }
-echo -e "\e[31mHello World\e[0m"
-
 interval_math_test() {
   # Interval Math Test
   if ./projects/interval_math/build/interval_math; then
@@ -38,31 +36,33 @@ clear
 echo "*** Scheduler Library Test ***"
 
 # Test with the Default Configuration
-make clean
-make all
+make -s clean
+make -s all
+echo ""
 access_test 'Default'
 interval_math_test 'Default'
 task_pool_test 'Default'
 
 # Test the Buffer Clear Enabled Configuration
-make clean
-make buff_clear_enable
+make -s clean
+make -s buff_clear_enable
+echo ""
 access_test 'Buff Clear Enabled'
 interval_math_test 'Buff Clear Enabled'
 task_pool_test 'Buff Clear Enabled'
 
-
 # Test the Task Pool Disabled Configuration
-make clean
-make task_pools_disable
+make -s clean
+make -s task_pools_disable
+echo ""
 access_test 'Task Pools Disabled'
 interval_math_test 'Task Pools Disabled'
 # The task pool test would fail, skip test.
-task_pool_test 'Task Pools Disabled'
 
 # Test the Task Cache Disabled Configuration
-make clean
-make task_cache_disable
+make -s clean
+make -s task_cache_disable
+echo ""
 access_test 'Task Cache Disabled'
 interval_math_test 'Task Cache Disabled'
 task_pool_test 'Task Cache'

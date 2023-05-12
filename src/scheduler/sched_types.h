@@ -14,24 +14,27 @@
 
 /**
  * @brief A type representing a scheduler task state.
+ *
+ * @note The enum value need to be explicity set since it is stored as
+ * a nibble sized bit-field.
  */
 typedef enum {
   /// @brief The task has not been initialized yet.
-  SCHED_TASK_UNINIT = 0,
+  SCHED_TASK_UNINIT     = 0x0,
   /// @brief The task has been initialized but is inactive.
-  SCHED_TASK_STOPPED,
+  SCHED_TASK_STOPPED    = 0x1,
   /// @brief The task is active
-  SCHED_TASK_ACTIVE,
+  SCHED_TASK_ACTIVE     = 0x2,
   /// @brief The task handler is executing.
-  SCHED_TASK_EXECUTING,
+  SCHED_TASK_EXECUTING  = 0x3,
   /**
    * @brief The task is in the proccess of stopping.
    * 
    * The task enters the SCHED_TASK_STOPPING state if the sched_task_stop() 
    * function is called while the task is executing its handler.  The task will
-   *  move to the SCHED_TASK_STOPPED state once its handler completes.
+   * move to the SCHED_TASK_STOPPED state once its handler completes.
    */ 
-  SCHED_TASK_STOPPING
+  SCHED_TASK_STOPPING   = 0x5
 } sched_task_state_t;
 
 /**
@@ -100,8 +103,6 @@ typedef struct _sched_task {
  * @param[in] p_task      Pointer to the task.
  * @param[in] p_data      Pointer to the task data.
  * @param[in] data_size   Size of the task data. (bytes) 
- * 
- * @return void
  */
 typedef void (*sched_handler_t)(sched_task_t *p_task, void *p_data, uint8_t data_size);
 

@@ -71,6 +71,7 @@
       .buff_size = SCHED_BUFF_LIMIT(BUFF_SIZE),               \
       .data_size = 0,                                         \
       .repeat = false,                                        \
+      .allocated = false,                                     \
       .state = SCHED_TASK_UNINIT,                             \
   }                                
 
@@ -255,8 +256,6 @@ bool sched_task_stop(sched_task_t *p_task);
  * Note that if the scheduler module was previously, this function should not 
  * be called until the stop completes as indicated by the sched_start() 
  * function returning.
- * 
- * @return void
  */
 void sched_init(void);
 
@@ -267,8 +266,6 @@ void sched_init(void);
  * This function must be called from the main context, typically after 
  * all platform initialization has completed. The function does not 
  * return, once called, until the scheduler is stopped.
- *
- * @return void
  */
 void sched_start(void);
 
@@ -278,8 +275,6 @@ void sched_start(void);
  * Note the function call may not immediately stop the scheduler. The scheduler
  * will finish executing any tasks with expired timers before completing the 
  * stop.
- * 
- * @return void
  */
 void sched_stop(void);
 
