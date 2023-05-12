@@ -32,12 +32,12 @@
 static sched_task_t * pool_task_alloc(void);
 
 // Enable Debugging?
-const bool DEBUG_EN = true;
+const bool DEBUG_EN = false;
 
 // Informational Logging - only prints if debug is true.
 #define log_info(fmt, ...)              \
   do {                                  \
-      if (DEBUG_EN) {                      \
+      if (DEBUG_EN) {                   \
         printf(fmt, ## __VA_ARGS__);    \
         fflush(stdout);                 \
       }                                 \
