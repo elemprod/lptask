@@ -241,14 +241,3 @@ int main(void) {
   }
 
 }
-
-// Optional Scheduler Port Init / Deinit (for debugging)
-void sched_port_init(void)
-{
-  log_info("sched_port_init()\n");
-}
-
-void sched_port_deinit(void)
-{
-  log_info("sched_port_deinit()\n");
-}

@@ -221,14 +221,3 @@ int main(void)
   fflush(stdout);
   return 0;
 }
-
-// Optional Scheduler Port Init / Deinit (for debugging)
-void sched_port_init(void) {
-  printf("sched_port_init()\n");
-  fflush(stdout);
-}
-
-void sched_port_deinit(void) {
-  printf("sched_port_deinit()\n");
-  fflush(stdout);
-}
