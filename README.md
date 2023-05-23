@@ -36,17 +36,24 @@ The cooperative scheduler does not provide all of the same features which a
 preemptive OS typically does.  The major differences include:
 
 * A task's handler executes until completion, once the task expires, in a 
-cooperative manner.  A task handler's execution is only be suspended by a 
-interrupt or exception events and not by another scheduler task.
-* It's typical to have several milliseconds of jitter in task execution 
-intervals for a system with multiple active tasks queued at the same time.  
-This jitter is nearly always acceptable for UI tasks, such as blinking an LED, 
-debouncing a switch or timing the length of music note.
+cooperative manner.  A task handler's execution can only be suspended by a 
+interrupt or exception event and not by another scheduler task.
+* It's typical to have several to 10's of milliseconds of jitter in task 
+execution intervals for a system with multiple active tasks queued at the same 
+time.  This jitter is nearly always acceptable for UI related tasks such as 
+blinking an LED, debouncing a switch or timing the length of music note.
 * Tasks which require finer grain control or more deterministic behavior should 
 be implemented with a dedicated  hardware timer.  For example, an application 
 might implement a real-time motion control loop with a 50 Hz hardware timer 
 and perform UI tasks with the scheduler. 
- * Theres no no task prioritization functionality support.
+ * Task handlers need to execute relatively quickly to avoid starving other 
+ tasks of CPU time.  This same issue exists with a RTOS.  An RTOS long-running 
+ task would typically yield at some point during its execution to allow other
+ task to run with predictable timing.  In the case of the scheduler, a longer 
+ running task would need to save its state to its internal storage, restart 
+ itself with a short interval and then return from its handler.  It practice, 
+ this rarely needs to be done since task handler functions are typically short
+ in duration.
 
 Most low power embedded systems only require hard real time performance for a 
 small subset of their tasks and often don't require hard real time performance 
@@ -64,8 +71,8 @@ some of the following characteristics:
 powered devices.
 * The application has a high sleep duty cycle, the processor is anticipated to 
 be sleeping the vast majority of the time. 
-* The selected platform has the necessary hardware required to pause program 
-execution and sleep in a low power state during inactivity.
+* The selected platform has the necessary hardware sleep in a low power state 
+during periods of inactivity.
 * RAM and ROM resources are limited.
 
 <img src="./docs/img/scheduler_app.svg" align="center" hspace="15" vspace="15" 
@@ -96,9 +103,9 @@ reference.  Only a pointer to the user supplied data and the data size are
 stored in the task when the  `sched_task_data()` function is called.  The 
 external data must still be valid when the task handler is called at a later point in time.    
 
-Buffered tasks have dedicated internal memory for storing the user's task data.  
-Data is added to a buffered task by copying it to the task's internal data 
-buffer when the `sched_task_data()` function is called.
+Buffered tasks have dedicated internal memory for storing the user's task 
+data.  Data is added to a buffered task by copying it to the task's internal 
+data buffer when the `sched_task_data()` function is called. 
 
 | Task Type             | Unbuffered              | Buffered |
 |  :----                | :----                   |  :----    |
@@ -238,17 +245,17 @@ defined in [sched_port.h](./src/scheduler/sched_port.h).  See the
 [Platform Port](./docs/port.md) document for more detailed information on 
 adding support for a new platform.
 
-## Additional Information
+## Additional Documentation
 
-Several [Build Configuration](./docs/build_config.md) #defines enable 
-customization of the scheduler.
+Several [Build Configuration](./docs/build_config.md) options are available to 
+customize the scheduler.
 
-A series of [Test Projects](./test/POSIX/README.md) have been created to 
-test the library.
+A series of [Test Projects](./test/POSIX/README.md) have been created to verify 
+the schedulers operation.
 
-[Project Style Guide](./docs/style_guide.md)
+The [Project Style Guide](./docs/style_guide.md).
 
-[Author & History](./docs/about.md)
+Background information about the [Author and the Project History](./docs/about.md). 
 
 ### License
 
