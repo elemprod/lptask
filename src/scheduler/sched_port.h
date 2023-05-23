@@ -1,9 +1,7 @@
 /**
  * @file sched_port.h
  * @author Ben Wirz
- * @brief Platform specific scheduler support functions.
- * 
- * The library's example folder contains sample implementations.
+ * @brief Platform-specific scheduler support functions.
  * 
  * @note The functions marked as mandatory must be implemented by the user in 
  * order to utilize the scheduler module.  
@@ -18,9 +16,8 @@
  * @brief Mandatory platform-specific function for acquiring exclusive
  * access to the scheduler's shared data structure.
  *
- * The lock prevents different contexts of code from modifying
- * the task que pointers at the same time which could lead to
- * corruption of the que.
+ * The lock prevents different contexts of code from modifying the task que 
+ * pointers at the same time which could lead to corruption of the que.
  */
 void sched_port_lock(void);
 
@@ -31,7 +28,7 @@ void sched_port_lock(void);
 void sched_port_free(void);
 
 /**
- * @brief Mandatory platform-specific function for reading the current
+ * @brief Mandatory platform-specific function for getting the current
  * value of the mS timer to be utilized by the scheduler for task
  * timing.
  *

@@ -10,7 +10,7 @@
 /***** Scheduler Configuration Defines *****/
 
 /**
- * @brief Definition to enable / disable clearing the buffered task's.
+ * @brief Definition to enable / disable clearing buffered task's.
  * 
  * If SCHED_TASK_BUFF_CLEAR_EN is defined to be > 0, task data buffers 
  * will be cleared when they are configured.  The default implementation 

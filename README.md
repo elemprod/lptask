@@ -91,10 +91,10 @@ int main() {
 ## Unbuffered vs. Buffered Tasks
 
 The scheduler supports both unbuffered and buffered task types. Unbuffered tasks 
-don't have an internal data buffer. Data is added to the task by reference.  
-Only a pointer to the user supplied data and the data size are stored in the 
-task when the  `sched_task_data()` function is called.  The external data must 
-still be valid when the task handler is called at a later point in time.    
+don't have an internal data buffer. Data is added to the unbuffered tasks by 
+reference.  Only a pointer to the user supplied data and the data size are 
+stored in the task when the  `sched_task_data()` function is called.  The 
+external data must still be valid when the task handler is called at a later point in time.    
 
 Buffered tasks have dedicated internal memory for storing the user's task data.  
 Data is added to a buffered task by copying it to the task's internal data 
