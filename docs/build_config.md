@@ -13,16 +13,16 @@ end user to customize its operation and optimize it for their application.
  
 ## SCHED_TASK_BUFF_CLEAR_EN
 
-Defining `SCHED_TASK_BUFF_CLEAR_EN` to be != 0 enables clearing task data buffers 
-during task configuration for buffered tasks.  The entire buffer will have the 
-value of 0x00 after the `sched_task_config()` function returns.  The default 
-implementation is to not clear the buffers but the end user can override this 
-by defining `SCHED_TASK_BUFF_CLEAR_EN` to be 1 if desired.  Clearing large 
-task data buffer can be costly and is unnecessary for most applications 
-since the portion of the buffer which is utilized is overwritten when the task 
-data is added with the `sched_task_data()` function.  Clearing the buffer can 
-be useful for debugging purposes and is therefore supported.  Note that the
-definition does not apply to unbuffered tasks.
+Defining `SCHED_TASK_BUFF_CLEAR_EN` to be != 0 enables clearing task data 
+buffers during task configuration for buffered tasks.  The entire buffer will 
+have the value of 0x00 after the `sched_task_config()` function returns.  The 
+default implementation is to not clear the buffers but the end user can 
+override this behavior by defining `SCHED_TASK_BUFF_CLEAR_EN` to be 1 if 
+needed.  Clearing large task data buffer can be costly and is unnecessary for 
+most applications since the portion of the buffer which is utilized is 
+overwritten when the task data is added with the `sched_task_data()` function.  
+Clearing the buffer can be useful for debugging purposes and is therefore 
+supported.  Note that the definition does not apply to unbuffered tasks.
 
 ## SCHED_TASK_POOL_EN
 
@@ -34,24 +34,29 @@ not needed.
 
 ## SCHED_TASK_CACHE_EN
 
-<img src="./img/task_loop_cache.svg" align="right" hspace="10" vspace="0" alt="Task Service Loop"> 
-The scheduler caches the next expiring task during the task service loop by default.
-Saving the next expiring task enables the scheduler to quickly determine if it
-can sleep in some instances without having to test each task in the que for expiration.  If the
-cached task is unexpired, the scheduler can immediately put the processor back 
-to sleep.  The task caching improves the overall efficiency of the scheduler 
-in cases where the processor is routinely woken due an interrupt or 
-other exception.  
+<img src="./img/task_loop_cache.svg" align="right" 
+  hspace="10" vspace="0" alt="Task Service Loop"> 
+The scheduler caches the next expiring task during the task service loop by 
+default.  Saving the next expiring task enables the scheduler to quickly 
+determine if it can sleep in some instances without having to test each task 
+in the que for expiration.  If the cached task is unexpired, the scheduler can 
+immediately put the processor back to sleep.  The task caching improves the 
+overall efficiency of the scheduler in cases where the processor is routinely 
+woken due an interrupt or other exception.  
 <br>
 <br clear="right"/>
 
-<img src="./img/task_loop_no_cache.svg" align="right" hspace="15" vspace="0" alt="Task Service Loop with Caching Disabled"> 
+<img src="./img/task_loop_no_cache.svg" align="right" 
+  hspace="15" vspace="0" alt="Task Service Loop with Caching Disabled"> 
 
 Task caching can be disabled by by defining SCHED_TASK_CACHE_EN to be 0.  
 
 <br clear="right"/>
 
-A flow chart representing the task search algorithm is presented below for completeness.  The same task search technique is utilized wether or not not caching is enabled.
+A flow chart representing the task search algorithm is presented below 
+for completeness.  The same task search technique is utilized wether or not 
+caching is enabled.
 <center>
-<img src="./img/task_search.svg" align="center" hspace="5" vspace="10" alt="Task Search"> 
+<img src="./img/task_search.svg" align="center" hspace="5" 
+  vspace="10" alt="Task Search"> 
 </center>

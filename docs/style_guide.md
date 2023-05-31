@@ -1,9 +1,5 @@
 #  Coding Style Guide
 
-Code style guides always represent some level of preference on the authors
-part and can be the subject of much debate.  A poor but consistently 
-implemented style guide is better than no guide at all.
-
 ## Module Naming Conventions
 
 All publicly accessible functions, macros and scheduler specific type names 
@@ -11,6 +7,10 @@ should have "sched_" prepended which provides module level naming scope.
 
 Functions names which take a scheduler task as a parameter should have 
 "sched_task_" prepended.
+
+The `Snake Case` naming convention is used with lower cases letters and spaces 
+replaced with underscores "_" is exclusively used.  Constant value definitions 
+and macros use upper case letters and the underscore replacement. 
 
 ## Type Naming Conventions
 
@@ -24,18 +24,19 @@ Functions names which take a scheduler task as a parameter should have
 
 ## General Conventions
 
-* Exclusively use static memory rather than dynamic memory to ensure predictable 
-runtime program execution .  In general, there rarely exists a technique for an 
-embedded program to recover from `malloc()` returning less memory than it needs 
-to execute.   
+* Static memory is exclusively used rather than dynamic memory to ensure 
+predictable runtime program execution .  A technique rarely exists which enables
+an embedded program to recover from `malloc()` returning less memory than it 
+needs to execute. 
 
-* Prefer static inline functions versus function like macros, where 
-possible.  Although this approach requires trusting the compiler to generate 
-efficient code, it significantly improves the readability and provides simpler 
-debugging in most cases.
+* Where possible, prefer static inline functions versus function like 
+macros.  Although this approach requires trusting the compiler to generate 
+efficient code, it significantly improves the source code readability and 
+provides simpler debugging in many cases.
 
 * Prefer enumerations with typedefs versus #defines for multi-valued 
-constants.  When properly named, a typedef is self-documenting even though older compliers may generate slightly more code for an enumeration vs a #define.
+constants.  When properly named, a typedef is self-documenting even though 
+older compliers may generate slightly more code for an enumeration vs a #define.
 
 * Use static declaration for functions which are only meant to be called from
 inside of a module to document that the function not meant for public use.  This 
@@ -61,8 +62,9 @@ might be useful.
 
 * Bit fields should only be used for the purpose of packing short-length data 
 and flags inside a structure to economize storage space.  Bit fields should not 
-be used to access individual bits in larger data types since their layout is implementation defined.
+be used to access individual bits in larger data types since their layout is 
+implementation defined.
 
-* Prefer fixed size data types should be used for consistent operation on 
-different platforms.  For example, the `int32_t` type should be used 
-versus the `int` type.
+* Prefer exact-width integer data types for consistent operation on different 
+platforms.  For example, the `int32_t` type should be used versus the `int` 
+type.

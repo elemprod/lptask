@@ -59,26 +59,44 @@ Access to a task is limited by the task's current state as summarized in the tab
 
 ## Access Control Rationale
 
-The following list describes reasoning for the access control restrictions for each state.
+The following list documents the reasoning behind the access control 
+restrictions for each task state.
 
 * SCHED_TASK_UNINIT:
-    * A task must be initialized with `sched_task_config()` function prior to use. 
+    * A task must be initialized with `sched_task_config()` function prior to 
+    use. The function configures the task and adds it to the task que.
     * Any other function calls on uninitialized tasks will fail.
 
 * SCHED_TASK_STOPPED:  
-    * No access protection is required while the task is stopped.
-    * This is the only state during which the task data can  be updated.  This protects against task data from modification from within an ISR while the task's handler is executing.
+    * No access protection is required if the task is stopped.
+    * Stopped is the only state during which the task data can  be 
+    updated.  This protects against task data being modified from within an 
+    ISR while the task's handler is executing.
 
 * SCHED_TASK_ACTIVE:  
-    * Although it would technically be possible to update a task configuration with the `sched_task_config()` function in the SCHED_TASK_ACTIVE state, it was decided to explicitly disallow it.  Doing so simplifies the configuration rule to a task must be stopped or uninitialized before its configuration can be modified.
-    * Calls to the interval set function, on a currently active task, stop the task prior to updating it.    
-    * Starting a task that's already in the SCHED_TASK_ACTIVE state updates the task's start time but have no other effect since the task is already active.
+    * Calls to the interval set function, on a currently active task, stop the 
+    task prior to updating it. 
+    * Starting a task that's already in the SCHED_TASK_ACTIVE state updates the
+    task's start time but has no other effect since the task is already active.
     
 * SCHED_TASK_EXECUTING & SCHED_TASK_STOPPING:  
-    * The executing and stopping states require the most access control restrictions.  
-    * The task's scheduler function has been called but has not returned yet in both of these states.  Changing the task data could conflict with the work being performed by the handler function.
-    * Although it may be somewhat unintuitive at first consideration, a task's interval can safely be updated in both of these states.   A task is checked for expiration just prior to entering the SCHED_TASK_EXECUTING.  The task interval is not accessed by the scheduler while in the SCHED_TASK_EXECUTING or SCHED_TASK_STOPPING states and can therefore be safely be updated.
-    * A call to the stop function on a currently executing task does not happen immediately.  The task's handler function must return before the task can stop.  The stop request is recorded by the task moving the into the SCHED_TASK_STOPPING state. The task will then move to the SCHED_TASK_STOPPED state once the handler returns.
-    * A non-repeating task will be placed into the SCHED_TASK_STOPPING state prior to calling the task handler function to indicate that it will be stopped once the handler function returns.  This gives the user the opportunity to restart the task inside of its handler if desired.
+    * The executing and stopping states require the most access control 
+    restrictions.  
+    * The task's scheduler function has been called but has not returned yet in 
+    both of these states.  Changing the task data might conflict with the work 
+    being performed by the task handler function.
+    * Although it may be somewhat unintuitive at first consideration, a task's 
+    interval can safely be updated in both of these states.   A task is checked 
+    for interval expiration just prior to entering the SCHED_TASK_EXECUTING 
+    state.  The task interval is not accessed by the scheduler while in either 
+    of the SCHED_TASK_EXECUTING or SCHED_TASK_STOPPING states and can therefore 
+    safely be updated.
+    * A call to the stop function on a currently executing task does not happen immediately.  The task's handler function must return before the task can 
+    stop.  The stop request is recorded by the task moving the into the SCHED_TASK_STOPPING state. The task will then move to the SCHED_TASK_STOPPED 
+    state once its handler returns.
+    * A non-repeating task will be placed into the SCHED_TASK_STOPPING state 
+    prior to calling its handler function to indicate that it will be stopped 
+    once the handler function returns.  This gives the user the opportunity to 
+    restart a task inside of its handler if desired.
 
 
