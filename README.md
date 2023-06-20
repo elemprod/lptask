@@ -58,8 +58,8 @@ and perform UI tasks with the scheduler.
 ## Use Cases
 
 The LPTASK scheduler can be used in almost any simple to medium complexity 
-embedded systems but it really shines in applications which have 
-some of the following characteristics:
+single processor embedded systems but it really shines in applications 
+which have some of the following characteristics:
 
 * Power reduction is a high priority which is often the case for battery 
 powered devices.
