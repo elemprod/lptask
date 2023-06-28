@@ -1,9 +1,9 @@
 # Low Power Task Scheduler
 
- LPTASK is a cooperative / non-preemptive task scheduler library which provides 
- an easy-to-use mechanism for scheduling tasks to be executed in the future 
- without the complexity or overhead of an operating system.  Once scheduled, a 
- task's handler is executed from the main context once its programmed interval 
+ LPTASK is a cooperative task scheduler library which provides an easy-to-use 
+ mechanism for scheduling tasks to be executed in the future without the 
+ complexity or overhead of an operating system.  Once scheduled, a task's 
+ handler is executed from the main context once its programmed interval 
  expires.  
 
 ## Major Features
@@ -17,7 +17,7 @@ possible.
 * The platform-specific port function make is easy for developers to take 
 advantage of the sleep, timer and other power reduction mechanisms provided 
 by a particular processor.
-* The core scheduler only module consumes ~1,000 bytes of ROM making it well 
+* The core scheduler module only requires ~1100 bytes of ROM making it well 
 suited for embedded platforms.
 * All scheduler and task memory is statically allocated providing a fixed 
 compile time memory footprint. 
@@ -26,7 +26,7 @@ processor.
 * The scheduler is simple to learn and easy to use.  Configuring and starting a 
 new task only requires a few lines of code.  
 * The scheduler encourages the practice of writing lightweight interrupt 
-handlers which typically improve system responsiveness and the stability of 
+handlers which typically improves the system responsiveness and the stability of 
 embedded applications.  Work from interrupt handlers can easily be moved into 
 the main context with minimal overhead.
 
@@ -36,24 +36,16 @@ The cooperative scheduler does not provide all of the same features which a
 preemptive OS typically does.  The major differences include:
 
 * A task's handler executes until completion, once the task interval expires, in 
-a cooperative manner.  A task handler's execution can only be suspended by a 
+a non-preemptive manner.  A task handler's execution can only be suspended by a 
 interrupt or exception event and not by another scheduler task.
-* It's typical to have several to 10's of milliseconds of jitter in task 
-execution intervals for a system with multiple active tasks queued at the same 
+* It's typical to have several milliseconds of jitter in task 
+execution intervals for a system with multiple tasks which are active at the same 
 time.  This jitter is nearly always acceptable for UI related tasks such as 
 blinking an LED, debouncing a switch or timing the length of music note.
-* Tasks which require finer grain control or more deterministic behavior should 
+* Tasks which require finer grain control or more deterministic behavior need 
 be implemented with a dedicated  hardware timer.  For example, an application 
 might implement a real-time motion control loop with a 50 Hz hardware timer 
 and perform UI tasks with the scheduler. 
- * Task handlers need to execute relatively quickly to avoid starving other 
- tasks of CPU time.  This same issue exists with a RTOS.  An RTOS long-running 
- task would typically yield at some point during its execution to allow other
- task to run with predictable timing.  In the case of the scheduler, a longer 
- running task would need to save its state to its internal storage, restart 
- itself with a short interval and then return from its handler.  It practice, 
- this rarely needs to be done since embedded task handlers are most 
- often short in duration.
 
 ## Use Cases
 
@@ -61,19 +53,19 @@ The LPTASK scheduler can be used in almost any simple to medium complexity
 single processor embedded systems but it really shines in applications 
 which have some of the following characteristics:
 
-* Power reduction is a high priority which is often the case for battery 
+* Power reduction is a high priority, this is almost always the case for battery 
 powered devices.
-* The application has a high sleep duty cycle, the processor is anticipated to 
-be sleeping the vast majority of the time. 
-* The selected platform has the necessary hardware sleep in a low power state 
-during periods of inactivity.
+* The application has low duty cycle, the processor is anticipated to 
+be sleeping the majority of the time. 
+* The selected platform supports sleeping in a low power state during periods 
+of inactivity.
 * RAM and ROM resources are limited.
 
 Most low power embedded systems only require hard real time performance for a 
 small subset of their tasks and often don't require hard real time performance 
-at all.  These systems can live within a cooperative scheduler's constraints, 
-saving the overhead and complexity required by a typical preemptive OS and 
-ultimately reducing the system power consumption. 
+at all.  These systems can often live within a cooperative scheduler's 
+constraints, saving the overhead and complexity required by a typical 
+preemptive OS and ultimately reducing the system power consumption. 
 
 <p align="center">
   <img src="./docs/img/scheduler_app.svg" vspace="10" 
@@ -84,7 +76,7 @@ alt="Typical Scheduler Application">
 
 The scheduler must be initialized wth the `sched_init()` function and then 
 started with `sched_start()` function from the main context.  The start function 
-repeatably executes any expired tasks and sleep when no tasks are active.  The 
+repeatably services any expired tasks and sleeps when no tasks are active.  The 
 function does not return, once started, until the the scheduler has been 
 stopped.  
 ```c
@@ -102,8 +94,9 @@ int main() {
 The scheduler supports both unbuffered and buffered task types. Unbuffered tasks 
 don't have an internal data buffer. Data is added to the unbuffered tasks by 
 reference.  Only a pointer to the user supplied data and the data size are 
-stored in the task when the  `sched_task_data()` function is called.  The 
-external data must still be valid when the task handler is called at a later point in time.    
+stored in the task when the `sched_task_data()` function is called.  The 
+external data must still be valid when the task handler is called at a later 
+point in time.    
 
 Buffered tasks have dedicated internal memory for storing the user's task 
 data.  Data is added to a buffered task by copying it to the task's internal 
