@@ -3,7 +3,7 @@
  LPTASK is a cooperative task scheduler library which provides an easy-to-use 
  mechanism for scheduling tasks to be executed in the future without the 
  complexity or overhead of an operating system.  Once scheduled, a task's 
- handler is executed from the main context once its programmed interval 
+ handler is executed from the main context after its programmed interval 
  expires.  
 
 ## Major Features
@@ -11,41 +11,41 @@
 The scheduler offers the following features:
 
 * The scheduler's design has been optimized for low power embedded 
-applications.  Every design decision was made with the goal of performing the 
-required work and putting the the processors back to sleep as efficiently as 
+applications.  Every architecture decision was made with the goal of performing 
+the required work and putting the the processors back to sleep as efficiently as 
 possible.
 * The platform-specific port function make is easy for developers to take 
 advantage of the sleep, timer and other power reduction mechanisms provided 
 by a particular processor.
 * The core scheduler module only requires ~1100 bytes of ROM making it well 
 suited for embedded platforms.
-* All scheduler and task memory is statically allocated providing a fixed 
-compile time memory footprint. 
+* Tasks are statically allocated providing a fixed compile time memory 
+footprint. 
 * Each scheduler task only requires 20 bytes of RAM on a typical 32-bit 
 processor.
 * The scheduler is simple to learn and easy to use.  Configuring and starting a 
 new task only requires a few lines of code.  
 * The scheduler encourages the practice of writing lightweight interrupt 
 handlers which typically improves the system responsiveness and the stability of 
-embedded applications.  Work from interrupt handlers can easily be moved into 
+an embedded application.  Work from interrupt handlers can easily be moved into 
 the main context with minimal overhead.
 
 ## Comparison to a Preemptive OS / RTOS
                                                             
 The cooperative scheduler does not provide all of the same features which a 
-preemptive OS typically does.  The major differences include:
+preemptive OS (RTOS) typically does.  The major differences include:
 
 * A task's handler executes until completion, once the task interval expires, in 
 a non-preemptive manner.  A task handler's execution can only be suspended by a 
 interrupt or exception event and not by another scheduler task.
-* It's typical to have several milliseconds of jitter in task 
-execution intervals for a system with multiple tasks which are active at the same 
+* It's typical to have several milliseconds of jitter in task execution 
+intervals for a system with multiple tasks which are active at the same 
 time.  This jitter is nearly always acceptable for UI related tasks such as 
 blinking an LED, debouncing a switch or timing the length of music note.
-* Tasks which require finer grain control or more deterministic behavior need 
-be implemented with a dedicated  hardware timer.  For example, an application 
-might implement a real-time motion control loop with a 50 Hz hardware timer 
-and perform UI tasks with the scheduler. 
+* Tasks which require finer grain control or more deterministic behavior may 
+need be implemented with a dedicated  hardware timer.  For example, an 
+application might implement a real-time motion control loop with a 50 Hz 
+hardware timer and perform UI tasks with the scheduler. 
 
 ## Use Cases
 
@@ -53,7 +53,7 @@ The LPTASK scheduler can be used in almost any simple to medium complexity
 single processor embedded systems but it really shines in applications 
 which have some of the following characteristics:
 
-* Power reduction is a high priority, this is almost always the case for battery 
+* Power reduction is a high priority which is almost always the case for battery 
 powered devices.
 * The application has low duty cycle, the processor is anticipated to 
 be sleeping the majority of the time. 
@@ -61,11 +61,11 @@ be sleeping the majority of the time.
 of inactivity.
 * RAM and ROM resources are limited.
 
-Most low power embedded systems only require hard real time performance for a 
-small subset of their tasks and often don't require hard real time performance 
-at all.  These systems can often live within a cooperative scheduler's 
+Low power embedded systems typically only require hard real time performance 
+for a small subset of their tasks and often don't require hard real time 
+performance at all.  These systems can live within a cooperative scheduler's 
 constraints, saving the overhead and complexity required by a typical 
-preemptive OS and ultimately reducing the system power consumption. 
+preemptive OS and potentially reducing the system's power consumption. 
 
 <p align="center">
   <img src="./docs/img/scheduler_app.svg" vspace="10" 
@@ -93,10 +93,10 @@ int main() {
 
 The scheduler supports both unbuffered and buffered task types. Unbuffered tasks 
 don't have an internal data buffer. Data is added to the unbuffered tasks by 
-reference.  Only a pointer to the user supplied data and the data size are 
-stored in the task when the `sched_task_data()` function is called.  The 
-external data must still be valid when the task handler is called at a later 
-point in time.    
+reference.  Only a pointer to the user supplied data and the data length are 
+stored inside the task structure when the `sched_task_data()` function is 
+called.  The externally stored data must still be valid when the task handler 
+is called at a later point in time.    
 
 Buffered tasks have dedicated internal memory for storing the user's task 
 data.  Data is added to a buffered task by copying it to the task's internal 
@@ -116,8 +116,8 @@ An unbuffered scheduler task is defined with the `SCHED_TASK_DEF()` macro.
 SCHED_TASK_DEF(my_task);
 ```
 A buffered task is defined with the `SCHED_TASK_BUFF_DEF()` macro.  The size of 
-the task's internal buffer is supplied as a parameter to the macro.  This size
-is represents maximum data size that can be stored in the task buffer.
+the task's internal buffer is supplied as a parameter to the macro.  The size
+parameter represents maximum data size that can be stored in the task buffer.
 
 ```c
 // Buffered Task Definition
@@ -170,11 +170,12 @@ static void uart_isr() {
 Each task has a handler function assigned with the `sched_task_config()` 
 function.  The handler function is used to perform the task's work and is 
 called from the main context once the task's interval has expired.  The handler 
-must follow the `sched_handler_t` function prototype. 
+function must follow the `sched_handler_t` prototype. 
 
-A reference to the task itself is supplied to the handler so that the task can 
-be updated inside the handler function.  For example, a repeating LED FLASH 
-task could be stopped inside its handler after a condition has been met.
+A reference to the task is supplied to the handler function when its call so 
+that the task can be updated inside the handler function.  For example, a 
+repeating task could be stopped inside its handler once a condition has been 
+met.
 
 ```c
 // Task Handler Function
@@ -186,7 +187,7 @@ static void my_task_handler(sched_task_t *p_task, void *p_data, uint8_t data_siz
 ## Configuring & Starting Tasks
 
 Once defined or allocated in the case of a task pool, buffered and unbuffered 
-tasks are all accessed in the same way.  
+tasks are accessed in the same way.  
 
 Each task must to be configured with the `sched_task_config()` function before 
 it can be started with `sched_task_start()` function. 
@@ -219,34 +220,34 @@ it can be accessed with any of the other task functions.
 3. The task data can only be set with the `sched_task_data()` function while 
 the task is stopped.  
 
-Note that the value of the data stored inside a buffered task can be updated 
+Note that the values of the data stored inside a buffered task can be updated 
 inside of its task handler using the data pointer supplied to the handler.  For 
 example, a repeating task might utilize the buffer memory to track its current 
 state.  A task might generate a series of LED patterns for example.  The handler 
-could increment abn index to cycle through the LED patterns at each call. The 
-task data should typically only be modified inside the task handler since 
+could increment an index value to cycle through the LED patterns at each call. 
+The task data should typically only be modified inside the task handler since 
 modifying the data from an interrupt or exception context might lead to a race 
-condition unless an atomic data type was utilized.
+condition unless an atomic data type were utilized.
 
-See the [Task State](./docs/task_state.md) documentation for more details on 
-the task access control mechanism.
+The [Task State](./docs/task_state.md) documentation offers a more detailed 
+explanation of the task access control mechanism.
 
 ## Porting to a New Platform
  
-An [example project](./examples/README.md) is provided in the  `/examples/` 
-folder for a hardware platforms.  If your processor doesn't 
-match the example, you will need to implement the mandatory functions 
-defined in [sched_port.h](./src/scheduler/sched_port.h).  See the 
+An [example project](./examples/README.md) is provided in the `/examples/` 
+folder for a hardware platforms.  If your processor doesn't match the example, 
+you will need to implement the mandatory functions defined in 
+[sched_port.h](./src/scheduler/sched_port.h).  See the 
 [Platform Port](./docs/port.md) document for more detailed information on 
 adding support for a new platform.
 
 ## Additional Documentation
 
 Several [Build Configuration](./docs/build_config.md) options are available to 
-customize the scheduler.
+customize the scheduler based on the project needs.
 
 A series of [Test Projects](./test/POSIX/README.md) have been created to verify 
-the schedulers operation.
+the scheduler's operation.
 
 The [Project Style Guide](./docs/style_guide.md).
 
