@@ -1,7 +1,6 @@
 
 # Scheduler Build Configuration
 
-
 The scheduler supports several different build configurations which allows the 
 end user to customize its operation and optimize it for their application.
 

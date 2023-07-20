@@ -1,9 +1,9 @@
 # Low Power Task Scheduler
 
- LPTASK is a cooperative task scheduler library which provides an easy-to-use 
+ The LPTASK cooperative task scheduler library provides an easy-to-use 
  mechanism for scheduling tasks to be executed in the future without the 
  complexity or overhead of an operating system.  Once scheduled, a task's 
- handler is executed from the main context after its programmed interval 
+ handler is executed from the main context once its programmed interval 
  expires.  
 
 ## Major Features
@@ -74,8 +74,8 @@ alt="Typical Scheduler Application">
 
 ## Initializing & Starting the Scheduler
 
-The scheduler must be initialized wth the `sched_init()` function and then 
-started with `sched_start()` function from the main context.  The start function 
+The scheduler must be initialized with the `sched_init()` function and then 
+started with `sched_start()` from the main context.  The start function 
 repeatably services any expired tasks and sleeps when no tasks are active.  The 
 function does not return, once started, until the the scheduler has been 
 stopped.  
@@ -148,8 +148,8 @@ typedef struct {
 SCHED_TASK_POOL_DEF(uart_pool, sizeof(uart_data_t), 2);
 ```
 
-A task is allocated from the pool with the `sched_task_alloc()` function.  The 
-function returns a pointer to the allocated task or `NULL` if no unallocated 
+A task can be allocated from the pool with the `sched_task_alloc()` function.  
+The function returns a pointer to the allocated task or `NULL` if no unallocated 
 tasks were available.
 
 ```c
@@ -172,8 +172,8 @@ function.  The handler function is used to perform the task's work and is
 called from the main context once the task's interval has expired.  The handler 
 function must follow the `sched_handler_t` prototype. 
 
-A reference to the task is supplied to the handler function when its call so 
-that the task can be updated inside the handler function.  For example, a 
+A reference to the task is supplied to the handler function when it is called 
+so that the task can be updated inside the handler function.  For example, a 
 repeating task could be stopped inside its handler once a condition has been 
 met.
 
@@ -234,24 +234,21 @@ explanation of the task access control mechanism.
 
 ## Porting to a New Platform
  
-An [example project](./examples/README.md) is provided in the `/examples/` 
-folder for a hardware platforms.  If your processor doesn't match the example, 
-you will need to implement the mandatory functions defined in 
-[sched_port.h](./src/scheduler/sched_port.h).  See the 
+An [example project](./examples/README.md) is available in the `/examples/` 
+folder and more are projects are planned.  If your processor doesn't match the 
+example, you will need to implement the mandatory functions defined in the
+[sched_port.h](./src/scheduler/sched_port.h) header.  See the 
 [Platform Port](./docs/port.md) document for more detailed information on 
 adding support for a new platform.
 
 ## Additional Documentation
 
-Several [Build Configuration](./docs/build_config.md) options are available to 
-customize the scheduler based on the project needs.
-
-A series of [Test Projects](./test/POSIX/README.md) have been created to verify 
-the scheduler's operation.
-
-The [Project Style Guide](./docs/style_guide.md).
-
-Background information about the [Author and the Project History](./docs/about.md). 
+Several [Build Configuration](./docs/build_config.md) options are provided to 
+customize the scheduler for particular project. A series of 
+[Test Projects](./test/POSIX/README.md) have been created to automate 
+verification of the scheduler's operation under a POSIX environment.  A 
+[Project Style Guide](./docs/style_guide.md) and a brief 
+[Project History](./docs/about.md) are also available.
 
 ### License
 

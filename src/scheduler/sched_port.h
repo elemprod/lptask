@@ -2,9 +2,9 @@
  * @file sched_port.h
  * @author Ben Wirz
  * @brief Platform-specific scheduler support functions.
- * 
- * @note The functions marked as mandatory must be implemented by the user in 
- * order to utilize the scheduler module.  
+ *
+ * @note The functions marked as mandatory must be implemented by the user in
+ * order to utilize the scheduler module.
  */
 
 #ifndef SCHED_PORT_H__
@@ -16,14 +16,17 @@
  * @brief Mandatory platform-specific function for acquiring exclusive
  * access to the scheduler's shared data structure.
  *
- * The lock prevents different contexts of code from modifying the task que 
- * pointers at the same time which could lead to corruption of the que.
+ * The lock prevents different contexts of code from modifying the schedulers
+ * shared data at the same time which could lead to corruption of the que.
  */
 void sched_port_lock(void);
 
 /**
  * @brief Mandatory platform-specific function for releasing exclusive
  * access to the scheduler's shared data structure.
+ *
+ * The sched_port_free() function will be called once to following each
+ * sched_port_lock() call.
  */
 void sched_port_free(void);
 
@@ -32,9 +35,9 @@ void sched_port_free(void);
  * value of the mS timer to be utilized by the scheduler for task
  * timing.
  *
- * The timer counter must be monatomic, it should increment once for each mS of 
- * real time after initialization with no discontinuities or jumps.  It is 
- * expected to roll back to 0 after the UINT32_MAX value.  
+ * The timer counter must be monatomic, it should increment once for each mS of
+ * real time after initialization with no discontinuities or jumps.  It is
+ * expected to roll over to 0 after UINT32_MAX.
  *
  * @return The current timer value (mS).
  */
@@ -52,7 +55,7 @@ uint32_t sched_port_ms(void);
 void sched_port_sleep(uint32_t interval_ms);
 
 /**
- * @brief Optional function for performing in any platform-specific
+ * @brief Optional platform-specific specific function for performing any
  * initialization required for scheduler operation.
  *
  * The mS timer should be setup and enabled here if not previously

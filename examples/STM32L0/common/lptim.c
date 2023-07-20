@@ -135,11 +135,10 @@ void lptim_set(uint16_t period_ms) {
   // Calculate the compare value using the scaling of 1024 cnts per 1000 mS
   // if above the min. period.  Limit the counter to the auto reload value
   if (period_ms > LPTIM_TIME_MIN_MS) {
-    compare_value = (period_ms * 1024) / 1000 % LPTIM_ARR_MAX;
+    compare_value = ((period_ms * 1024) / 1000) & LPTIM_ARR_MAX;
   }
 
   // Write the Compare Register Value / LPTIM must be enabled
-  // TODO lptim enabled in init so enabling here shouldn't be needed
   LL_LPTIM_Enable(LPTIM1);
   lptim_compare_set(compare_value);
 
