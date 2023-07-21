@@ -1,4 +1,4 @@
-# STM32L0 Example Project 
+# STM32L0 Power Project 
 
 examples/STM32L0/power/
 
@@ -7,7 +7,7 @@ processor. Each of the progressively more sophisticated techniques
 offers additional power consumption improvements.  
 
 The project has a single scheduler task which is configured to toggle an LED 
-at 5 Hz.  Although the simple project doesn't represent a typical real world
+at 2 Hz.  Although this simple project doesn't represent a typical real world
 application, it does serve to demonstrate the potential power savings the
 more complex sleep techniques offer.
     
@@ -28,9 +28,9 @@ check every task in the scheduler's que for expiration.
 SLEEP_LPTIMER: The processor is stopped between expiring task using the WFI 
 instruction with the SYSTICK timer disabled.   The LPTIM (Low Power Timer) is 
 used to wake the processor once the next task expires.  The LPTIM is configured 
-to generate an interrupt at the next tasks expiration interval.    While this 
-technique increases the task to task jitter, it offers a 60 times improvement
-in power consumption over the SLEEP_SYSTICK method for this example.
+to generate an interrupt at the next tasks expiration interval.    This 
+technique offers a 60 times reduction in power consumption over the 
+SLEEP_SYSTICK method for this example.
 
 ### Hardware Test Setup
 
@@ -54,27 +54,28 @@ measurements.
 | SLEEP_LPTIMER  | 2.1 uA  | 500.7 mS | 209 uS |
 
 The average processor current was measured for each sleep method using a 
-7-1/2 Digit Keithley DMM7510.  Note that the current measurement is for the 
-processor only, the LED current is not included.  The task execution time 
-interval and interval jitter (standard deviation of the interval) were 
-measured by probing the LED output with an oscilloscope. 
+7-1/2 Digit Keithley DMM7510.  Note that the current measurement represents 
+processor current only, the LED drive current is not included in the 
+figure.  The task execution time interval and interval jitter (standard 
+deviation of the interval) were measured by probing the LED output with an 
+oscilloscope. 
 
 
+### Build Tools
+
+An STM32LO example project is provided for Segger Embedded Studio (SES) 
+software.  Segger offers a free non-commercial license for SES. It should be 
+relatively straight forward to setup the project with other compliers if 
+desired.
 
 ### Project Setup
 
-The STM32L0 Project requires that the STMicroelectronics supplied 
-STM32CubeL0 SDK be cloned to the following folder:
-
-/examples/STM32L0/SDK
-
-The STM32CubeL0 SDK is available at:
+The STMicroelectronics supplied STM32CubeL0 SDK should be cloned from:
 
 https://github.com/STMicroelectronics/STM32CubeL0.git
 
-### Build
+The SDK should be cloned one level below the library root to folder named 
+STM32CubeL0.  If a different location is utilized, the `SDKDir` macro, which 
+is defined inside of the SES project file, will need to be updated. 
 
-The STM32LO example projects are provided for Segger Embedded Studio 
-(SES) software.  Segger offers a free non-commercial license for SES. It 
-would be relatively straight forward to setup the project with other 
-compliers if desired.
+

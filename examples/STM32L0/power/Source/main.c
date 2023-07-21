@@ -1,14 +1,15 @@
 /******************************************************************
- *                                                                 *
- *      Simple Scheduler Example for the STM2L0XXX Processor       *
- *                                                                 *
- *  Hardware Requirements:                                         *
- *                                                                 *
- *   STM2L053C8 Processor                                          *
- *   32.768 kHz External Low Speed Crystal                         *
- *   LED & current limiting resistor connected to a GPIO pin.      *
- *                                                                 *
- *******************************************************************/
+ *                                                                *
+ *              LED Blink Scheduler Library Example               *
+ *                      STM2L0XXX Processor                       *
+ *                                                                *
+ *  Hardware Requirements:                                        *
+ *                                                                *
+ *   STM2L053C8 Processor                                         *
+ *   32.768 kHz External Low Speed Crystal                        *
+ *   LED & current limiting resistor connected to a GPIO pin.     *
+ *                                                                *
+ ******************************************************************/
 
 #include <assert.h>
 #include <stdbool.h>
@@ -23,14 +24,9 @@
 #include "stm32l0xx_ll_gpio.h"
 
 // LED0 GPIO & Port Definition
-// These defintions may need to be updated for the target board's hardware
+// These pin and port defintion may need to be updated for the target board's hardware
 
-#if 1
-  #define LED0_PIN GPIO_PIN_8
-#else
-  #define LED0_PIN GPIO_PIN_7
-#endif
-
+#define LED0_PIN GPIO_PIN_8
 #define LED0_PORT GPIOB
 #define LED0_PORT_CLK_EN() __HAL_RCC_GPIOB_CLK_ENABLE()
 
@@ -71,14 +67,14 @@ int main(void) {
   // Initialize the LED GPIO
   gpio_init();
 
-  // Initialize the scheduler before configuring the tasks.
+  // First initialize the scheduler before configuring the tasks.
   sched_init();
 
-  // Configure and start the LED0 Task to be called every 250 mS.
+  // Configure and start the LED0 task to be called every 250 mS.
   sched_task_config(&led0_task, led0_task_handler, 250, true);
   sched_task_start(&led0_task);
 
-  printf("STM32L0 LED Fast Blink Example\n"); 
+  printf("STM32L0 LED Slow Blink Example\n"); 
 
   // Start the scheduler (doesn't return)
   sched_start();

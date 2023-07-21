@@ -36,36 +36,36 @@
       link_linker_script_file="Setup/SEGGER_Flash.icf"
       linker_output_format="hex"
       linker_section_placements_segments="FLASH1 RX 0x08000000 0x00010000;FLASH2 RX 0x08080000 0x00000800;RAM1 RWX 0x20000000 0x00002000;"
-      macros="SDKDir=../SDK;SchedulerLibraryDir=../../../src/scheduler;PlatformCommonDir=.../common"
+      macros="SDKDir=../../../../STM32CubeL0;SchedulerLibraryDir=../../../src/scheduler;PlatformCommonDir=../common"
       project_directory=""
       project_type="Executable" />
     <configuration Name="Release" link_dedupe_code="Yes" />
-    <folder Name="Library">
-      <file file_name="../common/lptim.c" />
-      <file file_name="../common/lptim.h" />
-      <file file_name="../common/pwr_mode.c" />
-      <file file_name="../common/pwr_mode.h" />
+    <folder Name="Scheduler">
+      <file file_name="$(SchedulerLibraryDir)/sched_helper.h" />
+      <file file_name="$(SchedulerLibraryDir)/sched_port.h" />
+      <file file_name="$(SchedulerLibraryDir)/sched_types.h" />
       <file file_name="$(SchedulerLibraryDir)/scheduler.c" />
       <file file_name="$(SchedulerLibraryDir)/scheduler.h" />
-      <file file_name="../../../src/scheduler/sched_helper.h" />
-      <file file_name="../common/sched_port.c" />
-      <file file_name="../../../src/scheduler/sched_port.h" />
-      <file file_name="../../../src/scheduler/sched_types.h" />
     </folder>
     <folder Name="SDK">
       <file file_name="$(SDKDir)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal.c" />
-      <file file_name="../SDK/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_cortex.c" />
+      <file file_name="$(SDKDir)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_cortex.c" />
       <file file_name="$(SDKDir)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_gpio.c" />
       <file file_name="$(SDKDir)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_pwr.c" />
       <file file_name="$(SDKDir)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_rcc.c" />
-      <file file_name="../SDK/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_lptim.c" />
-      <file file_name="../SDK/Drivers/CMSIS/Device/ST/STM32L0xx/Source/Templates/system_stm32l0xx.c" />
+      <file file_name="$(SDKDir)/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_ll_lptim.c" />
+      <file file_name="$(SDKDir)/Drivers/CMSIS/Device/ST/STM32L0xx/Source/Templates/system_stm32l0xx.c" />
     </folder>
     <folder Name="Setup">
       <file file_name="Setup/SEGGER_Flash.icf" />
     </folder>
     <folder Name="Source">
+      <file file_name="$(PlatformCommonDir)/lptim.c" />
+      <file file_name="$(PlatformCommonDir)/lptim.h" />
       <file file_name="Source/main.c" />
+      <file file_name="$(PlatformCommonDir)/pwr_mode.c" />
+      <file file_name="$(PlatformCommonDir)/pwr_mode.h" />
+      <file file_name="$(PlatformCommonDir)/sched_port.c" />
       <file file_name="Source/stm32l0xx_hal_conf.h" />
       <file file_name="Source/stm32l0xx_it.c" />
       <file file_name="Source/stm32l0xx_it.h" />

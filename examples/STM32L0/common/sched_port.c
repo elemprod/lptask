@@ -69,9 +69,9 @@ void sched_port_sleep(uint32_t interval_ms) {
    * aggressive power reduction technique.
 
    * The systick timer is temporarily disabled in between active tasks and
-   * the low power timer is instead utilized for timing the sleep intervals.
-   * This method prevents the processor from needlessly waking every mS to
-   * check if the task has expired.
+   * the Low Power Timer (LPTIM) is instead utilized for timing the sleep 
+   * intervals.  This method avoids the processor needlessly waking every mS 
+   * to check for task expiration.
    */
   pwr_stop_lptim(interval_ms);
 #else
