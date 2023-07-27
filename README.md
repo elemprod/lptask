@@ -10,16 +10,16 @@
 
 The scheduler offers the following features:
 
-* The scheduler's design has been optimized for low power embedded 
+* The scheduler's design has been optimized for low-power embedded 
 applications.  Every architecture decision was made with the goal of performing 
 the required work and putting the the processors back to sleep as efficiently as 
 possible.
 * The platform-specific port function make is easy for developers to take 
-advantage of the sleep, timer and other power reduction mechanisms provided 
+advantage of the sleep, timer and other power-reduction mechanisms provided 
 by a particular processor.
-* The core scheduler module only requires ~1100 bytes of ROM making it well 
-suited for embedded platforms.
-* Tasks are statically allocated providing a fixed compile time memory 
+* The core scheduler module only requires ~1100 bytes of ROM making it 
+well-suited for embedded platforms.
+* Tasks are statically allocated, providing a fixed compile time memory 
 footprint. 
 * Each scheduler task only requires 20 bytes of RAM on a typical 32-bit 
 processor.
@@ -32,37 +32,45 @@ the main context with minimal overhead.
 
 ## Comparison to a Preemptive OS / RTOS
                                                             
-The cooperative scheduler does not provide all of the same features which a 
-preemptive OS (RTOS) typically does.  The major differences include:
+The cooperative scheduler does not support concurrency like a preemptive OS 
+does.  A cooperative task's handler function executes until it returns, once 
+the task interval expires, in a non-preemptive manner.  The task handler's 
+execution can only be suspended by a interrupt or exception event and not by 
+another scheduler task.
 
-* A task's handler executes until completion, once the task interval expires, in 
-a non-preemptive manner.  A task handler's execution can only be suspended by a 
-interrupt or exception event and not by another scheduler task.
-* It's typical to have several milliseconds of jitter in task execution 
-intervals for a system with multiple tasks which are active at the same 
-time.  This jitter is nearly always acceptable for UI related tasks such as 
-blinking an LED, debouncing a switch or timing the length of music note.
-* Tasks which require finer grain control or more deterministic behavior may 
-need be implemented with a dedicated  hardware timer.  For example, an 
-application might implement a real-time motion control loop with a 50 Hz 
-hardware timer and perform UI tasks with the scheduler. 
+A preemptive OS, in comparison, executes multiple threads in parallel.  A 
+thread can be suspended and resumed at a later time.   Thread concurrency is 
+very beneficial for managing multiple long running tasks in complex 
+implementations but it requires some additional OS overhead. Shared resources 
+must also be atomically accessed to avoid conflicts between the threads. A 
+cooperative scheduler can avoid the resource sharing issues since only one task 
+is ever be active at a given time.
+
+Since a cooperative task's handler can not be suspended by another task,  
+task handlers should ideally have a relatively short execution time.  A task 
+handler with a long execution time might delay other tasks introducing 
+interval error.  In practice, the problem rarely appears in a low-power 
+embedded systems which typically do not perform computationally intensive 
+operations.  If it does occur, longer running task can either be broken up into 
+shorter tasks or be configured as repeating tasks which perform their work 
+incrementally in smaller chunks.  
 
 ## Use Cases
 
 The LPTASK scheduler can be used in almost any simple to medium complexity 
-single processor embedded systems but it really shines in applications 
+single processor embedded system but it really shines in applications 
 which have some of the following characteristics:
 
-* Power reduction is a high priority which is almost always the case for battery 
-powered devices.
+* Power reduction is a high priority which is almost always the case for 
+battery powered devices.
 * The application has low duty cycle, the processor is anticipated to 
 be sleeping the majority of the time. 
-* The selected platform supports sleeping in a low power state during periods 
+* The platform supports sleeping in a low-power state during periods 
 of inactivity.
 * RAM and ROM resources are limited.
 
-Low power embedded systems typically only require hard real time performance 
-for a small subset of their tasks and often don't require hard real time 
+Low-power embedded systems typically only require hard real time performance 
+for a small subset of their tasks and often don't require hard real-time 
 performance at all.  These systems can live within a cooperative scheduler's 
 constraints, saving the overhead and complexity required by a typical 
 preemptive OS and potentially reducing the system's power consumption. 
@@ -93,7 +101,7 @@ int main() {
 
 The scheduler supports both unbuffered and buffered task types. Unbuffered tasks 
 don't have an internal data buffer. Data is added to the unbuffered tasks by 
-reference.  Only a pointer to the user supplied data and the data length are 
+reference.  Only a pointer to the user-supplied data and the data length are 
 stored inside the task structure when the `sched_task_data()` function is 
 called.  The externally stored data must still be valid when the task handler 
 is called at a later point in time.    
@@ -130,7 +138,7 @@ Task pool's are an alternative method of defining tasks.  A task pool is a
 collection of reusable buffered tasks which can be dynamically allocated at 
 runtime.  Once a task is removed from the task pool at allocation, it is 
 accessed in the same way that a regular buffered task would be.  The task 
-remains allocated until the task is stopped at which point it returns to the 
+remains allocated until the task is stopped, at which point it returns to the 
 pool and can be allocated again for other purposes.
 
 A task pool is defined with the `SCHED_TASK_POOL_DEF()` macro.   The macro 
@@ -149,13 +157,13 @@ SCHED_TASK_POOL_DEF(uart_pool, sizeof(uart_data_t), 2);
 ```
 
 A task can be allocated from the pool with the `sched_task_alloc()` function.  
-The function returns a pointer to the allocated task or `NULL` if no unallocated 
-tasks were available.
+The function returns a pointer to the allocated task or `NULL` if no 
+tasks could be allocated.
 
 ```c
 static void uart_isr() {
 
-  // Attempt to get a new task from the task pool.
+  // Attempt to allocate a new task from the task pool.
   sched_task_t * p_task = sched_task_alloc(&uart_pool);
 
   // The pool's task count may need to be increased if NULL was returned.
@@ -217,7 +225,7 @@ Access to the task functions are restricted by the following rules:
 it can be accessed with any of the other task functions.
 2. Once configured and started, a task can only be reconfigured with the 
 `sched_task_config()` after it has stopped.  
-3. The task data can only be set with the `sched_task_data()` function while 
+3. The task data can only be set with the `sched_task_data()` function when 
 the task is stopped.  
 
 Note that the values of the data stored inside a buffered task can be updated 

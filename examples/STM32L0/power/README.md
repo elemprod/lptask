@@ -28,9 +28,9 @@ check every task in the scheduler's que for expiration.
 SLEEP_LPTIMER: The processor is stopped between expiring task using the WFI 
 instruction with the SYSTICK timer disabled.   The LPTIM (Low Power Timer) is 
 used to wake the processor once the next task expires.  The LPTIM is configured 
-to generate an interrupt at the next tasks expiration interval.    This 
+to generate an interrupt at the next task's expiration interval.    This 
 technique offers a 60 times reduction in power consumption over the 
-SLEEP_SYSTICK method for this example.
+SLEEP_SYSTICK method in this example.
 
 ### Hardware Test Setup
 

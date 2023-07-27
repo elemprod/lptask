@@ -18,7 +18,8 @@
  * SCHED_TASK_BUFF_CLEAR_EN to be 1 if desired.  Clearing large task data
  * buffer can be expensive and is unnecessary for most applications since the
  * buffer is overwritten when data is added.  Clearing the buffer can be
- * useful for certain debugging purposes and it therefore optionally supported.
+ * useful for certain debugging purposes and it is therefore conditionally 
+ * supported.
  */
 #ifndef SCHED_TASK_BUFF_CLEAR_EN
 #define SCHED_TASK_BUFF_CLEAR_EN (0)
@@ -40,8 +41,8 @@
  *
  * If SCHED_TASK_POOL_EN is defined to be != 0, scheduler task pool support
  * will be enabled.  Task pools are enabled by default but the end user can
- * disable them to reduce the scheduler's ROM footprint support for them is not
- * needed.
+ * disable them to reduce the scheduler's ROM footprint if support for them is 
+ * not needed.
  */
 #ifndef SCHED_TASK_POOL_EN
 #define SCHED_TASK_POOL_EN (1)
@@ -103,8 +104,8 @@ typedef struct
 
 #if (SCHED_TASK_CACHE_EN != 0)
   /**
-   * @brief The updated flag tracks wether any active tasks have had their
-   * intervals updated since the schedulers task que was last serviced.  A
+   * @brief The updated flag tracks whether any active tasks have had their
+   * intervals updated since the scheduler's task que was last serviced.  A
    * task with an updated interval could invalidate the cached next task.  The
    * updated flag indicates that the cached next task should be ignored and
    * the next task search repeated by the scheduler during the task service
@@ -379,12 +380,12 @@ sched_task_t *sched_task_compare(const sched_task_t *p_task_a, const sched_task_
 #if (SCHED_TASK_CACHE_EN != 0)
 
 /**
- * @brief Function for atomically getting the updated flag and clearing it in
- * one call.
+ * @brief Function for atomically getting a copy of the updated flag and 
+ * clearing it in one function call.
  *
- * The function takes exclusive access to the schedulers data structure,
- * makes a copy of updated flag, clears the flag, releases exclusive access and
- * then returns the original flag value.
+ * After taking exclusive access to the scheduler's data structure, the 
+ * function makes a copy of updated flag, clears the flag, releases exclusive 
+ * access and returns the original flag value.
  *
  * @return  The value of the updated flag before it was cleared.
  */
@@ -398,7 +399,7 @@ static inline bool sched_updated_get_clear()
 }
 
 /**
- * @brief Function for atomically setting the schedulers updated flag.
+ * @brief Function for atomically setting the scheduler's updated flag.
  */
 static inline void sched_updated_set()
 {
@@ -447,14 +448,13 @@ static void sched_clear_que(void)
 /**
  * @brief Internal function for completing a scheduler stop.
  *
- * Called once the scheduler finishes executing the expired tasks handlers
- * to complete a scheduler stop.
+ * The function is called once the scheduler finishes executing all expired 
+ * task's handlers to complete a scheduler stop.
  */
 static void sched_stop_finalize(void)
 {
   if (scheduler.state == SCHED_STATE_STOPPING)
   {
-
     // Clear the que.
     sched_clear_que();
 
@@ -624,7 +624,7 @@ static uint32_t sched_execute_que()
     }
   }
 
-  /* Recalculate the next tasks expiration time using the current mS timer
+  /* Recalculate the next task's expiration time using the current mS timer
    * value to improve the accuracy of the sleep interval in cases were the task
    * execution time was significant.
    */

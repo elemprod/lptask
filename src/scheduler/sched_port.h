@@ -16,7 +16,7 @@
  * @brief Mandatory platform-specific function for acquiring exclusive
  * access to the scheduler's shared data structure.
  *
- * The lock prevents different contexts of code from modifying the schedulers
+ * The lock prevents different contexts of code from modifying the scheduler's
  * shared data at the same time which could lead to corruption of the que.
  */
 void sched_port_lock(void);
@@ -37,7 +37,7 @@ void sched_port_free(void);
  *
  * The timer counter must be monatomic, it should increment once for each mS of
  * real time after initialization with no discontinuities or jumps.  It is
- * expected to roll over to 0 after UINT32_MAX.
+ * expected to rollover to 0 after UINT32_MAX.
  *
  * @return The current timer value (mS).
  */
@@ -58,7 +58,7 @@ void sched_port_sleep(uint32_t interval_ms);
  * @brief Optional platform-specific specific function for performing any
  * initialization required for scheduler operation.
  *
- * The mS timer should be setup and enabled here if not previously
+ * The mS timer should be set up and enabled here if not previously
  * enabled.
  */
 void sched_port_init(void);

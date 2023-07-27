@@ -3,9 +3,9 @@
   *
   * @brief Interval Function Test
   * 
-  * Simple test of the the task interval math functions.
-  * Verifies that the unsigned integer calculations on the interval 
-  *  handle timer roll overs correctly.
+  * The program is a simple test of the task interval math functions.  It 
+  * verifies that the unsigned integer calculations on the interval 
+  * handle timer rollovers correctly.
   *
   */
 
@@ -24,16 +24,16 @@ const bool DEBUG = false;
 #define log_info(fmt, ...)              \
   do {                                  \
       if (DEBUG) {                      \
-        printf(fmt, ## __VA_ARGS__);  \
+        printf(fmt, ## __VA_ARGS__);    \
         fflush(stdout);                 \
       }                                 \
   } while (0)
 
 
-// Error Logging - Always Print
+// Error Logging - always print
 #define log_error(fmt, ...)             \
   do {                                  \
-    printf(fmt, ## __VA_ARGS__);      \
+    printf(fmt, ## __VA_ARGS__);        \
     fflush(stdout);                     \
   } while (0)
 

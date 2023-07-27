@@ -47,7 +47,7 @@ typedef enum
  * using the supplied scheduler functions.
  *
  * @note The allocated flag and state variables must be volatile since they
- * can be modified from a different contexts.
+ * can be modified from different contexts.
  */
 typedef struct _sched_task
 {

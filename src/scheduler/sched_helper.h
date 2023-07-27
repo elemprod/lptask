@@ -3,8 +3,8 @@
  * @author Ben Wirz
  * @brief Helper functions declarations and defines for the scheduler module.
  *
- * The declaration's are placed in a separate header file to reduce the
- * complexity of the schedulers top level header while still giving the end
+ * The declarations are placed in a separate header file to reduce the
+ * complexity of the scheduler's top level header while still giving the end
  * users access to them if needed.
  */
 
@@ -31,8 +31,8 @@
 #define SCHED_MS_DAY ((uint32_t)(24 * SCHED_MS_HOUR))
 
 /**
- * @brief Function for converting a days, hours, minutes, seconds and mS
- * interval into a scheduler task interval with units of miliseconds.
+ * @brief Function for converting an interval with days, hours, minutes, 
+ * seconds and mS units into a interval with units of miliseconds.
  *
  * @param[in] days    The number of days.
  * @param[in] hours   The number of hours.

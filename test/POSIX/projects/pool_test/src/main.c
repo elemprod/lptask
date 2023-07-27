@@ -3,17 +3,16 @@
  *
  *  POSIX Task Pool Test
  *
- * The program tests the schedulers Task Pool Mechanism.
+ * The program tests the scheduler's task pool functionality.
  *
- * Tasks are periodically allocated from the pool
- * Each task contains a randomized array of data and CRC
- * value for the data.
+ * Tasks are periodically allocated from the pool.  Each task contains a 
+ * randomized data array and CRC value for the data.
  *
  * The CRC is checked at each handler call to validate the stored
  * data.
  *
- * The buffer data is randomized and a new CRC calculated by the
- * handler periodically.
+ * The buffer data is randomized and a new CRC calculated during each
+ * handler call.
  */
 
 #include <stdio.h>
@@ -67,9 +66,9 @@ static void test_pass_set(bool pass) {
   }
 }
 
-
-
-// Define a pool of buffered task with storage space for the user data structure.
+/* Define a pool of buffered task with storage space for the user data 
+ * structure.
+ */
 SCHED_TASK_POOL_DEF(task_pool, sizeof(buff_test_data_t), TASK_COUNT);
 
 // Define a Pool Starter task to allocate and start all of the pool tasks.
@@ -220,9 +219,9 @@ int main(void) {
   // Seed the random number generator.
   srand((unsigned int) time(NULL));
 
-  /* Configure the pool starter task.  
-   * Note that start task needs to run faster than the pool tasks expire in 
-   * order to fully allocate the pool.
+  /* Configure the pool starter task.  Note that start task needs to run 
+   * more frequently than the pool tasks expire in order to fully allocate 
+   * the pool.
    */
   bool success = sched_task_config(&pool_starter_task, pool_starter_handler, 10, true);
   assert(success);

@@ -86,7 +86,7 @@ in a system level exception handler.
 Access to a task is limited by the task's current state as summarized in the 
 following table.  Although only one task handler can ever run at a given time, 
 an interrupt can both suspend a task handler's execution and also wake the 
-processor from sleep.  The schedulers access protection mechanism prevents a 
+processor from sleep.  The scheduler's access protection mechanism prevents a 
 task from being modified in a way which might corrupt the task or its 
 data.   For example, setting an active task's data pointer to NULL inside of an 
 ISR could lead to unpredictable operation if the task's handler was accessing 

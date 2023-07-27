@@ -53,7 +53,7 @@ Task caching can be disabled by by defining SCHED_TASK_CACHE_EN to be 0.
 <br clear="right"/>
 
 A flow chart representing the task search algorithm is presented below 
-for completeness.  The same task search technique is utilized wether or not 
+for completeness.  The same task search technique is utilized whether or not 
 caching is enabled.
 <center>
 <img src="./img/task_search.svg" align="center" hspace="5" 

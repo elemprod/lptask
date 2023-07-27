@@ -22,15 +22,15 @@
 /**
  * @brief Macro for defining an unbuffered scheduler task.
  *
- * An unbuffered scheduler task does not contain an internal buffer for user
- * data, data is added to unbuffered tasks by reference rather than by copy.
- * The data referenced by an unbuffered task must still be valid when the task
- * handler is called at later point in time.
+ * An unbuffered scheduler task does not contain an internal buffer for storing 
+ * user data. Data is added to unbuffered tasks by reference rather than by 
+ * copy as it is for buffered tasks. The data referenced by an unbuffered task 
+ * must still be valid when the task handler is called at later point in time.
  *
  * An unbuffered task can also be used for tasks which do not require that
  * data be passed to their handlers.  For example, an LED blink task may not
- * need to store task data since the LED output can simply be inverted during
- * each handler call.
+ * need to store task data since the LED's output pin can simply be inverted 
+ * during each handler call.
  *
  * @note Since the macro statically allocates a task, it should only be invoked
  * once per task.
@@ -51,9 +51,9 @@
  * @brief Macro for defining a single buffered scheduler task.
  *
  * A buffered scheduler task and an internal data buffer are defined by the
- * macro. The task data buffer is used to pass a copy of the user supplied data
- * to the task handler.  The buffer size is configurable on per task basis
- * and should be set the maximum data size which will be stored in the task.
+ * macro. The task data buffer is used to pass a copy of the user-supplied data
+ * to the task handler.  The buffer size is configurable on a per task basis
+ * and should be set to the maximum data size which will be stored in the task.
  *
  * @note Since this macro statically allocates a task and its data buffer, it
  * should only be invoked once per task.
@@ -78,7 +78,7 @@
  *
  * In addition to defining the pool structure, an array of buffered scheduler
  * tasks and their internal data buffers are defined. The internal buffer is
- * used to pass a copy of the user supplied data to the task handlers.
+ * used to pass a copy of the user-supplied data to the task handlers.
  *
  * All tasks in the pool have the same length data buffer. The buffer length
  * should be set to the maximum data size which any task will need to store.
@@ -114,9 +114,9 @@
  * Once allocated, a task is configured and accessed in the same way a normal
  * buffered task is.  A task remains allocated until it is stopped either due
  * to task expiration and subsequent handler return for a non-repeating task or
- * if it is stopped by the sched_task_stop() function for repeating task. Once
- * the task stops, it is returned to the task pool and will be available for
- * reuse at the next sched_task_alloc() call.  Allocated task should be
+ * if it is stopped by the sched_task_stop() function for a repeating task. 
+ * Once the task stops, it is returned to the task pool and will be available 
+ * for reuse at the next sched_task_alloc() call.  Allocated task must be
  * configured before use.
  *
  * @param[in] p_pool  Pointer to the task pool structure.
@@ -137,14 +137,14 @@ sched_task_t *sched_task_alloc(sched_task_pool_t *p_pool);
  * The scheduler must be initialized prior to configuring a task.
  *
  * The task interval for a repeating task is the desired time in mS between
- * task handler calls.   The interval for non-repeating task is the time
+ * task handler calls.   The interval for a non-repeating task is the time
  * delay from now until the task handler is called. An interval of 0 will
  * result in handler being called as soon as possible.
  *
  * @param[in] p_task        Pointer to the task.
  * @param[in] handler       Task handler function.
- * @param[in] interval_ms   The task interval (mS)
- * @param[in] repeat        True for a repeating tasks or False for single
+ * @param[in] interval_ms   The task interval (mS).
+ * @param[in] repeat        True for a repeating tasks else False for single
  *                          shot tasks.
  *
  * @retval True if the configuration succeeded.
@@ -187,7 +187,7 @@ bool sched_task_config(sched_task_t *p_task,
  * started.
  *
  * @param[in] p_task        Pointer to the task.
- * @param[in] p_data        Pointer to the user data to add to the task.
+ * @param[in] p_data        Pointer to the user data to add.
  * @param[in] data_size     The length of the user data (bytes).
  *
  * @retval The size of the data copied into a buffered task which may be less
@@ -207,7 +207,7 @@ uint8_t sched_task_data(sched_task_t *p_task,
  * Note that a task must have been previously configured before its interval
  * can be updated.
  *
- * @param[in] p_task        Pointer to the task to add to the scheduler
+ * @param[in] p_task        Pointer to the task to add to the scheduler.
  * @param[in] interval_ms   Task interval for a repeating task or a delay for
  *                          single-shot task (mS).
  *
@@ -227,7 +227,7 @@ bool sched_task_update(sched_task_t *p_task, uint32_t interval_ms);
  * interval of 0 mS may starve the other tasks of CPU time and should be used
  * with caution.
  *
- * @param[in] p_task  Pointer to the task to add to the scheduler
+ * @param[in] p_task  Pointer to the task to add to the scheduler.
  *
  * @retval True if the task was successfully started.
  * @retval False if the task could not be started because it has not previously
