@@ -14,6 +14,10 @@
 #include "stm32l0xx.h"
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Function for enabling the Run Power Mode with the Medium Speed
  * Internal Oscillator.
@@ -61,5 +65,9 @@ void pwr_stop_lptim(uint16_t period_ms);
  *            Or other lower level module error.
  */
 void pwr_init(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* PWR_MODE_H__ */

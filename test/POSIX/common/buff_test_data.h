@@ -1,7 +1,7 @@
 /**
- * buff_test_data_t.h
- *
- * Buffered Task Test Data Structure
+ * @file buff_test_data.h
+ * @author Ben Wirz
+ * @brief Buffered task test data structure definition.
  *
  * Defines a data structure for testing buffered tasks and helper
  * functions.
@@ -15,6 +15,10 @@
 #include <stdbool.h>
 #include <time.h>
 #include "task_time.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // Len of the Internal Buffer Data Buffer
 #define BUFF_DATA_LEN 64
@@ -56,5 +60,9 @@ void buff_randomize(buff_test_data_t * const p_data);
 
 // Function for initializing the buffer data structure.
 void buff_init(buff_test_data_t * const p_data);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // BUFF_TEST_DATA_H__

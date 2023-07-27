@@ -12,6 +12,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief A type representing a scheduler task state.
  *
@@ -160,5 +164,9 @@ typedef struct
  * @param[in] value The task count value to limit.
  */
 #define SCHED_TASK_LIMIT(value) ((uint8_t)SCHED_MIN(SCHED_MAX(value, 1), UINT8_MAX))
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // SCHED_TYPES_H__

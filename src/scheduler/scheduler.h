@@ -19,6 +19,10 @@
 #include "sched_port.h"
 #include "sched_helper.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief Macro for defining an unbuffered scheduler task.
  *
@@ -275,5 +279,9 @@ void sched_start(void);
  * will finish executing any expired task before completing the stop.
  */
 void sched_stop(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // SCHEDULER_H__

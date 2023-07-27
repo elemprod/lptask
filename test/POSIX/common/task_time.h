@@ -1,8 +1,8 @@
-//
-//  task_time.h
-//
-// Module for tracking a Scheduler Tasks Call Time Statistics.
-//
+/**
+ * @file task_time.h
+ * @author Ben Wirz
+ * @brief Module for tracking a scheduler tasks call time statistics.
+ */
 
 #ifndef TASK_TIME_H__
 #define TASK_TIME_H__
@@ -10,6 +10,10 @@
 #include <time.h>
 #include <stdint.h>
 #include <assert.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
  * Scheduler Task Call Time Tracking Data structure
@@ -46,6 +50,10 @@ void task_time_update(task_time_t * p_task_time);
  * Function for logging a Task's Time Tracking Data structure.
  */
 void task_time_log(task_time_t * p_task_time);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // TASK_TIME_H__
 

@@ -1,11 +1,9 @@
 /**
- * task_access_tests.h
+ * @file task_access_tests.h
+ * @author Ben Wirz
+ * @brief Module for testing the scheduler task access control mechanism.
  *
- * Module for testing the access control mechanism for scheduler tasks.
- * Each of the access control restrictions is tested and the results are
- * compared against the defined behaviour.
- *
- * A copy of the task is made and the checks are performed on the task
+ * @note A copy of the task is made and the checks are performed on the task
  * copy to avoid any risk of corrupting the original task.
  */
 
@@ -14,6 +12,10 @@
 
 #include <stdbool.h>
 #include "scheduler.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * Function for testing the task access control mechanism on
@@ -25,5 +27,9 @@
  *                    the access control tests else false.
  */
 bool task_access_test(const sched_task_t * const p_task);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // TASK_ACCESS_TEST_H__

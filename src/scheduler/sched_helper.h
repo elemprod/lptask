@@ -18,6 +18,10 @@
 #include "scheduler.h"
 #include "sched_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // The number of mS in one second.
 #define SCHED_MS_SECOND ((uint32_t)(1000))
 
@@ -187,5 +191,9 @@ static inline sched_task_state_t sched_task_state(const sched_task_t *p_task)
     return p_task->state;
   }
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // SCHED_HELPER_H__

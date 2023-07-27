@@ -12,6 +12,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief Mandatory platform-specific function for acquiring exclusive
  * access to the scheduler's shared data structure.
@@ -69,5 +73,9 @@ void sched_port_init(void);
  * sched_port_init() should be deinitialized here.
  */
 void sched_port_deinit(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // SCHED_PORT_H__

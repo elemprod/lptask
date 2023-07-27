@@ -23,6 +23,10 @@
 
 #include "stm32l0xx.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef LPTIM1
 #error "LPTIM1 Hardware Module Not Available!"
 #endif
@@ -74,5 +78,9 @@ void lptim_deinit(void);
  * in the startup code.
  */
 void LPTIM1_IRQHandler(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // LPTIM_H__
