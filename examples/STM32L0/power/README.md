@@ -6,10 +6,10 @@ The project demonstrates 3 different sleep methods for the STM32L0XX
 processor. Each of the progressively more sophisticated techniques 
 offers additional power consumption improvements.  
 
-The project has a single scheduler task which is configured to toggle an LED 
-at 2 Hz.  Although this simple project doesn't represent a typical real world
-application, it does serve to demonstrate the potential power savings the
-more complex sleep techniques offer.
+The project contains a single scheduler task which is configured to toggle an 
+LED at 2 Hz.  Although this simple project doesn't represent a typical 
+real-world application, it does serve to demonstrate the potential power 
+savings the more complex sleep techniques offer.
     
 ### Sleep Mode Selection
 

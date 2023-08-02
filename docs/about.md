@@ -9,7 +9,7 @@ contract engineering company located outside of Denver, CO.
 
 Like many open-source projects, LPTASK was born out of a need.  I was working
 on developing an embedded application which contained a large collection of 
-infrequently serviced tasks.  The project has an extremely aggressive power 
+infrequently serviced tasks.  The project had an extremely aggressive power 
 goal.  We were targeting a 2-year battery life from a CR2032 coin cell while 
 still performing useful work.  The reductions in power consumption 
 made by microcontroller vendors in the past decade made the power goals 
@@ -20,17 +20,17 @@ loop.  This approach work well for small applications but can become
 burdensome with a large number of tasks.  I wanted a cleaner and more modular 
 way of organizing the tasks for the project.  After evaluating the usual RTOS's 
 options, I came to the conclusion that while I could probably meet the power 
-budget by using an RTOS tickless mode.  The RTOS implementation still felt
+budget by using an RTOS tickless mode, the RTOS implementation still felt
 pretty heavy requiring 10K+ of FLASH and 100+ bytes of RAM per task.  
 
-In the end, I decided the easiest solution was to write my own cooperative task 
-scheduler using statically defined tasks and a linked list task que.  
+In the end, I decided that the easiest solution was to write my own cooperative 
+task scheduler using statically defined tasks and a linked list task que.  
 Implementing an array of tasks might have been simpler than the linked list but 
 it wouldn't achieve my goal being modular.  Supporting task definition inside 
-the module where the task was utilized seemed a cleaner approach to me.  I 
-wrote and tested the first version of the scheduler in a few days and it 
+the module where the task was utilized seemed to be a cleaner approach to 
+me.  I wrote and tested the first version of the scheduler in a few days and it 
 worked well for the project.  I went on to use the scheduler in a couple of 
-other projects expanding the functionality as needed. 
+other projects, expanding the functionality as needed. 
 
 I eventually realized that adding support for caching the next expired 
 task had the potential to improve the scheduler's efficiency.  The scheduler 

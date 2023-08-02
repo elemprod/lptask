@@ -1,7 +1,7 @@
 # Scheduler Testing
 
 A series of projects have been created to test the scheduler library.  The tests
-can be ran individually or as a group using the `test_all.sh` script.  
+can be run individually or as a group using the `test_all.sh` script.  
 
 Each of project's is designed to be compiled and ran on a POSIX system (Linux, 
 OSX, Raspberry Pi or Windows under Cygwin).  The host must have the GCC 
@@ -11,7 +11,7 @@ The test projects are  meant to be used for testing the scheduler library
 since any POSIX system would already have similar functionality to the scheduler 
 already included. 
 
-The test programs all return 0 if all of the test's pass and or 1 or a system 
+The test programs all return 0 if all of the tests pass and or 1 or a system 
 level error code if any of the tests fail so that the program results can be 
 handled by a shell script.  
 
@@ -29,7 +29,7 @@ Location:
 
 # Usage
 
-Each of the tests can be ran as a batch with the `test_all.sh` script. 
+Each of the tests can be run as a batch with the `test_all.sh` script. 
 
 The script builds and tests the scheduler for each of the supported [Build 
 Configurations.](../../docs/build_config.md)
@@ -48,8 +48,7 @@ states.
 ## Buffered Task Pool Test
 test/POSIX/projects/pool_test/
 
-The project tests creating a pool of buffered tasks and passing data to the 
-tasks.  
+The project tests buffered task creation and task data storage.
 
 ## Interval Math Test
 test/POSIX/projects/interval_math/
@@ -57,14 +56,6 @@ test/POSIX/projects/interval_math/
 The project performs unit testing the task interval math functions which are 
 used for calculating the task time to expiration.  The program verifies that 
 interval is correctly calculated for the possible timer roll over conditions.
-
-## Context Test
-test/POSIX/projects/context_test/
-
-The project tests configuring and starting tasks from different contexts.  
-Tasks are added from inside a separate thread to simulate task being accessed
-from inside an embedded interrupt handler.  
-
 
 ## Interval Test
 test/POSIX/projects/interval_test/
@@ -75,11 +66,11 @@ test/POSIX/projects/interval_test/
   - The minimum, average and maximum interval time error is calculated for 
      each task in its handler call.  The interval time error is the difference 
      between the programmed and actual time interval between task handler calls.
-  - Any timer roll over or other math errors in the scheduler would detectable 
-    by a large interval error.
+  - Any timer math errors in the scheduler would detectable by a large 
+  interval error.
   - A non-repeating task is included to test errors which might be introduced 
     as a result of restarting the task inside the  handler.  The interval is 
     set to a new random interval during each  handler call and the task 
     restarted.
-  - The test stops after ~7 days and the results are reported to the console.
+
 

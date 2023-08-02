@@ -37,7 +37,7 @@
 #endif
 
 /**
- * @brief Definition to enable or disable Scheduler Task Pool's.
+ * @brief Definition to enable or disable Scheduler Task Pools.
  *
  * If SCHED_TASK_POOL_EN is defined to be != 0, scheduler task pool support
  * will be enabled.  Task pools are enabled by default but the end user can

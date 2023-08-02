@@ -96,7 +96,7 @@ function might always sleep for 1 mS before returning.  The fixed sleep
 duration could be increased to 5 or 10 mS if the application can tolerate a 
 larger jitter in the task interval execution.  This may not be the lowest 
 power solution for an application which uses a longer task intervals but it 
-is oten simple to implement.
+is typically simple to implement.
 
 <br clear="right"/>
 

@@ -64,7 +64,7 @@ risk of corrupting the handler's operation.
 
 The flow chart shows higher priority interrupt event occurring while the 
 processor was executing an ISR as a result of a different interrupt. This can 
-only happen on a platform which supports nested interrupts which many modern 
+only happen on a platform which supports nested interrupts, which many modern 
 processors do.  A nested interrupt has the same access restrictions as a 
 single interrupt.
 <br clear="left"/>
@@ -72,8 +72,8 @@ single interrupt.
 Note that an interrupt is just one of the several types of exceptions which a 
 particular platform may support.   A variety of different hardware events 
 including memory access, timer expiration, reset and hardware interrupts can 
-generate processor exception events.  Each exception type typically has its 
-own handler which is triggered by the exception.  In the case of interrupts, 
+generate processor exception events.  Each type of exception typically has its 
+own handler which is triggered by the exception event.  In the case of interrupts, 
 the exception handler is known as an ISR (Interrupt Service Routine).  The flow 
 charts above only show interrupt events impeding the task handler flow but any 
 exception can do the same.    Interrupts are shown here because ISR's are 
@@ -103,22 +103,22 @@ the data pointer at the same time.
 
 ## Access Control Rationale
 
-The reasoning for each the task state access control restrictions is documented 
+The reasoning for each the task state access control restriction is documented 
 bel.ow.
 
 * SCHED_TASK_UNINIT:
     * A task must be initialized with `sched_task_config()` function prior to 
     use. The function configures the task and adds it to the task que.
-    * Any other function calls on uninitialized tasks can not be completed and
-    will return failed since.
+    * All other function calls on uninitialized tasks which can not be 
+    completed and will return failed.
 
 * SCHED_TASK_STOPPED:  
     * No access protection is required when the task is stopped.
     * Stopped is the only task state during which the task data reference can 
     be modified.  This restriction protects task data reference from being 
     modified from within an ISR while the task's handler is executing. Note 
-    that only the data reference is protected, the value of the data can
-    be modified inside the task handler for a non-stopped task.
+    that only the data reference is protected, the value of the referenced 
+    data can be modified.
 
 * SCHED_TASK_ACTIVE:  
     * Calls to the interval set function, on a currently active task, stop the 

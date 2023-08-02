@@ -4,27 +4,26 @@
 
 Embedded processors can have a wide range of capabilities from the simple 
 8-bit 1980's era PICmicro to a 4 GHz 32-core headless edge computer.  The 
-LPTASK library targets low to medium power single core embedded 
+LPTASK library targets low to medium-power single core embedded 
 processors, typically 32-bits with at least 8kB of ROM.  The ARM Cortex 
 processor will be a very common target for the library but it can be used with 
 any processor for which a C complier is available.  
 
 We define the anticipated target here, at the beginning of the style guide, 
-since the target has guided the project convention selections presented below 
-despite our desire to keep the project as platform agnostic as possible.  The 
-choice of a simple boolean return values is one example of this influence.
+since the target selection has heavily influenced the style guide, despite 
+our desire to keep the project as platform agnostic as possible.
 
 ## Naming Conventions
 
-The `Snake Case` naming convention is used with lower cases letters. Spaces are 
+The [Snake Case](https://en.wikipedia.org/wiki/Snake_case) naming convention is used with lower cases letters. Spaces are 
 replaced with underscores "_."  Constant value definitions and macros use 
 upper case letters and the same underscore separator. 
 
 All publicly accessible functions, macros and scheduler specific type names 
-have "sched_" prepended to provide module level naming scope.
+have "sched_" prepended to provide module-level naming scope.
 
-Functions names which operate on a scheduler task have 
-"sched_task_" prepended.
+Functions' which operate on a scheduler task have "sched_task_" prepended to 
+their name.
 
 Platform specific functions should have "sched_port_" prepended to indicate that
 they are specific to the particular processor or processor family and need to 
@@ -50,7 +49,7 @@ requested at run-time.
 * Where possible, prefer static inline functions versus function like 
 macros.  Although this approach requires trusting the compiler to generate 
 efficient code, it significantly improves the source code readability and 
-provides for simpler debugging in most cases.
+allows for simpler debugging in many cases.
 
 * Prefer enumerations with typedefs versus #defines for multi-valued 
 constants.  When properly named, a typedef is self-documenting even though 

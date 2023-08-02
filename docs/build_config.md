@@ -26,7 +26,7 @@ supported.  Note that the definition does not apply to unbuffered tasks.
 ## SCHED_TASK_POOL_EN
 
 Scheduler task pools can optionally be disabled with the SCHED_TASK_POOL_EN
-define.  If `SCHED_TASK_POOL_EN` is set to be 0, scheduler task pools are  
+#define.  If `SCHED_TASK_POOL_EN` is set to be 0, scheduler task pools are  
 disabled.   Task pools are enabled by default but the end user can disable them 
 to save ROM space and to slightly improve scheduler performance  if they are 
 not needed.
