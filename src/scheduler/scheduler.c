@@ -389,7 +389,7 @@ sched_task_t *sched_task_compare(const sched_task_t *p_task_a, const sched_task_
  *
  * @return  The value of the updated flag before it was cleared.
  */
-static inline bool sched_updated_get_clear()
+static inline bool sched_updated_get_clear(void)
 {
   sched_port_lock();
   bool updated = scheduler.updated;
@@ -401,7 +401,7 @@ static inline bool sched_updated_get_clear()
 /**
  * @brief Function for atomically setting the scheduler's updated flag.
  */
-static inline void sched_updated_set()
+static inline void sched_updated_set(void)
 {
   sched_port_lock();
   scheduler.updated = true;
@@ -409,7 +409,7 @@ static inline void sched_updated_set()
 }
 
 #else
-static inline void sched_updated_set()
+static inline void sched_updated_set(void)
 {
   // Empty
 }
@@ -528,7 +528,7 @@ static void task_execute_handler(sched_task_t *p_task)
  * @return The time until expiration of the next expiring task in mS or
  *         SCHED_MS_MAX if no active tasks were found.
  */
-static uint32_t sched_execute_que()
+static uint32_t sched_execute_que(void)
 {
 
   // Get the current time.

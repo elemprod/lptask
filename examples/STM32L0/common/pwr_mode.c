@@ -90,7 +90,7 @@ static void ls_clk_enable(bool enable) {
 }
 
 // Function for enabling the Regular Run Mode.
-void pwr_run_msi() {
+void pwr_run_msi(void) {
   HAL_StatusTypeDef ret;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
 
@@ -121,7 +121,7 @@ void pwr_run_msi() {
   __HAL_RCC_WAKEUPSTOP_CLK_CONFIG(RCC_STOP_WAKEUPCLOCK_MSI);
 }
 
-void pwr_run_hsi() {
+void pwr_run_hsi(void) {
   HAL_StatusTypeDef ret;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
 
@@ -154,7 +154,7 @@ void pwr_run_hsi() {
   __HAL_RCC_WAKEUPSTOP_CLK_CONFIG(RCC_STOP_WAKEUPCLOCK_HSI);
 }
 
-void pwr_sleep() {
+void pwr_sleep(void) {
   HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
 }
 
@@ -197,7 +197,7 @@ void pwr_stop_lptim(uint16_t period_ms) {
   }
 }
 
-void pwr_init() {
+void pwr_init(void) {
 
   // Enable the RCC Power Control Clock
   __HAL_RCC_PWR_CLK_ENABLE();

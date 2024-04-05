@@ -23,6 +23,9 @@
 #include "stm32l0xx_hal.h"
 #include "stm32l0xx_ll_gpio.h"
 
+// Forward declaration.
+static void gpio_init(void);
+
 // LED0 GPIO & Port Definition
 // These pin and port defintion may need to be updated for the target board's hardware
 
@@ -31,7 +34,7 @@
 #define LED0_PORT_CLK_EN() __HAL_RCC_GPIOB_CLK_ENABLE()
 
 // Function for initializing the GPIO Pins's.
-void gpio_init() {
+static void gpio_init(void) {
 
   // Enable the LED0 Port GPIO Clock
   LED0_PORT_CLK_EN();
