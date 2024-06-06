@@ -237,9 +237,9 @@ explanation of the task access control mechanisms.
 
 ## Porting to a New Platform
  
-An [example project](./examples/README.md) is available in the `/examples/` 
-folder.  If your processor doesn't match the example, you will need to 
-implement the mandatory functions defined in the
+An [example project](./examples/STM32L0/power/README.md) is available in the
+ `/examples/` folder.  If your processor doesn't match the example, you will 
+ need to implement the mandatory functions defined in the
 [sched_port.h](./src/scheduler/sched_port.h) header.  See the 
 [Platform Port](./docs/port.md) document for more detailed information on 
 adding support for a new platform.
