@@ -19,8 +19,8 @@ extern "C" {
 /**
  * @brief A type representing a scheduler task state.
  *
- * @note The enum values need to be explicitly set since they are stored as
- * a nibble sized bit-field.
+ * @note The enum values need to be explicitly set since they 
+ * are stored as a nibble sized bit-field in the task structure.
  */
 typedef enum
 {
@@ -96,8 +96,8 @@ typedef struct _sched_task
   /// @brief Has the task been been allocated?  Only used for task pools.
   volatile bool allocated : 1;
 
-  /// @brief The task's current state.
-  volatile sched_task_state_t state : 4;
+  /// @brief The task's current state. (sched_task_state_t) 
+  volatile uint8_t state : 4;
 
 } sched_task_t;
 
